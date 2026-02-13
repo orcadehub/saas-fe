@@ -17,7 +17,12 @@ export default defineConfig(({ mode }) => {
       host: true
     },
     build: {
-      chunkSizeWarningLimit: 1600
+      chunkSizeWarningLimit: 1600,
+      rollupOptions: {
+        output: {
+          manualChunks: undefined
+        }
+      }
     },
     preview: {
       open: true,

@@ -61,6 +61,8 @@ export default function AssessmentTaking() {
   const [lastCodeData, setLastCodeData] = useState(null);
   const [fontSize, setFontSize] = useState(18);
   const [frontendCompletedQuestions, setFrontendCompletedQuestions] = useState(new Set());
+  const [editorLoaded, setEditorLoaded] = useState(false);
+  const [showEditorRefresh, setShowEditorRefresh] = useState(false);
 
   const getLanguageTemplate = (lang) => {
     switch (lang) {
@@ -103,6 +105,17 @@ export default function AssessmentTaking() {
       const storageKey = `assessment_${id}_question_${questions[currentQuestionIndex]._id}_${language}`;
       const savedCode = sessionStorage.getItem(storageKey);
       setCode(savedCode || getLanguageTemplate(language));
+      setEditorLoaded(false);
+      setShowEditorRefresh(false);
+      
+      // Show refresh button after 10 seconds if editor not loaded
+      const timer = setTimeout(() => {
+        if (!editorLoaded) {
+          setShowEditorRefresh(true);
+        }
+      }, 10000);
+      
+      return () => clearTimeout(timer);
     }
   }, [currentQuestionIndex, language, questions, id]);
 
@@ -385,6 +398,7 @@ export default function AssessmentTaking() {
   useEffect(() => {
     // Reset test case tab when question changes
     setCurrentTestCaseTab(0);
+    setTestCaseResults({});
   }, [currentQuestionIndex]);
 
   useEffect(() => {
@@ -1771,15 +1785,50 @@ export default function AssessmentTaking() {
                       minHeight: 0,
                       border: '1px solid #e0e0e0',
                       borderRadius: 1,
-                      overflow: 'hidden'
+                      overflow: 'hidden',
+                      position: 'relative'
                     }}>
+                      {!editorLoaded && (
+                        <Box sx={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          bgcolor: 'rgba(255,255,255,0.9)',
+                          zIndex: 10,
+                          flexDirection: 'column',
+                          gap: 2
+                        }}>
+                          <CircularProgress />
+                          {showEditorRefresh && (
+                            <Button
+                              variant="contained"
+                              onClick={() => {
+                                setEditorLoaded(false);
+                                setShowEditorRefresh(false);
+                                window.location.reload();
+                              }}
+                            >
+                              Refresh Editor
+                            </Button>
+                          )}
+                        </Box>
+                      )}
                       <Editor
                         height="100%"
                         language={getMonacoLanguage(language)}
                         value={code}
                         theme="vs-dark"
                         onChange={(value) => setCode(value || '')}
-                        onMount={(editor) => { editorRef.current = editor; }}
+                        onMount={(editor) => { 
+                          editorRef.current = editor;
+                          setEditorLoaded(true);
+                          setShowEditorRefresh(false);
+                        }}
                         options={{
                           fontSize: fontSize,
                           minimap: { enabled: false },

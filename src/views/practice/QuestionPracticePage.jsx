@@ -5,16 +5,15 @@ import { ArrowBack, PlayArrow, CheckCircle, Close, Add, Remove } from '@mui/icon
 import Editor from '@monaco-editor/react';
 import { submitCode } from 'services/pistonService';
 import tenantConfig from 'config/tenantConfig';
-import apiService from 'services/apiService';
+import { useAuth } from 'contexts/AuthContext';
 
-export default function AssessmentPractice() {
-  const { id } = useParams();
+export default function QuestionPracticePage() {
+  const { id, topic } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [config, setConfig] = useState(null);
-  const [assessment, setAssessment] = useState(null);
-  const [questions, setQuestions] = useState([]);
+  const [question, setQuestion] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [language, setLanguage] = useState('');
   const [code, setCode] = useState('');
   const [fontSize, setFontSize] = useState(18);
@@ -33,22 +32,36 @@ export default function AssessmentPractice() {
   }, []);
 
   useEffect(() => {
-    if (config) {
-      fetchAssessment();
+    if (config && user?.token) {
+      fetchQuestion();
     }
-  }, [config, id]);
+  }, [config, user, id]);
 
-  const fetchAssessment = async () => {
+  const getApiUrl = () => {
+    return import.meta.env.DEV ? 'http://localhost:4000/api' : (config?.apiEndpoint || 'https://backend.orcode.in/api');
+  };
+
+  const getHeaders = () => ({
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${user?.token}`,
+    'x-api-key': config?.apiKey || '',
+    'x-tenant-id': config?.tenantId || ''
+  });
+
+  const fetchQuestion = async () => {
     try {
-      const token = localStorage.getItem('studentToken');
-      const assessmentData = await apiService.getAssessmentDetails(token, id);
-      setAssessment(assessmentData);
-      setQuestions(assessmentData.questions || []);
-      if (assessmentData.questions?.length > 0) {
-        setLanguage(assessmentData.allowedLanguages?.[0] || 'python');
+      const endpoint = topic ? `programming-questions/question/${id}` : `assessment-questions/${id}`;
+      const response = await fetch(`${getApiUrl()}/${endpoint}`, {
+        headers: getHeaders()
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setQuestion(data);
+        setLanguage('python');
       }
     } catch (error) {
-      console.error('Error fetching assessment:', error);
+      console.error('Error fetching question:', error);
     } finally {
       setLoading(false);
     }
@@ -85,19 +98,19 @@ export default function AssessmentPractice() {
   };
 
   useEffect(() => {
-    if (questions[currentQuestionIndex]?._id && language) {
-      const storageKey = `practice_assessment_${id}_question_${questions[currentQuestionIndex]._id}_${language}`;
+    if (language) {
+      const storageKey = `practice_${id}_${language}`;
       const savedCode = localStorage.getItem(storageKey);
       setCode(savedCode || getLanguageTemplate(language));
     }
-  }, [currentQuestionIndex, language, questions, id]);
+  }, [language, id]);
 
   useEffect(() => {
-    if (questions[currentQuestionIndex]?._id && language && code) {
-      const storageKey = `practice_assessment_${id}_question_${questions[currentQuestionIndex]._id}_${language}`;
+    if (language && code) {
+      const storageKey = `practice_${id}_${language}`;
       localStorage.setItem(storageKey, code);
     }
-  }, [code, currentQuestionIndex, language, questions, id]);
+  }, [code, language, id]);
 
   const handleRunCode = async () => {
     if (!code.trim() || !language) return;
@@ -105,7 +118,7 @@ export default function AssessmentPractice() {
     setIsRunning(true);
     setTestCaseResults({});
     
-    const publicTestCases = questions[currentQuestionIndex]?.testCases?.filter(tc => tc.isPublic) || [];
+    const publicTestCases = question?.testCases?.filter(tc => tc.isPublic) || [];
     const languageId = getLanguageId(language);
     
     for (let i = 0; i < publicTestCases.length; i++) {
@@ -149,7 +162,7 @@ export default function AssessmentPractice() {
   const handleSubmit = async () => {
     if (!code.trim() || !language) return;
     
-    const allTestCases = questions[currentQuestionIndex]?.testCases || [];
+    const allTestCases = question?.testCases || [];
     
     const initialResults = allTestCases.map((tc, i) => ({
       index: i + 1,
@@ -239,26 +252,24 @@ export default function AssessmentPractice() {
     );
   }
 
-  if (!assessment || questions.length === 0) {
+  if (!question) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', flexDirection: 'column', gap: 2 }}>
-        <Typography variant="h5">Assessment not found</Typography>
-        <Button variant="outlined" onClick={() => navigate('/assessments')}>Back to Assessments</Button>
+        <Typography variant="h5">Question not found</Typography>
+        <Button variant="outlined" onClick={() => navigate(topic ? `/practice/programming/${topic}` : '/practice/assessment')}>Back to Questions</Button>
       </Box>
     );
   }
-
-  const currentQuestion = questions[currentQuestionIndex];
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
       {/* Header */}
       <Box sx={{ p: 2, borderBottom: '1px solid #e0e0e0', display: 'flex', alignItems: 'center', gap: 2, bgcolor: '#ffffff' }}>
-        <IconButton onClick={() => navigate('/assessments')}>
+        <IconButton onClick={() => navigate(topic ? `/practice/programming/${topic}` : '/practice/assessment')}>
           <ArrowBack />
         </IconButton>
         <Typography variant="h6" sx={{ fontWeight: 600, flexGrow: 1 }}>
-          {assessment.title} - Practice Mode
+          {question.title}
         </Typography>
         <Chip label="Practice Mode" color="success" />
       </Box>
@@ -266,36 +277,14 @@ export default function AssessmentPractice() {
       <Box sx={{ display: 'grid', gridTemplateColumns: '50% 4px 50%', flexGrow: 1, height: '100%', overflow: 'hidden' }}>
         {/* Problem Statement */}
         <Box sx={{ overflow: 'auto', height: '100%', bgcolor: '#ffffff', '&::-webkit-scrollbar': { display: 'none' }, scrollbarWidth: 'none' }}>
-          {/* Question Navigation */}
-          <Box sx={{ p: 2, borderBottom: '1px solid #e0e0e0', bgcolor: '#f8f9fa', position: 'sticky', top: 0, zIndex: 10 }}>
-            <Box sx={{ display: 'flex', gap: 1, overflow: 'auto', '&::-webkit-scrollbar': { display: 'none' }, scrollbarWidth: 'none' }}>
-              {questions.map((q, index) => (
-                <Button
-                  key={index}
-                  variant={index === currentQuestionIndex ? 'contained' : 'outlined'}
-                  size="small"
-                  onClick={() => setCurrentQuestionIndex(index)}
-                  sx={{
-                    minWidth: '48px',
-                    height: '48px',
-                    fontSize: '1.1rem',
-                    fontWeight: 600
-                  }}
-                >
-                  {index + 1}
-                </Button>
-              ))}
-            </Box>
-          </Box>
-
           <Box sx={{ p: 4, maxWidth: '900px', mx: 'auto' }}>
             <Typography variant="h4" sx={{ fontWeight: 700, mb: 3 }}>
-              {currentQuestion.title}
+              {question.title}
             </Typography>
 
-            {currentQuestion.tags && currentQuestion.tags.length > 0 && (
+            {question.tags && question.tags.length > 0 && (
               <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 3 }}>
-                {currentQuestion.tags.map((tag, idx) => (
+                {question.tags.map((tag, idx) => (
                   <Chip key={idx} label={tag} size="small" />
                 ))}
               </Box>
@@ -304,15 +293,15 @@ export default function AssessmentPractice() {
             <Box sx={{ mb: 4 }}>
               <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>Description</Typography>
               <Typography variant="body1" sx={{ lineHeight: 1.8 }}>
-                {currentQuestion.description}
+                {question.description}
               </Typography>
             </Box>
 
-            {currentQuestion.constraints && (
+            {question.constraints && (
               <Box sx={{ mb: 4 }}>
                 <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>Constraints</Typography>
                 <Box component="ul" sx={{ pl: 3, m: 0 }}>
-                  {(Array.isArray(currentQuestion.constraints) ? currentQuestion.constraints : [currentQuestion.constraints]).map((constraint, idx) => (
+                  {(Array.isArray(question.constraints) ? question.constraints : [question.constraints]).map((constraint, idx) => (
                     <Typography key={idx} component="li" variant="body1" sx={{ mb: 1 }}>
                       {constraint}
                     </Typography>
@@ -321,34 +310,34 @@ export default function AssessmentPractice() {
               </Box>
             )}
 
-            {currentQuestion.example && (
+            {question.example && (
               <Box sx={{ mb: 4 }}>
                 <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>Example</Typography>
                 <Box sx={{ p: 2, bgcolor: '#f8f9fa', borderRadius: 1 }}>
-                  {currentQuestion.example.input && (
+                  {question.example.input && (
                     <Typography variant="body2" sx={{ fontFamily: 'monospace', mb: 1 }}>
-                      <strong>Input:</strong> {currentQuestion.example.input}
+                      <strong>Input:</strong> {question.example.input}
                     </Typography>
                   )}
-                  {currentQuestion.example.output && (
+                  {question.example.output && (
                     <Typography variant="body2" sx={{ fontFamily: 'monospace', mb: 1 }}>
-                      <strong>Output:</strong> {currentQuestion.example.output}
+                      <strong>Output:</strong> {question.example.output}
                     </Typography>
                   )}
-                  {currentQuestion.example.explanation && (
+                  {question.example.explanation && (
                     <Typography variant="body2" sx={{ mt: 1, fontStyle: 'italic' }}>
-                      <strong>Explanation:</strong> {currentQuestion.example.explanation}
+                      <strong>Explanation:</strong> {question.example.explanation}
                     </Typography>
                   )}
                 </Box>
               </Box>
             )}
 
-            {currentQuestion.intuition?.keyInsights && (
+            {question.intuition?.keyInsights && (
               <Box sx={{ mb: 4 }}>
                 <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>Key Insights</Typography>
                 <Box component="ul" sx={{ pl: 3, m: 0 }}>
-                  {currentQuestion.intuition.keyInsights.map((insight, idx) => (
+                  {question.intuition.keyInsights.map((insight, idx) => (
                     <Typography key={idx} component="li" variant="body1" sx={{ mb: 1, lineHeight: 1.8 }}>
                       {insight}
                     </Typography>
@@ -357,11 +346,11 @@ export default function AssessmentPractice() {
               </Box>
             )}
 
-            {currentQuestion.intuition?.algorithmSteps && (
+            {question.intuition?.algorithmSteps && (
               <Box sx={{ mb: 4 }}>
                 <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>Algorithm</Typography>
                 <Box component="ol" sx={{ pl: 3, m: 0 }}>
-                  {currentQuestion.intuition.algorithmSteps.map((step, idx) => (
+                  {question.intuition.algorithmSteps.map((step, idx) => (
                     <Typography key={idx} component="li" variant="body1" sx={{ mb: 1, lineHeight: 1.8 }}>
                       {step}
                     </Typography>
@@ -370,18 +359,18 @@ export default function AssessmentPractice() {
               </Box>
             )}
 
-            {(currentQuestion.intuition?.timeComplexity || currentQuestion.intuition?.spaceComplexity) && (
+            {(question.intuition?.timeComplexity || question.intuition?.spaceComplexity) && (
               <Box sx={{ mb: 4 }}>
                 <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>Complexity</Typography>
                 <Box sx={{ p: 2, bgcolor: '#f8f9fa', borderRadius: 1 }}>
-                  {currentQuestion.intuition.timeComplexity && (
+                  {question.intuition.timeComplexity && (
                     <Typography variant="body1" sx={{ mb: 1 }}>
-                      <strong>Time Complexity:</strong> {currentQuestion.intuition.timeComplexity}
+                      <strong>Time Complexity:</strong> {question.intuition.timeComplexity}
                     </Typography>
                   )}
-                  {currentQuestion.intuition.spaceComplexity && (
+                  {question.intuition.spaceComplexity && (
                     <Typography variant="body1">
-                      <strong>Space Complexity:</strong> {currentQuestion.intuition.spaceComplexity}
+                      <strong>Space Complexity:</strong> {question.intuition.spaceComplexity}
                     </Typography>
                   )}
                 </Box>
@@ -400,7 +389,7 @@ export default function AssessmentPractice() {
               <FormControl size="small" sx={{ minWidth: 120 }}>
                 <InputLabel>Language</InputLabel>
                 <Select value={language} label="Language" onChange={(e) => setLanguage(e.target.value)}>
-                  {(assessment?.allowedLanguages || ['python', 'cpp', 'java', 'c']).map((lang) => (
+                  {['python', 'cpp', 'java', 'c'].map((lang) => (
                     <MenuItem key={lang} value={lang}>
                       {lang === 'cpp' ? 'C++' : lang.charAt(0).toUpperCase() + lang.slice(1)}
                     </MenuItem>
@@ -463,7 +452,7 @@ export default function AssessmentPractice() {
           <Box sx={{ height: `${100 - compilerSplit}%`, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
             <Box sx={{ borderBottom: '1px solid #e0e0e0' }}>
               <Tabs value={currentTestCaseTab} onChange={(e, newValue) => setCurrentTestCaseTab(newValue)} variant="scrollable" scrollButtons="auto">
-                {(currentQuestion.testCases?.filter(tc => tc.isPublic) || []).map((tc, index) => {
+                {(question.testCases?.filter(tc => tc.isPublic) || []).map((tc, index) => {
                   const result = testCaseResults[index];
                   const isPassed = result && !result.loading && !result.error && result.output?.trim() === (tc.output?.value || tc.output)?.toString().trim();
                   const isFailed = result && !result.loading && (result.error || result.output?.trim() !== (tc.output?.value || tc.output)?.toString().trim());
@@ -476,12 +465,12 @@ export default function AssessmentPractice() {
             </Box>
 
             <Box sx={{ p: 4, flexGrow: 1, overflow: 'auto' }}>
-              {currentQuestion.testCases?.filter(tc => tc.isPublic)[currentTestCaseTab] && (
+              {question.testCases?.filter(tc => tc.isPublic)[currentTestCaseTab] && (
                 <>
                   <Box sx={{ mb: 3 }}>
                     <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1.5 }}>Input</Typography>
                     <Box sx={{ bgcolor: '#f5f5f5', border: '1px solid #e0e0e0', p: 2.5, borderRadius: 2, fontFamily: 'monospace', whiteSpace: 'pre-wrap' }}>
-                      {currentQuestion.testCases.filter(tc => tc.isPublic)[currentTestCaseTab].input?.value || currentQuestion.testCases.filter(tc => tc.isPublic)[currentTestCaseTab].input}
+                      {question.testCases.filter(tc => tc.isPublic)[currentTestCaseTab].input?.value || question.testCases.filter(tc => tc.isPublic)[currentTestCaseTab].input}
                     </Box>
                   </Box>
 
@@ -497,7 +486,7 @@ export default function AssessmentPractice() {
                   <Box sx={{ mb: 3 }}>
                     <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1.5 }}>Expected Output</Typography>
                     <Box sx={{ bgcolor: '#f5f5f5', border: '1px solid #e0e0e0', p: 2.5, borderRadius: 2, fontFamily: 'monospace', whiteSpace: 'pre' }}>
-                      {currentQuestion.testCases.filter(tc => tc.isPublic)[currentTestCaseTab].output?.value || currentQuestion.testCases.filter(tc => tc.isPublic)[currentTestCaseTab].output}
+                      {question.testCases.filter(tc => tc.isPublic)[currentTestCaseTab].output?.value || question.testCases.filter(tc => tc.isPublic)[currentTestCaseTab].output}
                     </Box>
                   </Box>
                 </>

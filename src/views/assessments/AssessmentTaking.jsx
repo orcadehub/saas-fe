@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Box, Typography, Button, CircularProgress, Modal, Radio, RadioGroup, FormControlLabel, IconButton, Tabs, Tab, Select, MenuItem, FormControl, InputLabel, Dialog, DialogTitle, DialogContent, DialogActions, Card, CardContent, Chip, Snackbar, Alert } from '@mui/material';
-import { ChevronLeft, ChevronRight, PlayArrow, CheckCircle, Close } from '@mui/icons-material';
+import { ChevronLeft, ChevronRight, PlayArrow, CheckCircle, Close, Add, Remove } from '@mui/icons-material';
 import Editor from '@monaco-editor/react';
 import tenantConfig from 'config/tenantConfig';
 import AssessmentHeader from './components/AssessmentHeader';
@@ -9,7 +9,10 @@ import { QuestionCache } from 'utils/questionCache';
 import apiService from 'services/apiService';
 import { submitCode } from 'services/pistonService';
 
+import FrontendEditor from './components/FrontendEditor';
+
 export default function AssessmentTaking() {
+  const isProduction = import.meta.env.MODE === 'production';
   const { id } = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -56,6 +59,8 @@ export default function AssessmentTaking() {
   const [toastSeverity, setToastSeverity] = useState('success');
   const [showLastCodeModal, setShowLastCodeModal] = useState(false);
   const [lastCodeData, setLastCodeData] = useState(null);
+  const [fontSize, setFontSize] = useState(18);
+  const [frontendCompletedQuestions, setFrontendCompletedQuestions] = useState(new Set());
 
   const getLanguageTemplate = (lang) => {
     switch (lang) {
@@ -440,13 +445,34 @@ export default function AssessmentTaking() {
       try {
         const token = localStorage.getItem('studentToken');
         
-        // Always fetch fresh data from API on page load/reload
+        // Check sessionStorage first
+        const cachedAssessment = sessionStorage.getItem(`assessment_${id}`);
+        if (cachedAssessment) {
+          const assessmentData = JSON.parse(cachedAssessment);
+          setAssessment(assessmentData);
+          
+          // Fetch fresh data in background and update cache
+          apiService.getAssessmentDetails(token, id)
+            .then(freshData => {
+              sessionStorage.setItem(`assessment_${id}`, JSON.stringify(freshData));
+              setAssessment(freshData);
+            })
+            .catch(console.error);
+        } else {
+          // Fetch from API and cache
+          const assessmentData = await apiService.getAssessmentDetails(token, id);
+          sessionStorage.setItem(`assessment_${id}`, JSON.stringify(assessmentData));
+          setAssessment(assessmentData);
+        }
+        
+        // Always fetch fresh questions data from API on page load/reload
         const questionsData = await apiService.getAssessmentQuestions(token, id);
         QuestionCache.set(id, questionsData);
         
         // Transform to array
         const allQuestions = [
           ...(questionsData.programmingQuestions || []).map(q => ({ ...q, type: 'programming' })),
+          ...(questionsData.frontendQuestions || []).map(q => ({ ...q, type: 'frontend' })),
           ...(questionsData.quizQuestions || []).map(q => ({ ...q, type: 'quiz' }))
         ];
         
@@ -464,30 +490,30 @@ export default function AssessmentTaking() {
         
         // Auto-select Part A and first quiz question
         const firstQuizIndex = shuffledQuestions.findIndex(q => q.type === 'quiz');
+        const firstFrontendIndex = shuffledQuestions.findIndex(q => q.type === 'frontend');
+        const firstProgrammingIndex = shuffledQuestions.findIndex(q => q.type === 'programming');
+        
         if (firstQuizIndex !== -1) {
           setShowPartB(false);
           setCurrentQuestionIndex(firstQuizIndex);
           setVisitedQuestions(new Set([firstQuizIndex]));
-        } else {
-          // No quiz questions, select Part B
-          const firstProgrammingIndex = shuffledQuestions.findIndex(q => q.type === 'programming');
-          if (firstProgrammingIndex !== -1) {
-            setShowPartB(true);
-            setCurrentQuestionIndex(firstProgrammingIndex);
-            setVisitedQuestions(new Set([firstProgrammingIndex]));
-          }
+        } else if (firstFrontendIndex !== -1) {
+          setShowPartB(false);
+          setCurrentQuestionIndex(firstFrontendIndex);
+          setVisitedQuestions(new Set([firstFrontendIndex]));
+        } else if (firstProgrammingIndex !== -1) {
+          setShowPartB(true);
+          setCurrentQuestionIndex(firstProgrammingIndex);
+          setVisitedQuestions(new Set([firstProgrammingIndex]));
         }
         
         setIsDataReady(true);
         
-        // Fetch assessment details
-        const assessmentData = await apiService.getAssessmentDetails(token, id);
-        setAssessment(assessmentData);
-        
-        // Get attempt ID - try from assessment data first, then from attempt API
-        if (assessmentData.attemptId) {
+        // Get attempt ID from cached assessment or fetch
+        const assessmentData = cachedAssessment ? JSON.parse(cachedAssessment) : assessment;
+        if (assessmentData?.attemptId) {
           setAttemptId(assessmentData.attemptId);
-        } else if (assessmentData.attempt?._id) {
+        } else if (assessmentData?.attempt?._id) {
           setAttemptId(assessmentData.attempt._id);
         } else {
           try {
@@ -668,7 +694,26 @@ export default function AssessmentTaking() {
         setTimeRemaining(prev => {
           if (prev <= 1) {
             clearInterval(timer);
-            navigate('/assessments');
+            // Auto-submit when time expires
+            (async () => {
+              const token = localStorage.getItem('studentToken');
+              const endIP = await fetch('https://api.ipify.org?format=json')
+                .then(res => res.json())
+                .then(data => data.ip)
+                .catch(() => 'Unknown');
+              
+              if (attemptId) {
+                await apiService.submitAssessment(token, id, {
+                  answers: {},
+                  submissionReason: 'TIME_UP',
+                  timeUsedSeconds: Math.floor((new Date() - new Date(assessment?.startTime)) / 1000),
+                  endIP: endIP,
+                  endTime: new Date().toISOString(),
+                  attemptId: attemptId
+                });
+              }
+              navigate('/assessments');
+            })();
             return 0;
           }
           return prev - 1;
@@ -676,7 +721,7 @@ export default function AssessmentTaking() {
       }, 1000);
       return () => clearInterval(timer);
     }
-  }, [timeRemaining, navigate]);
+  }, [timeRemaining, navigate, attemptId, assessment, id]);
 
   const handleEnterFullscreen = async () => {
     try {
@@ -848,7 +893,7 @@ export default function AssessmentTaking() {
     );
   }
 
-  if (loading) {
+  if (loading || !assessment) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
         <CircularProgress />
@@ -856,8 +901,247 @@ export default function AssessmentTaking() {
     );
   }
 
+  // Check if assessment is frontend type - show with question navigation
+  if (assessment.type === 'frontend') {
+    // Frontend assessments use the same layout as programming with question navigation
+    // The FrontendEditor will be rendered in the right panel when question type is 'frontend'
+  }
+
+  // Check if assessment is backend type - show simple editor
+  if (assessment.type === 'backend') {
+    return (
+      <>
+        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+          <AssessmentHeader
+            logoUrl={config?.logoUrl}
+            assessmentTitle={assessment?.title || 'Assessment'}
+            studentName={studentData?.name || 'Student'}
+            studentEmail={studentData?.email || ''}
+            timeRemaining={timeRemaining}
+            duration={assessment?.duration || 60}
+            onSubmit={timeRemaining > 2 ? () => setShowFinalSubmitModal(true) : undefined}
+          />
+          
+          <Box sx={{ flexGrow: 1, overflow: 'hidden' }}>
+            <Box sx={{ 
+              display: 'flex', 
+              justifyContent: 'center', 
+              alignItems: 'center', 
+              height: '100%',
+              bgcolor: '#fff7ed',
+              p: 3
+            }}>
+              <Card sx={{ 
+                p: 6, 
+                maxWidth: 600, 
+                textAlign: 'center',
+                borderRadius: 4,
+                boxShadow: '0 8px 32px rgba(0,0,0,0.1)'
+              }}>
+                <Typography variant="h3" sx={{ fontWeight: 700, mb: 2, color: '#f59e0b' }}>
+                  Backend Assessment
+                </Typography>
+                <Typography variant="h5" sx={{ color: 'text.secondary' }}>
+                  Django, Express, Spring Boot Editor
+                </Typography>
+              </Card>
+            </Box>
+          </Box>
+        </Box>
+
+        {/* Modals */}
+        <Modal open={showFullscreenWarning} disableEscapeKeyDown>
+          <Box sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            bgcolor: 'background.paper',
+            boxShadow: 24,
+            p: 8,
+            borderRadius: 3,
+            textAlign: 'center',
+            minWidth: 500
+          }}>
+            <Typography variant="h2" sx={{ fontWeight: 700, mb: 3, color: 'error.main', fontSize: '2.5rem' }}>
+              Fullscreen Required
+            </Typography>
+            <Typography variant="h5" sx={{ color: 'text.secondary', mb: 3, fontSize: '1.3rem' }}>
+              Assessment will auto-submit in:
+            </Typography>
+            
+            <Box sx={{
+              width: 180,
+              height: 180,
+              borderRadius: '50%',
+              background: `conic-gradient(#f44336 ${((30 - fullscreenWarningTimer) / 30) * 360}deg, #e0e0e0 0deg)`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              mx: 'auto',
+              mb: 3
+            }}>
+              <Box sx={{ 
+                width: 150,
+                height: 150,
+                borderRadius: '50%',
+                bgcolor: 'background.paper',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <Typography variant="h1" sx={{ 
+                  fontWeight: 900, 
+                  color: 'error.main',
+                  fontFamily: 'monospace',
+                  fontSize: '4rem'
+                }}>
+                  {fullscreenWarningTimer}
+                </Typography>
+              </Box>
+            </Box>
+            
+            <Typography variant="body1" sx={{ mb: 5, color: 'text.secondary' }}>
+              Fullscreen exits: <strong>{fullscreenExitCount}</strong>
+            </Typography>
+            
+            <Button 
+              variant="contained" 
+              color="error"
+              size="large"
+              fullWidth
+              onClick={handleEnterFullscreen}
+              sx={{ py: 2, fontSize: '1.2rem', fontWeight: 700 }}
+            >
+              Enter Fullscreen
+            </Button>
+          </Box>
+        </Modal>
+
+        <Dialog open={showTabSwitchWarning} disableEscapeKeyDown maxWidth="sm" fullWidth>
+          <Box sx={{
+            p: 6,
+            textAlign: 'center',
+            bgcolor: '#fff3cd',
+            borderTop: '4px solid #ff9800'
+          }}>
+            <Typography variant="h4" sx={{ fontWeight: 700, mb: 3, color: '#ff6f00' }}>
+              Tab Switch Detected!
+            </Typography>
+            <Typography variant="h6" sx={{ color: '#856404', mb: 4 }}>
+              Warning: You switched tabs during the assessment
+            </Typography>
+            <Typography variant="body1" sx={{ mb: 2, color: '#856404' }}>
+              Tab switches: <strong>{tabSwitchCount}</strong>
+              {assessment?.maxTabSwitches && assessment.maxTabSwitches !== -1 && (
+                <> / <strong>{assessment.maxTabSwitches}</strong> allowed</>
+              )}
+              {assessment?.maxTabSwitches === -1 && (
+                <> (Unlimited allowed)</>
+              )}
+            </Typography>
+            <Typography variant="body2" sx={{ color: '#856404', mb: 4 }}>
+              Please stay on this tab. Excessive tab switching may result in assessment termination.
+            </Typography>
+            <Button 
+              variant="contained" 
+              color="warning"
+              size="large"
+              fullWidth
+              onClick={() => setShowTabSwitchWarning(false)}
+              sx={{ py: 2, fontSize: '1.1rem', fontWeight: 700 }}
+            >
+              Continue Assessment
+            </Button>
+          </Box>
+        </Dialog>
+
+        <Dialog open={showFinalSubmitModal} maxWidth="md" fullWidth>
+          <DialogTitle sx={{ bgcolor: '#f8f9fa', borderBottom: '1px solid #e0e0e0' }}>
+            <Typography variant="h5" sx={{ fontWeight: 600 }}>
+              Submit Assessment
+            </Typography>
+          </DialogTitle>
+          <DialogContent sx={{ p: 3 }}>
+            <Typography variant="body1" sx={{ mb: 4, color: 'text.secondary' }}>
+              Are you sure you want to submit this assessment?
+            </Typography>
+            <Box sx={{ mt: 4 }}>
+              <Typography variant="body1" sx={{ mb: 2, fontWeight: 600, color: 'error.main' }}>
+                Type "END" to confirm submission:
+              </Typography>
+              <Box
+                component="input"
+                value={endTestInput}
+                onChange={(e) => setEndTestInput(e.target.value.toUpperCase())}
+                placeholder="Type END here"
+                sx={{
+                  width: '100%',
+                  p: 2,
+                  border: '2px solid',
+                  borderColor: endTestInput === 'END' ? 'success.main' : '#e0e0e0',
+                  borderRadius: 1,
+                  fontSize: '1.1rem',
+                  fontWeight: 600,
+                  textAlign: 'center',
+                  outline: 'none',
+                  '&:focus': {
+                    borderColor: 'primary.main'
+                  }
+                }}
+              />
+            </Box>
+          </DialogContent>
+          <DialogActions sx={{ p: 3, borderTop: '1px solid #e0e0e0' }}>
+            <Button onClick={() => {
+              setShowFinalSubmitModal(false);
+              setEndTestInput('');
+            }} variant="outlined" disabled={isSubmittingAssessment}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleFinalSubmit}
+              variant="contained" 
+              color="error"
+              disabled={endTestInput !== 'END' || isSubmittingAssessment}
+              startIcon={isSubmittingAssessment ? <CircularProgress size={20} sx={{ color: 'white' }} /> : null}
+            >
+              {isSubmittingAssessment ? 'Submitting...' : 'Submit Assessment'}
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </>
+    );
+  }
+
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+    <Box 
+      sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}
+      onCopy={isProduction ? (e) => e.preventDefault() : undefined}
+      onCut={isProduction ? (e) => e.preventDefault() : undefined}
+      onPaste={isProduction ? (e) => e.preventDefault() : undefined}
+      onContextMenu={isProduction ? (e) => e.preventDefault() : undefined}
+      onSelectStart={isProduction ? (e) => e.preventDefault() : undefined}
+      onDragStart={isProduction ? (e) => e.preventDefault() : undefined}
+      onKeyDown={isProduction ? (e) => {
+        const blockedKeys = ['Escape', 'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10', 'F11', 'F12', 'Meta', 'Control', 'Insert'];
+        
+        if (blockedKeys.includes(e.key)) {
+          e.preventDefault();
+          setToastMessage(`${e.key} key is not allowed during assessment`);
+          setToastSeverity('error');
+          setShowToast(true);
+          return;
+        }
+        
+        if ((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'x' || e.key === 'v' || e.key === 'a')) {
+          e.preventDefault();
+          setToastMessage(`${e.ctrlKey ? 'Ctrl' : 'Command'}+${e.key.toUpperCase()} is not allowed during assessment`);
+          setToastSeverity('error');
+          setShowToast(true);
+        }
+      } : undefined}
+    >
       <AssessmentHeader
         logoUrl={config?.logoUrl}
         assessmentTitle={assessment?.title || 'Assessment'}
@@ -865,7 +1149,7 @@ export default function AssessmentTaking() {
         studentEmail={studentData?.email || ''}
         timeRemaining={timeRemaining}
         duration={assessment?.duration || 60}
-        onSubmit={() => setShowFinalSubmitModal(true)}
+        onSubmit={timeRemaining > 2 ? () => setShowFinalSubmitModal(true) : undefined}
       />
       
       <Box sx={{ 
@@ -886,42 +1170,64 @@ export default function AssessmentTaking() {
           {/* Question Navigation */}
           <Box sx={{ p: 2, borderBottom: '1px solid #e0e0e0', bgcolor: '#f8f9fa', position: 'sticky', top: 0, zIndex: 99 }}>
             {/* Part A/B Toggle */}
-            {questions.filter(q => q.type === 'quiz').length > 0 && questions.filter(q => q.type === 'programming').length > 0 && (
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-                <Typography variant="h6" sx={{ fontWeight: 600, fontSize: { xs: '16px', sm: '18px', md: '20px' } }}>
-                  {showPartB ? 'Part B - Programming Questions' : 'Part A - Quiz Questions'} ({(questions || []).filter(q => showPartB ? q.type === 'programming' : q.type === 'quiz').length})
-                </Typography>
-                <Button
-                  variant="contained"
-                  size="small"
-                  onClick={() => {
-                    const newPartB = !showPartB;
-                    setShowPartB(newPartB);
-                    
-                    // Auto-select first question of the new part
-                    const filteredQuestions = (questions || []).filter(q => 
-                      newPartB ? q.type === 'programming' : q.type === 'quiz'
-                    );
-                    if (filteredQuestions.length > 0) {
-                      const firstQuestionIndex = questions.findIndex(q => q._id === filteredQuestions[0]._id);
-                      setCurrentQuestionIndex(firstQuestionIndex);
-                    }
-                  }}
-                  sx={{
-                    bgcolor: 'secondary.main',
-                    color: 'white',
-                    fontWeight: 600,
-                    px: 3,
-                    py: 1,
-                    borderRadius: 2,
-                    textTransform: 'none',
-                    '&:hover': { bgcolor: 'secondary.dark' }
-                  }}
-                >
-                  {showPartB ? 'Part A' : 'Part B'}
-                </Button>
-              </Box>
-            )}
+            {(() => {
+              const hasQuiz = questions.filter(q => q.type === 'quiz').length > 0;
+              const hasFrontend = questions.filter(q => q.type === 'frontend').length > 0;
+              const hasProgramming = questions.filter(q => q.type === 'programming').length > 0;
+              const totalParts = [hasQuiz, hasFrontend, hasProgramming].filter(Boolean).length;
+              
+              if (totalParts <= 1) return null;
+              
+              const currentType = showPartB ? (hasProgramming ? 'programming' : 'frontend') : (hasQuiz ? 'quiz' : 'frontend');
+              const partLabel = hasQuiz && hasFrontend && hasProgramming 
+                ? (currentType === 'quiz' ? 'Part A - Quiz' : currentType === 'frontend' ? 'Part B - Frontend' : 'Part C - Programming')
+                : hasQuiz && hasFrontend
+                ? (currentType === 'quiz' ? 'Part A - Quiz' : 'Part B - Frontend')
+                : hasQuiz && hasProgramming
+                ? (currentType === 'quiz' ? 'Part A - Quiz' : 'Part B - Programming')
+                : hasFrontend && hasProgramming
+                ? (currentType === 'frontend' ? 'Part A - Frontend' : 'Part B - Programming')
+                : '';
+              
+              return (
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 600, fontSize: { xs: '16px', sm: '18px', md: '20px' } }}>
+                    {partLabel} ({questions.filter(q => q.type === currentType).length})
+                  </Typography>
+                  <Button
+                    variant="contained"
+                    size="small"
+                    onClick={() => {
+                      const types = [];
+                      if (hasQuiz) types.push('quiz');
+                      if (hasFrontend) types.push('frontend');
+                      if (hasProgramming) types.push('programming');
+                      
+                      const currentIndex = types.indexOf(currentType);
+                      const nextType = types[(currentIndex + 1) % types.length];
+                      
+                      setShowPartB(nextType !== 'quiz');
+                      const firstQuestionIndex = questions.findIndex(q => q.type === nextType);
+                      if (firstQuestionIndex !== -1) {
+                        setCurrentQuestionIndex(firstQuestionIndex);
+                      }
+                    }}
+                    sx={{
+                      bgcolor: 'secondary.main',
+                      color: 'white',
+                      fontWeight: 600,
+                      px: 3,
+                      py: 1,
+                      borderRadius: 2,
+                      textTransform: 'none',
+                      '&:hover': { bgcolor: 'secondary.dark' }
+                    }}
+                  >
+                    Next Part
+                  </Button>
+                </Box>
+              );
+            })()}
             
             
             {/* Question Numbers */}
@@ -950,10 +1256,20 @@ export default function AssessmentTaking() {
                   scrollBehavior: 'smooth'
                 }}
               >
-                {(questions || [])
-                  .filter(q => showPartB ? q.type === 'programming' : q.type === 'quiz')
-                  .map((q, filteredIndex) => {
+                {(() => {
+                  const hasQuiz = questions.filter(q => q.type === 'quiz').length > 0;
+                  const hasFrontend = questions.filter(q => q.type === 'frontend').length > 0;
+                  const hasProgramming = questions.filter(q => q.type === 'programming').length > 0;
+                  const currentType = showPartB ? (hasProgramming ? 'programming' : 'frontend') : (hasQuiz ? 'quiz' : 'frontend');
+                  
+                  return (questions || [])
+                    .filter(q => q.type === currentType)
+                    .map((q, filteredIndex) => {
                     const originalIndex = questions.findIndex(originalQ => originalQ._id === q._id);
+                    const isCompleted = q.type === 'frontend' 
+                      ? frontendCompletedQuestions.has(originalIndex)
+                      : savedQuestions.has(originalIndex);
+                    
                     return (
                       <Button
                         key={originalIndex}
@@ -968,24 +1284,29 @@ export default function AssessmentTaking() {
                           height: '48px',
                           fontSize: '1.1rem',
                           fontWeight: 600,
-                          ...(originalIndex === currentQuestionIndex && {
+                          ...(originalIndex === currentQuestionIndex && isCompleted && {
+                            bgcolor: '#4caf50',
+                            color: 'white',
+                            '&:hover': { bgcolor: '#45a049' }
+                          }),
+                          ...(originalIndex === currentQuestionIndex && !isCompleted && {
                             bgcolor: 'secondary.main',
                             color: 'white',
                             '&:hover': { bgcolor: 'secondary.dark' }
                           }),
-                          ...(originalIndex !== currentQuestionIndex && savedQuestions.has(originalIndex) && {
+                          ...(originalIndex !== currentQuestionIndex && isCompleted && {
                             bgcolor: '#4caf50',
                             color: 'white',
                             borderColor: '#4caf50',
                             '&:hover': { bgcolor: '#45a049' }
                           }),
-                          ...(originalIndex !== currentQuestionIndex && !savedQuestions.has(originalIndex) && visitedQuestions.has(originalIndex) && {
+                          ...(originalIndex !== currentQuestionIndex && !isCompleted && visitedQuestions.has(originalIndex) && {
                             bgcolor: '#ff9800',
                             color: 'white',
                             borderColor: '#ff9800',
                             '&:hover': { bgcolor: '#f57c00' }
                           }),
-                          ...(originalIndex !== currentQuestionIndex && !savedQuestions.has(originalIndex) && !visitedQuestions.has(originalIndex) && {
+                          ...(originalIndex !== currentQuestionIndex && !isCompleted && !visitedQuestions.has(originalIndex) && {
                             borderColor: 'secondary.main',
                             color: 'secondary.main',
                             '&:hover': { borderColor: 'secondary.dark', bgcolor: 'secondary.light' }
@@ -995,7 +1316,8 @@ export default function AssessmentTaking() {
                         {filteredIndex + 1}
                       </Button>
                     );
-                  })}
+                  });
+                })()}
               </Box>
               {showRightScroll && (
                 <IconButton 
@@ -1017,6 +1339,39 @@ export default function AssessmentTaking() {
             <Typography variant="h4" sx={{ fontWeight: 700, mb: 2, fontSize: { xs: '22px !important', sm: '25px !important', md: '28px !important' } }}>
               {questions[currentQuestionIndex]?.title || 'Loading...'}
             </Typography>
+            
+            {questions[currentQuestionIndex]?.type === 'frontend' && (
+              <>
+                <Box sx={{ mb: 4 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, fontSize: { xs: '18px !important', sm: '20px !important', md: '22px !important' } }}>Problem Statement</Typography>
+                  <Typography variant="body1" sx={{ lineHeight: 1.8, fontSize: { xs: '16px', sm: '18px', md: '20px' } }}>
+                    {questions[currentQuestionIndex]?.problemStatement}
+                  </Typography>
+                </Box>
+
+                <Box sx={{ mb: 4 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, fontSize: { xs: '18px !important', sm: '20px !important', md: '22px !important' } }}>Requirements</Typography>
+                  <Box component="ul" sx={{ pl: 3, m: 0 }}>
+                    {questions[currentQuestionIndex]?.requirements?.map((req, idx) => (
+                      <Typography key={idx} component="li" variant="body1" sx={{ mb: 1, fontSize: { xs: '16px', sm: '18px', md: '20px' } }}>
+                        {req}
+                      </Typography>
+                    ))}
+                  </Box>
+                </Box>
+
+                <Box sx={{ mb: 4 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, fontSize: { xs: '18px !important', sm: '20px !important', md: '22px !important' } }}>Acceptance Criteria</Typography>
+                  <Box component="ul" sx={{ pl: 3, m: 0 }}>
+                    {questions[currentQuestionIndex]?.acceptanceCriteria?.map((criteria, idx) => (
+                      <Typography key={idx} component="li" variant="body1" sx={{ mb: 1, lineHeight: 1.8, fontSize: { xs: '16px', sm: '18px', md: '20px' } }}>
+                        {criteria}
+                      </Typography>
+                    ))}
+                  </Box>
+                </Box>
+              </>
+            )}
             
             {/* Tags/Topics */}
             {showPartB && questions[currentQuestionIndex]?.tags && questions[currentQuestionIndex].tags.length > 0 && (
@@ -1230,7 +1585,11 @@ export default function AssessmentTaking() {
                 <Button
                   variant="outlined"
                   onClick={() => {
-                    const filteredQuestions = questions.filter(q => q.type === (showPartB ? 'programming' : 'quiz'));
+                    const hasQuiz = questions.filter(q => q.type === 'quiz').length > 0;
+                    const hasFrontend = questions.filter(q => q.type === 'frontend').length > 0;
+                    const hasProgramming = questions.filter(q => q.type === 'programming').length > 0;
+                    const currentType = showPartB ? (hasProgramming ? 'programming' : 'frontend') : (hasQuiz ? 'quiz' : 'frontend');
+                    const filteredQuestions = questions.filter(q => q.type === currentType);
                     const currentFilteredIndex = filteredQuestions.findIndex(q => q._id === questions[currentQuestionIndex]._id);
                     if (currentFilteredIndex > 0) {
                       const prevQuestion = filteredQuestions[currentFilteredIndex - 1];
@@ -1239,7 +1598,11 @@ export default function AssessmentTaking() {
                     }
                   }}
                   disabled={(() => {
-                    const filteredQuestions = questions.filter(q => q.type === (showPartB ? 'programming' : 'quiz'));
+                    const hasQuiz = questions.filter(q => q.type === 'quiz').length > 0;
+                    const hasFrontend = questions.filter(q => q.type === 'frontend').length > 0;
+                    const hasProgramming = questions.filter(q => q.type === 'programming').length > 0;
+                    const currentType = showPartB ? (hasProgramming ? 'programming' : 'frontend') : (hasQuiz ? 'quiz' : 'frontend');
+                    const filteredQuestions = questions.filter(q => q.type === currentType);
                     const currentFilteredIndex = filteredQuestions.findIndex(q => q._id === questions[currentQuestionIndex]._id);
                     return currentFilteredIndex === 0;
                   })()}
@@ -1251,7 +1614,11 @@ export default function AssessmentTaking() {
                   variant="contained"
                   onClick={() => {
                     setSavedQuestions(prev => new Set([...prev, currentQuestionIndex]));
-                    const filteredQuestions = questions.filter(q => q.type === (showPartB ? 'programming' : 'quiz'));
+                    const hasQuiz = questions.filter(q => q.type === 'quiz').length > 0;
+                    const hasFrontend = questions.filter(q => q.type === 'frontend').length > 0;
+                    const hasProgramming = questions.filter(q => q.type === 'programming').length > 0;
+                    const currentType = showPartB ? (hasProgramming ? 'programming' : 'frontend') : (hasQuiz ? 'quiz' : 'frontend');
+                    const filteredQuestions = questions.filter(q => q.type === currentType);
                     const currentFilteredIndex = filteredQuestions.findIndex(q => q._id === questions[currentQuestionIndex]._id);
                     if (currentFilteredIndex < filteredQuestions.length - 1) {
                       const nextQuestion = filteredQuestions[currentFilteredIndex + 1];
@@ -1266,6 +1633,23 @@ export default function AssessmentTaking() {
                 </Button>
               </Box>
             </Box>
+          ) : questions[currentQuestionIndex]?.type === 'frontend' ? (
+            <FrontendEditor 
+              assessment={assessment} 
+              question={questions[currentQuestionIndex]} 
+              attemptId={attemptId}
+              onTestComplete={(passed, total) => {
+                if (passed === total && total > 0) {
+                  setFrontendCompletedQuestions(prev => new Set([...prev, currentQuestionIndex]));
+                } else {
+                  setFrontendCompletedQuestions(prev => {
+                    const newSet = new Set(prev);
+                    newSet.delete(currentQuestionIndex);
+                    return newSet;
+                  });
+                }
+              }}
+            />
           ) : (
             <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }} data-compiler-container>
               {/* Code Editor Section */}
@@ -1339,6 +1723,20 @@ export default function AssessmentTaking() {
                   
                   <Box sx={{ flex: 1 }} />
                   
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <IconButton size="small" onClick={() => setFontSize(prev => Math.max(12, prev - 2))}>
+                      <Remove fontSize="small" />
+                    </IconButton>
+                    <Typography variant="body2" sx={{ minWidth: '30px', textAlign: 'center' }}>
+                      {fontSize}
+                    </Typography>
+                    <IconButton size="small" onClick={() => setFontSize(prev => Math.min(32, prev + 2))}>
+                      <Add fontSize="small" />
+                    </IconButton>
+                  </Box>
+                  
+                  <Box sx={{ flex: 1 }} />
+                  
                   <Button
                     variant="outlined"
                     startIcon={isRunning ? <CircularProgress size={16} /> : <PlayArrow />}
@@ -1383,7 +1781,7 @@ export default function AssessmentTaking() {
                         onChange={(value) => setCode(value || '')}
                         onMount={(editor) => { editorRef.current = editor; }}
                         options={{
-                          fontSize: 18,
+                          fontSize: fontSize,
                           minimap: { enabled: false },
                           scrollBeyondLastLine: false,
                           wordWrap: 'on',
@@ -1786,7 +2184,7 @@ export default function AssessmentTaking() {
               <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                 {questions.filter(q => q.type === 'quiz').map((q, idx) => {
                   const originalIndex = questions.findIndex(oq => oq._id === q._id);
-                  const isSaved = savedQuestions.has(originalIndex);
+                  const isCompleted = savedQuestions.has(originalIndex);
                   const isVisited = visitedQuestions.has(originalIndex);
                   
                   return (
@@ -1800,8 +2198,8 @@ export default function AssessmentTaking() {
                         justifyContent: 'center',
                         borderRadius: 1,
                         fontWeight: 600,
-                        bgcolor: isSaved ? '#4caf50' : isVisited ? '#ff9800' : '#e0e0e0',
-                        color: isSaved || isVisited ? 'white' : 'text.secondary'
+                        bgcolor: isCompleted ? '#4caf50' : isVisited ? '#ff9800' : '#e0e0e0',
+                        color: isCompleted || isVisited ? 'white' : 'text.secondary'
                       }}
                     >
                       {idx + 1}
@@ -1812,16 +2210,16 @@ export default function AssessmentTaking() {
             </Box>
           )}
 
-          {/* Part B - Programming Questions */}
-          {questions.filter(q => q.type === 'programming').length > 0 && (
+          {/* Part B - Frontend Questions */}
+          {questions.filter(q => q.type === 'frontend').length > 0 && (
             <Box sx={{ mb: 4 }}>
-              <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: '#9c27b0' }}>
-                Part B - Programming Questions ({questions.filter(q => q.type === 'programming').length})
+              <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: '#ff9800' }}>
+                {questions.filter(q => q.type === 'quiz').length > 0 ? 'Part B' : 'Part A'} - Frontend Questions ({questions.filter(q => q.type === 'frontend').length})
               </Typography>
               <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                {questions.filter(q => q.type === 'programming').map((q, idx) => {
+                {questions.filter(q => q.type === 'frontend').map((q, idx) => {
                   const originalIndex = questions.findIndex(oq => oq._id === q._id);
-                  const isSaved = savedQuestions.has(originalIndex);
+                  const isCompleted = frontendCompletedQuestions.has(originalIndex);
                   const isVisited = visitedQuestions.has(originalIndex);
                   
                   return (
@@ -1835,8 +2233,49 @@ export default function AssessmentTaking() {
                         justifyContent: 'center',
                         borderRadius: 1,
                         fontWeight: 600,
-                        bgcolor: isSaved ? '#4caf50' : isVisited ? '#ff9800' : '#e0e0e0',
-                        color: isSaved || isVisited ? 'white' : 'text.secondary'
+                        bgcolor: isCompleted ? '#4caf50' : isVisited ? '#ff9800' : '#e0e0e0',
+                        color: isCompleted || isVisited ? 'white' : 'text.secondary'
+                      }}
+                    >
+                      {idx + 1}
+                    </Box>
+                  );
+                })}
+              </Box>
+            </Box>
+          )}
+
+          {/* Part C - Programming Questions */}
+          {questions.filter(q => q.type === 'programming').length > 0 && (
+            <Box sx={{ mb: 4 }}>
+              <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: '#9c27b0' }}>
+                {(() => {
+                  const hasQuiz = questions.filter(q => q.type === 'quiz').length > 0;
+                  const hasFrontend = questions.filter(q => q.type === 'frontend').length > 0;
+                  if (hasQuiz && hasFrontend) return 'Part C';
+                  if (hasQuiz || hasFrontend) return 'Part B';
+                  return 'Part A';
+                })()} - Programming Questions ({questions.filter(q => q.type === 'programming').length})
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                {questions.filter(q => q.type === 'programming').map((q, idx) => {
+                  const originalIndex = questions.findIndex(oq => oq._id === q._id);
+                  const isCompleted = savedQuestions.has(originalIndex);
+                  const isVisited = visitedQuestions.has(originalIndex);
+                  
+                  return (
+                    <Box
+                      key={q._id}
+                      sx={{
+                        width: '48px',
+                        height: '48px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderRadius: 1,
+                        fontWeight: 600,
+                        bgcolor: isCompleted ? '#4caf50' : isVisited ? '#ff9800' : '#e0e0e0',
+                        color: isCompleted || isVisited ? 'white' : 'text.secondary'
                       }}
                     >
                       {idx + 1}

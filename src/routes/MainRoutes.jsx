@@ -4,6 +4,8 @@ import { lazy } from 'react';
 import MainLayout from 'layout/MainLayout';
 import Loadable from 'ui-component/Loadable';
 import ErrorBoundary from './ErrorBoundary';
+import { DashboardProvider } from 'contexts/DashboardContext';
+import { PracticeProvider } from 'contexts/PracticeContext';
 
 // page routing
 const Landing = Loadable(lazy(() => import('views/landing')));
@@ -19,6 +21,19 @@ const StudyMaterials = Loadable(lazy(() => import('views/study-materials')));
 const Quizzes = Loadable(lazy(() => import('views/quizzes')));
 const QuizDetails = Loadable(lazy(() => import('views/quizzes/QuizDetails')));
 const Practice = Loadable(lazy(() => import('views/practice')));
+const ProgrammingPractice = Loadable(lazy(() => import('views/practice/ProgrammingPractice')));
+const ProgrammingQuestions = Loadable(lazy(() => import('views/practice/ProgrammingQuestions')));
+const ProgrammingQuestionPractice = Loadable(lazy(() => import('views/practice/QuestionPracticePage')));
+const GamifiedPractice = Loadable(lazy(() => import('views/practice/GamifiedPractice')));
+const GamifiedQuestions = Loadable(lazy(() => import('views/practice/GamifiedQuestions')));
+const GamePlayer = Loadable(lazy(() => import('views/practice/GamePlayer')));
+const AssessmentQuestions = Loadable(lazy(() => import('views/practice/AssessmentQuestions')));
+const QuestionSolver = Loadable(lazy(() => import('views/practice/QuestionSolver')));
+const QuestionPracticePage = Loadable(lazy(() => import('views/practice/QuestionPracticePage')));
+const AptitudePractice = Loadable(lazy(() => import('views/practice/AptitudePractice')));
+const VerbalPractice = Loadable(lazy(() => import('views/practice/VerbalPractice')));
+const QuantitativePractice = Loadable(lazy(() => import('views/practice/QuantitativePractice')));
+const CompanyPractice = Loadable(lazy(() => import('views/practice/CompanyPractice')));
 const IDE = Loadable(lazy(() => import('views/ide')));
 const Labs = Loadable(lazy(() => import('views/playgrounds')));
 const AIMock = Loadable(lazy(() => import('views/ai-mock')));
@@ -43,7 +58,13 @@ const MainRoutes = {
     },
     {
       path: '/',
-      element: <MainLayout />,
+      element: (
+        <DashboardProvider>
+          <PracticeProvider>
+            <MainLayout />
+          </PracticeProvider>
+        </DashboardProvider>
+      ),
       children: [
         {
           path: 'dashboard',
@@ -84,6 +105,54 @@ const MainRoutes = {
         {
           path: 'practice',
           element: <Practice />
+        },
+        {
+          path: 'practice/programming',
+          element: <ProgrammingPractice />
+        },
+        {
+          path: 'practice/programming/:topic',
+          element: <ProgrammingQuestions />
+        },
+        {
+          path: 'practice/programming/:topic/:id',
+          element: <ProgrammingQuestionPractice />
+        },
+        {
+          path: 'practice/gamified',
+          element: <GamifiedPractice />
+        },
+        {
+          path: 'practice/gamified/:subtopicId',
+          element: <GamifiedQuestions />
+        },
+        {
+          path: 'practice/gamified/:subtopicId/:questionId',
+          element: <GamePlayer />
+        },
+        {
+          path: 'practice/assessment',
+          element: <AssessmentQuestions />
+        },
+        {
+          path: 'practice/assessment/:id',
+          element: <QuestionPracticePage />
+        },
+        {
+          path: 'practice/aptitude',
+          element: <AptitudePractice />
+        },
+        {
+          path: 'practice/verbal',
+          element: <VerbalPractice />
+        },
+        {
+          path: 'practice/quantitative',
+          element: <QuantitativePractice />
+        },
+        {
+          path: 'practice/company',
+          element: <CompanyPractice />
         },
         {
           path: 'ide',

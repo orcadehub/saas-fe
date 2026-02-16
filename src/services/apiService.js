@@ -122,5 +122,21 @@ class ApiService {
     );
     return response.data;
   }
+
+  async runFrontendTests(token, data) {
+    const response = await this.client.post('/frontend-questions/run-tests', 
+      data, 
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return response.data;
+  }
+
+  async saveFrontendCode(token, attemptId, questionId, html, css, js, testResults) {
+    const response = await this.client.post(`/auth/student/assessment-attempt/${attemptId}/save-frontend-code`,
+      { questionId, html, css, js, testResults },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return response.data;
+  }
 }
 export default new ApiService();

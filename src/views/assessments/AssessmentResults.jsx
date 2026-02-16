@@ -215,107 +215,192 @@ export default function AssessmentResults() {
       </Box>
 
       <Box sx={{ px: 4, maxWidth: 1400, mx: 'auto' }}>
-        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 3 }}>
-          <Card sx={metricCardStyle}>
-            <Chip 
-              label={attempt?.attemptStatus || 'N/A'} 
-              color={attempt?.attemptStatus === 'COMPLETED' ? 'success' : 
-                     attempt?.attemptStatus === 'RESUME_ALLOWED' ? 'warning' : 
-                     attempt?.attemptStatus === 'RETAKE_ALLOWED' ? 'info' : 'default'}
-              size="small"
-              sx={{ mb: 0.5 }}
-            />
-            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem' }}>
-              Status
-            </Typography>
+        <Box sx={{ 
+          display: 'grid',
+          gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(3, 1fr)', md: 'repeat(4, 1fr)' },
+          gap: 2,
+          mb: 3
+        }}>
+          <Card sx={{
+            cursor: 'default',
+            transition: 'all 0.3s',
+            borderRadius: 4,
+            '&:hover': { transform: 'translateY(-4px)', boxShadow: 4 },
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100%'
+          }}>
+            <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 3 }}>
+              <Chip 
+                label={attempt?.attemptStatus || 'N/A'} 
+                color={attempt?.attemptStatus === 'COMPLETED' ? 'success' : 
+                       attempt?.attemptStatus === 'RESUME_ALLOWED' ? 'warning' : 
+                       attempt?.attemptStatus === 'RETAKE_ALLOWED' ? 'info' : 'default'}
+                size="small"
+                sx={{ mb: 1 }}
+              />
+              <Typography variant="caption" color="text.secondary">Status</Typography>
+            </CardContent>
           </Card>
           
-          <Card sx={metricCardStyle}>
-            <Typography variant="h2" fontWeight={700} color={overallScore >= 70 ? 'success.main' : 'error.main'}>
-              {overallScore.toFixed(1)}%
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem' }}>
-              Overall
-            </Typography>
+          <Card sx={{
+            cursor: 'default',
+            transition: 'all 0.3s',
+            borderRadius: 4,
+            '&:hover': { transform: 'translateY(-4px)', boxShadow: 4 },
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100%'
+          }}>
+            <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 3 }}>
+              <Typography variant="h2" fontWeight={700} color={overallScore >= 70 ? 'success.main' : 'error.main'} sx={{ mb: 1 }}>
+                {overallScore.toFixed(1)}%
+              </Typography>
+              <Typography variant="caption" color="text.secondary">Overall</Typography>
+            </CardContent>
           </Card>
           
-          <Card sx={metricCardStyle}>
-            <Typography variant="h2" fontWeight={700}>
-              {(() => {
-                const totalSeconds = attempt?.timeUsedSeconds || 0;
-                const minutes = Math.floor(totalSeconds / 60);
-                const seconds = totalSeconds % 60;
-                return minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
-              })()}
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem' }}>
-              Time
-            </Typography>
+          <Card sx={{
+            cursor: 'default',
+            transition: 'all 0.3s',
+            borderRadius: 4,
+            '&:hover': { transform: 'translateY(-4px)', boxShadow: 4 },
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100%'
+          }}>
+            <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 3 }}>
+              <Typography variant="h2" fontWeight={700} sx={{ mb: 1 }}>
+                {(() => {
+                  const totalSeconds = attempt?.timeUsedSeconds || 0;
+                  const minutes = Math.floor(totalSeconds / 60);
+                  const seconds = totalSeconds % 60;
+                  return minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
+                })()}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">Time</Typography>
+            </CardContent>
           </Card>
           
-          <Card sx={metricCardStyle}>
-            <Typography variant="h2" fontWeight={700} color="success.main">
-              {attempt?.accuracy || 0}%
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem' }}>
-              Accuracy
-            </Typography>
+          <Card sx={{
+            cursor: 'default',
+            transition: 'all 0.3s',
+            borderRadius: 4,
+            '&:hover': { transform: 'translateY(-4px)', boxShadow: 4 },
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100%'
+          }}>
+            <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 3 }}>
+              <Typography variant="h2" fontWeight={700} color="success.main" sx={{ mb: 1 }}>
+                {attempt?.accuracy || 0}%
+              </Typography>
+              <Typography variant="caption" color="text.secondary">Accuracy</Typography>
+            </CardContent>
           </Card>
           
-          <Card sx={metricCardStyle}>
-            <Typography variant="h2" fontWeight={700} color="#ff9800">
-              {attempt?.tabSwitchCount || 0}
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem' }}>
-              Tab Switch
-            </Typography>
+          <Card sx={{
+            cursor: 'default',
+            transition: 'all 0.3s',
+            borderRadius: 4,
+            '&:hover': { transform: 'translateY(-4px)', boxShadow: 4 },
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100%'
+          }}>
+            <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 3 }}>
+              <Typography variant="h2" fontWeight={700} color="warning.main" sx={{ mb: 1 }}>
+                {attempt?.tabSwitchCount || 0}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">Tab Switch</Typography>
+            </CardContent>
           </Card>
           
-          <Card sx={metricCardStyle}>
-            <Typography variant="h2" fontWeight={700} color="primary.main">
-              {totalQuestions + totalQuizQuestions}
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem' }}>
-              Total
-            </Typography>
+          <Card sx={{
+            cursor: 'default',
+            transition: 'all 0.3s',
+            borderRadius: 4,
+            '&:hover': { transform: 'translateY(-4px)', boxShadow: 4 },
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100%'
+          }}>
+            <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 3 }}>
+              <Typography variant="h2" fontWeight={700} color="primary.main" sx={{ mb: 1 }}>
+                {totalQuestions + totalQuizQuestions}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">Total</Typography>
+            </CardContent>
           </Card>
           
-          <Card sx={metricCardStyle}>
-            <Typography variant="h2" fontWeight={700} color="info.main">
-              {attemptedQuestions + Object.keys(attempt?.quizAnswers || {}).length}
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem' }}>
-              Attempted
-            </Typography>
+          <Card sx={{
+            cursor: 'default',
+            transition: 'all 0.3s',
+            borderRadius: 4,
+            '&:hover': { transform: 'translateY(-4px)', boxShadow: 4 },
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100%'
+          }}>
+            <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 3 }}>
+              <Typography variant="h2" fontWeight={700} color="info.main" sx={{ mb: 1 }}>
+                {attemptedQuestions + Object.keys(attempt?.quizAnswers || {}).length}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">Attempted</Typography>
+            </CardContent>
           </Card>
           
-          <Card sx={metricCardStyle}>
-            <Typography variant="h2" fontWeight={700} color="#e91e63">
-              {attempt?.fullscreenExitCount || 0}
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem' }}>
-              FS Exits
-            </Typography>
+          <Card sx={{
+            cursor: 'default',
+            transition: 'all 0.3s',
+            borderRadius: 4,
+            '&:hover': { transform: 'translateY(-4px)', boxShadow: 4 },
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100%'
+          }}>
+            <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 3 }}>
+              <Typography variant="h2" fontWeight={700} color="error.main" sx={{ mb: 1 }}>
+                {attempt?.fullscreenExitCount || 0}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">FS Exits</Typography>
+            </CardContent>
           </Card>
           
           {totalQuizQuestions > 0 && (
             <>
-              <Card sx={metricCardStyle}>
-                <Typography variant="h2" fontWeight={700} color="secondary.main">
-                  {quizScore.toFixed(1)}%
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem' }}>
-                  Quiz
-                </Typography>
+              <Card sx={{
+                cursor: 'default',
+                transition: 'all 0.3s',
+                borderRadius: 4,
+                '&:hover': { transform: 'translateY(-4px)', boxShadow: 4 },
+                display: 'flex',
+                flexDirection: 'column',
+                height: '100%'
+              }}>
+                <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 3 }}>
+                  <Typography variant="h2" fontWeight={700} color="secondary.main" sx={{ mb: 1 }}>
+                    {quizScore.toFixed(1)}%
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">Quiz</Typography>
+                </CardContent>
               </Card>
               
-              <Card sx={metricCardStyle}>
-                <Typography variant="h2" fontWeight={700} color="primary.main">
-                  {programmingScore.toFixed(1)}%
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem' }}>
-                  Programming
-                </Typography>
+              <Card sx={{
+                cursor: 'default',
+                transition: 'all 0.3s',
+                borderRadius: 4,
+                '&:hover': { transform: 'translateY(-4px)', boxShadow: 4 },
+                display: 'flex',
+                flexDirection: 'column',
+                height: '100%'
+              }}>
+                <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 3 }}>
+                  <Typography variant="h2" fontWeight={700} color="primary.main" sx={{ mb: 1 }}>
+                    {programmingScore.toFixed(1)}%
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">Programming</Typography>
+                </CardContent>
               </Card>
             </>
           )}

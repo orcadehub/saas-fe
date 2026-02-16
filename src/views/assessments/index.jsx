@@ -23,12 +23,12 @@ export default function Assessments() {
     return (assessment.status === 'active' || assessment.status === 'live') && 
            now < endTime && 
            (!attempt || (attempt.attemptStatus !== 'COMPLETED' && attempt.attemptStatus !== 'TAB_SWITCH_VIOLATION' && attempt.attemptStatus !== 'TERMINATED') || attempt.attemptStatus === 'RESUMED' || attempt.attemptStatus === 'RETAKE_ALLOWED');
-  });
+  }).sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
   
   const completedAssessments = assessments.filter(assessment => {
     const attempt = assessmentAttempts[assessment._id];
     return attempt && (attempt.attemptStatus === 'COMPLETED' || attempt.attemptStatus === 'TAB_SWITCH_VIOLATION');
-  });
+  }).sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
   
   const expiredAssessments = assessments.filter(assessment => {
     const startTime = new Date(assessment.startTime).getTime();
@@ -37,10 +37,19 @@ export default function Assessments() {
     
     return now >= endTime && 
            (!attempt || (attempt.attemptStatus !== 'COMPLETED' && attempt.attemptStatus !== 'TAB_SWITCH_VIOLATION'));
-  });
+  }).sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
 
   const renderAssessmentCards = (assessmentList, tabType) => (
-    <Grid container spacing={3}>
+    <Box sx={{ 
+      display: 'grid',
+      gridTemplateColumns: {
+        xs: '1fr',
+        sm: 'repeat(2, 1fr)',
+        md: 'repeat(4, 1fr)'
+      },
+      gap: 3,
+      width: '100%'
+    }}>
       {assessmentList.map((assessment) => {
         const startTime = new Date(assessment.startTime).getTime();
         const endTime = startTime + (assessment.duration * 60 * 1000);
@@ -50,127 +59,126 @@ export default function Assessments() {
         const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
         
         return (
-        <Grid item xs={12} sm={6} md={4} xl={3} key={assessment._id}>
-          <Card sx={{ 
-            height: 300,
-            display: 'flex', 
-            flexDirection: 'column',
-            borderRadius: 4,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-            border: '1px solid #e5e7eb',
-            transition: 'all 0.3s ease',
-            '&:hover': {
-              transform: 'translateY(-4px)',
-              boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
-              borderColor: 'primary.main'
-            }
-          }}>
-            <CardContent sx={{ flexGrow: 1, p: 3, display: 'flex', flexDirection: 'column' }}>
-              <Typography variant="h5" sx={{ fontWeight: 700, mb: 2.5, lineHeight: 1.3, color: '#1e293b' }}>
-                {assessment.title}
-              </Typography>
-              
-              <Box display="flex" flexWrap="wrap" gap={1} mb={2.5}>
-                <Chip 
-                  icon={<AccessTime sx={{ fontSize: 16 }} />}
-                  label={`${assessment.duration} min`}
-                  size="small"
-                  sx={{ 
-                    fontWeight: 600,
-                    backgroundColor: '#eff6ff',
-                    color: '#1e40af',
-                    border: 'none'
-                  }}
-                />
-                <Chip 
-                  label={`${assessment.questions?.length || 0} coding`}
-                  size="small"
-                  sx={{ 
-                    fontWeight: 600,
-                    backgroundColor: '#f0fdf4',
-                    color: '#166534',
-                    border: 'none'
-                  }}
-                />
-                <Chip 
-                  label={`${assessment.quizQuestions?.length || 0} quiz`}
-                  size="small"
-                  sx={{ 
-                    fontWeight: 600,
-                    backgroundColor: '#fef3c7',
-                    color: '#92400e',
-                    border: 'none'
-                  }}
-                />
-              </Box>
-
-              <Box mb={3} sx={{ 
-                backgroundColor: '#f8fafc',
-                borderRadius: `${borderRadius}px`,
-                p: 2
-              }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                  <Typography variant="caption" sx={{ fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                    Start Date
-                  </Typography>
-                  <Typography variant="caption" sx={{ fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                    Start Time
-                  </Typography>
-                </Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Typography variant="body2" sx={{ fontWeight: 700, color: '#1e293b' }}>
-                    {new Date(assessment.startTime).toLocaleDateString('en-GB')}
-                  </Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 700, color: '#1e293b' }}>
-                    {new Date(assessment.startTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}
-                  </Typography>
-                </Box>
-              </Box>
-              
-              <Button 
-                variant="contained" 
-                fullWidth
-                size="large"
-                disabled={tabType === 'completed' && !canViewResults}
-                onClick={() => {
-                  if (tabType === 'available') {
-                    navigate(`/assessments/${assessment._id}`);
-                  } else if (tabType === 'completed') {
-                    navigate(`/assessments/${assessment._id}/results`);
-                  } else if (tabType === 'expired') {
-                    navigate(`/assessments/${assessment._id}/practice`);
-                  }
-                }}
+        <Card key={assessment._id} sx={{ 
+          display: 'flex',
+          flexDirection: 'column',
+          borderRadius: 4,
+          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+          border: '1px solid #e5e7eb',
+          transition: 'all 0.3s ease',
+          '&:hover': {
+            transform: 'translateY(-4px)',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+            borderColor: 'primary.main'
+          }
+        }}>
+          <CardContent sx={{ flexGrow: 1, p: 3, display: 'flex', flexDirection: 'column' }}>
+            <Typography variant="h5" sx={{ fontWeight: 700, mb: 2.5, lineHeight: 1.3, color: '#1e293b', flexShrink: 0 }}>
+              {assessment.title}
+            </Typography>
+            
+            <Box display="flex" flexWrap="wrap" gap={1} mb={2.5} sx={{ flexShrink: 0 }}>
+              <Chip 
+                icon={<AccessTime sx={{ fontSize: 16 }} />}
+                label={`${assessment.duration} min`}
+                size="small"
                 sx={{ 
-                  mt: 'auto',
-                  py: 1.5,
-                  fontWeight: 700,
-                  borderRadius: `${borderRadius}px`,
-                  textTransform: 'none',
-                  fontSize: '1rem',
-                  backgroundColor: 'secondary.light',
-                  color: 'secondary.main',
-                  boxShadow: 'none',
-                  '&:hover': {
-                    backgroundColor: 'secondary.light',
-                    boxShadow: 'none'
-                  }
+                  fontWeight: 600,
+                  backgroundColor: '#eff6ff',
+                  color: '#1e40af',
+                  border: 'none'
                 }}
-              >
-                {tabType === 'available' ? 'Start Assessment' : 
-                 tabType === 'completed' ? (canViewResults ? 'View Results' : (
-                   <Box>
-                     <Typography>Results Locked</Typography>
-                     <Typography variant="caption">{minutes}m {seconds}s</Typography>
-                   </Box>
-                 )) : 'Practice'}
-              </Button>
-            </CardContent>
-          </Card>
-        </Grid>
+              />
+              <Chip 
+                label={`${assessment.questions?.length || 0} coding`}
+                size="small"
+                sx={{ 
+                  fontWeight: 600,
+                  backgroundColor: '#f0fdf4',
+                  color: '#166534',
+                  border: 'none'
+                }}
+              />
+              <Chip 
+                label={`${assessment.quizQuestions?.length || 0} quiz`}
+                size="small"
+                sx={{ 
+                  fontWeight: 600,
+                  backgroundColor: '#fef3c7',
+                  color: '#92400e',
+                  border: 'none'
+                }}
+              />
+            </Box>
+
+            <Box mb={3} sx={{ 
+              backgroundColor: '#f8fafc',
+              borderRadius: `${borderRadius}px`,
+              p: 2,
+              flexShrink: 0
+            }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                <Typography variant="caption" sx={{ fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                  Start Date
+                </Typography>
+                <Typography variant="caption" sx={{ fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                  Start Time
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                <Typography variant="body2" sx={{ fontWeight: 700, color: '#1e293b' }}>
+                  {new Date(assessment.startTime).toLocaleDateString('en-GB')}
+                </Typography>
+                <Typography variant="body2" sx={{ fontWeight: 700, color: '#1e293b' }}>
+                  {new Date(assessment.startTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                </Typography>
+              </Box>
+            </Box>
+            
+            <Button 
+              variant="contained" 
+              fullWidth
+              size="large"
+              disabled={tabType === 'completed' && !canViewResults}
+              onClick={() => {
+                if (tabType === 'available') {
+                  navigate(`/assessments/${assessment._id}`);
+                } else if (tabType === 'completed') {
+                  navigate(`/assessments/${assessment._id}/results`);
+                } else if (tabType === 'expired') {
+                  navigate(`/assessments/${assessment._id}/practice`);
+                }
+              }}
+              sx={{ 
+                mt: 'auto',
+                py: 1.5,
+                fontWeight: 700,
+                borderRadius: `${borderRadius}px`,
+                textTransform: 'none',
+                fontSize: '1rem',
+                backgroundColor: 'secondary.light',
+                color: 'secondary.main',
+                boxShadow: 'none',
+                flexShrink: 0,
+                '&:hover': {
+                  backgroundColor: 'secondary.light',
+                  boxShadow: 'none'
+                }
+              }}
+            >
+              {tabType === 'available' ? 'Start Assessment' : 
+               tabType === 'completed' ? (canViewResults ? 'View Results' : (
+                 <Box>
+                   <Typography>Results Locked</Typography>
+                   <Typography variant="caption">{minutes}m {seconds}s</Typography>
+                 </Box>
+               )) : 'Practice'}
+            </Button>
+          </CardContent>
+        </Card>
         );
       })}
-    </Grid>
+    </Box>
   );
 
   useEffect(() => {

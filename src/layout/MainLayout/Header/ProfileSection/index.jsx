@@ -92,14 +92,16 @@ export default function ProfileSection() {
         sx={{ ml: 2, height: '48px', alignItems: 'center', borderRadius: '27px' }}
         icon={
           <Avatar
-            src={User1}
+            src={studentData?.profile?.profilePic || studentData?.profilePic}
             alt="user-images"
-            sx={{ typography: 'mediumAvatar', margin: '8px 0 8px 8px !important', cursor: 'pointer' }}
+            sx={{ typography: 'mediumAvatar', margin: '8px 0 8px 8px !important', cursor: 'pointer', bgcolor: 'primary.main', color: 'white' }}
             ref={anchorRef}
             aria-controls={open ? 'menu-list-grow' : undefined}
             aria-haspopup="true"
             color="inherit"
-          />
+          >
+            {!studentData?.profile?.profilePic && !studentData?.profilePic && (studentData?.name?.charAt(0).toUpperCase() || 'U')}
+          </Avatar>
         }
         label={<IconSettings stroke={1.5} size="24px" />}
         ref={anchorRef}

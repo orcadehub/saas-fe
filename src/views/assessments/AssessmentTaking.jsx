@@ -135,6 +135,13 @@ export default function AssessmentTaking() {
     }
   }, [currentQuestionIndex, language, questions, id]);
 
+  // Set initial editor height to 40% when language is first selected
+  useEffect(() => {
+    if (language && compilerSplit === null) {
+      setCompilerSplit(40);
+    }
+  }, [language, compilerSplit]);
+
   // Save code to session storage when it changes
   useEffect(() => {
     if (questions[currentQuestionIndex]?._id && language && code) {

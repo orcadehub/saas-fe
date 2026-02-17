@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Box, Button, Select, MenuItem, FormControl, InputLabel, IconButton, Typography, CircularProgress } from '@mui/material';
+import { Box, Button, Select, MenuItem, FormControl, InputLabel, IconButton, Typography, CircularProgress, Skeleton } from '@mui/material';
 import { PlayArrow, Add, Remove } from '@mui/icons-material';
 import Editor from '@monaco-editor/react';
 import { submitCode } from 'services/pistonService';
@@ -24,6 +24,7 @@ export default function IDE() {
   const [input, setInput] = useState('');
   const [output, setOutput] = useState('');
   const [isRunning, setIsRunning] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const languageIds = {
     python: 71,
@@ -71,6 +72,12 @@ export default function IDE() {
 
   return (
     <MainCard sx={{ height: 'calc(100vh - 140px)', '& .MuiCardContent-root': { height: '100%', p: 0 } }}>
+      {loading ? (
+        <Box sx={{ p: 4 }}>
+          <Skeleton variant="rectangular" height={60} sx={{ mb: 2 }} />
+          <Skeleton variant="rectangular" height="calc(100vh - 300px)" />
+        </Box>
+      ) : (
       <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <Box sx={{ p: 2, borderBottom: '1px solid #e0e0e0', display: 'flex', alignItems: 'center', gap: 2 }}>
         <FormControl size="small" sx={{ minWidth: 150 }}>
@@ -221,6 +228,7 @@ export default function IDE() {
         </Box>
       </Box>
       </Box>
+      )}
     </MainCard>
   );
 }

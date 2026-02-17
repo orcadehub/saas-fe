@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Box, Typography, Button, CircularProgress, Modal, Radio, RadioGroup, FormControlLabel, IconButton, Tabs, Tab, Select, MenuItem, FormControl, InputLabel, Dialog, DialogTitle, DialogContent, DialogActions, Card, CardContent, Chip, Snackbar, Alert } from '@mui/material';
-import { ChevronLeft, ChevronRight, PlayArrow, CheckCircle, Close, Add, Remove } from '@mui/icons-material';
+import { ChevronLeft, ChevronRight, PlayArrow, CheckCircle, Close, Add, Remove, Edit } from '@mui/icons-material';
 import Editor from '@monaco-editor/react';
+import Joyride, { STATUS } from 'react-joyride';
 import tenantConfig from 'config/tenantConfig';
 import AssessmentHeader from './components/AssessmentHeader';
 import { QuestionCache } from 'utils/questionCache';
@@ -61,8 +62,34 @@ export default function AssessmentTaking() {
   const [lastCodeData, setLastCodeData] = useState(null);
   const [fontSize, setFontSize] = useState(18);
   const [frontendCompletedQuestions, setFrontendCompletedQuestions] = useState(new Set());
-  const [editorLoaded, setEditorLoaded] = useState(false);
-  const [showEditorRefresh, setShowEditorRefresh] = useState(false);
+  const [customTestCases, setCustomTestCases] = useState([]);
+  const [showAddCustomInput, setShowAddCustomInput] = useState(false);
+  const [customInput, setCustomInput] = useState('');
+  const [editingCustomIndex, setEditingCustomIndex] = useState(null);
+  const [runTour, setRunTour] = useState(false);
+  const [tourSteps] = useState([
+    {
+      target: '.divider-drag',
+      content: 'Drag this vertical divider left or right to adjust the width of the problem statement and code editor panels.',
+      disableBeacon: true,
+      placement: 'right'
+    },
+    {
+      target: '[data-compiler-container] > div:nth-child(2)',
+      content: 'Drag this horizontal divider up or down to adjust the height of the code editor and test cases panels.',
+      placement: 'top'
+    },
+    {
+      target: '.language-selector',
+      content: 'Select your preferred programming language from this dropdown to start coding.',
+      placement: 'bottom'
+    },
+    {
+      target: '.last-code-button',
+      content: 'Click here to load your last executed code for this question. Useful if you want to continue from where you left off.',
+      placement: 'bottom'
+    }
+  ]);
 
   const getLanguageTemplate = (lang) => {
     switch (lang) {
@@ -105,17 +132,6 @@ export default function AssessmentTaking() {
       const storageKey = `assessment_${id}_question_${questions[currentQuestionIndex]._id}_${language}`;
       const savedCode = sessionStorage.getItem(storageKey);
       setCode(savedCode || getLanguageTemplate(language));
-      setEditorLoaded(false);
-      setShowEditorRefresh(false);
-      
-      // Show refresh button after 10 seconds if editor not loaded
-      const timer = setTimeout(() => {
-        if (!editorLoaded) {
-          setShowEditorRefresh(true);
-        }
-      }, 10000);
-      
-      return () => clearTimeout(timer);
     }
   }, [currentQuestionIndex, language, questions, id]);
 
@@ -134,10 +150,11 @@ export default function AssessmentTaking() {
     setTestCaseResults({});
     
     const publicTestCases = questions[currentQuestionIndex]?.testCases?.filter(tc => tc.isPublic) || [];
+    const allTestCases = [...publicTestCases, ...customTestCases];
     const languageId = getLanguageId(language);
     
-    for (let i = 0; i < publicTestCases.length; i++) {
-      const testCase = publicTestCases[i];
+    for (let i = 0; i < allTestCases.length; i++) {
+      const testCase = allTestCases[i];
       
       setTestCaseResults(prev => ({
         ...prev,
@@ -396,9 +413,10 @@ export default function AssessmentTaking() {
   }, [attemptId, assessment, id, navigate]);
 
   useEffect(() => {
-    // Reset test case tab when question changes
+    // Reset test case tab and results when question changes
     setCurrentTestCaseTab(0);
     setTestCaseResults({});
+    setCustomTestCases([]);
   }, [currentQuestionIndex]);
 
   useEffect(() => {
@@ -691,6 +709,22 @@ export default function AssessmentTaking() {
   }, []);
 
   useEffect(() => {
+    if (!showPreparation && !loading && questions.length > 0 && showPartB) {
+      const tourData = localStorage.getItem(`assessment_tour_${id}`);
+      if (tourData) {
+        const { timestamp } = JSON.parse(tourData);
+        const oneHour = 60 * 60 * 1000;
+        if (Date.now() - timestamp > oneHour) {
+          localStorage.removeItem(`assessment_tour_${id}`);
+          setTimeout(() => setRunTour(true), 1000);
+        }
+      } else {
+        setTimeout(() => setRunTour(true), 1000);
+      }
+    }
+  }, [showPreparation, loading, questions, showPartB, id]);
+
+  useEffect(() => {
     // Set initial time from assessment start time + duration
     if (assessment?.startTime && assessment?.duration) {
       const now = Date.now();
@@ -736,6 +770,14 @@ export default function AssessmentTaking() {
       return () => clearInterval(timer);
     }
   }, [timeRemaining, navigate, attemptId, assessment, id]);
+
+  const handleJoyrideCallback = (data) => {
+    const { status } = data;
+    if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status)) {
+      setRunTour(false);
+      localStorage.setItem(`assessment_tour_${id}`, JSON.stringify({ timestamp: Date.now() }));
+    }
+  };
 
   const handleEnterFullscreen = async () => {
     try {
@@ -1521,6 +1563,7 @@ export default function AssessmentTaking() {
 
         {/* Divider */}
         <Box 
+          className="divider-drag"
           sx={{ 
             bgcolor: '#6a0dad', 
             cursor: 'col-resize',
@@ -1686,7 +1729,7 @@ export default function AssessmentTaking() {
                   bgcolor: '#ffffff',
                   flexWrap: 'wrap'
                 }}>
-                  <FormControl size="small" sx={{ minWidth: 120 }}>
+                  <FormControl size="small" sx={{ minWidth: 120 }} className="language-selector">
                     <InputLabel>Language</InputLabel>
                     <Select
                       value={language}
@@ -1703,6 +1746,7 @@ export default function AssessmentTaking() {
                   
                   <Button
                     variant="outlined"
+                    className="last-code-button"
                     onClick={async () => {
                       if (attemptId && questions[currentQuestionIndex]?._id) {
                         try {
@@ -1785,50 +1829,15 @@ export default function AssessmentTaking() {
                       minHeight: 0,
                       border: '1px solid #e0e0e0',
                       borderRadius: 1,
-                      overflow: 'hidden',
-                      position: 'relative'
+                      overflow: 'hidden'
                     }}>
-                      {!editorLoaded && (
-                        <Box sx={{
-                          position: 'absolute',
-                          top: 0,
-                          left: 0,
-                          right: 0,
-                          bottom: 0,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          bgcolor: 'rgba(255,255,255,0.9)',
-                          zIndex: 10,
-                          flexDirection: 'column',
-                          gap: 2
-                        }}>
-                          <CircularProgress />
-                          {showEditorRefresh && (
-                            <Button
-                              variant="contained"
-                              onClick={() => {
-                                setEditorLoaded(false);
-                                setShowEditorRefresh(false);
-                                window.location.reload();
-                              }}
-                            >
-                              Refresh Editor
-                            </Button>
-                          )}
-                        </Box>
-                      )}
                       <Editor
                         height="100%"
                         language={getMonacoLanguage(language)}
                         value={code}
                         theme="vs-dark"
                         onChange={(value) => setCode(value || '')}
-                        onMount={(editor) => { 
-                          editorRef.current = editor;
-                          setEditorLoaded(true);
-                          setShowEditorRefresh(false);
-                        }}
+                        onMount={(editor) => { editorRef.current = editor; }}
                         options={{
                           fontSize: fontSize,
                           minimap: { enabled: false },
@@ -1879,6 +1888,8 @@ export default function AssessmentTaking() {
               <Box sx={{ height: `${100 - compilerSplit}%`, display: 'flex', flexDirection: 'column', zIndex: 100, position: 'relative', bgcolor: '#ffffff', minHeight: 0 }}>
                 {(() => {
                   const publicTestCases = questions[currentQuestionIndex]?.testCases?.filter(tc => tc.isPublic) || [];
+                  const allTestCases = [...publicTestCases, ...customTestCases];
+                  const canAddMore = publicTestCases.length >= 3 && customTestCases.length < 4;
                   
                   return (
                     <>
@@ -1903,11 +1914,12 @@ export default function AssessmentTaking() {
                             }
                           }}
                         >
-                          {publicTestCases.map((tc, index) => {
+                          {allTestCases.map((tc, index) => {
                             const result = testCaseResults[index];
-                            const isPassed = result && !result.loading && !result.error && 
+                            const isCustom = index >= publicTestCases.length;
+                            const isPassed = !isCustom && result && !result.loading && !result.error && 
                               result.output?.trim() === (tc.expectedOutput || tc.output)?.toString().trim();
-                            const isFailed = result && !result.loading && (result.error || 
+                            const isFailed = !isCustom && result && !result.loading && (result.error || 
                               result.output?.trim() !== (tc.expectedOutput || tc.output)?.toString().trim());
                             
                             return (
@@ -1915,7 +1927,7 @@ export default function AssessmentTaking() {
                                 key={index} 
                                 label={
                                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                    Test Case {index + 1}
+                                    {isCustom ? `Custom ${index - publicTestCases.length + 1}` : `Test Case ${index + 1}`}
                                     {result?.loading && <CircularProgress size={16} />}
                                   </Box>
                                 }
@@ -1928,16 +1940,54 @@ export default function AssessmentTaking() {
                               />
                             );
                           })}
+                          {canAddMore && (
+                            <Tab 
+                              label={
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                  <Add sx={{ fontSize: 18 }} />
+                                  Custom
+                                </Box>
+                              }
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setShowAddCustomInput(true);
+                              }}
+                              sx={{ color: 'secondary.main' }}
+                            />
+                          )}
                         </Tabs>
                       </Box>
                       
                       <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, flexGrow: 1, overflow: 'auto', pb: 8, bgcolor: '#ffffff' }}>
-                        {publicTestCases.length > 0 && publicTestCases[currentTestCaseTab] ? (
+                        {allTestCases.length > 0 && allTestCases[currentTestCaseTab] ? (
                           <>
                             <Box sx={{ mb: 3 }}>
-                              <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1.5, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5, fontSize: { xs: '14px', sm: '15px', md: '16px' } }}>
-                                Input
-                              </Typography>
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+                                <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5, fontSize: { xs: '14px', sm: '15px', md: '16px' } }}>
+                                  Input
+                                </Typography>
+                                {currentTestCaseTab >= publicTestCases.length && (
+                                  <Box
+                                    onClick={() => {
+                                      const customIndex = currentTestCaseTab - publicTestCases.length;
+                                      setCustomInput(customTestCases[customIndex].input);
+                                      setEditingCustomIndex(customIndex);
+                                      setShowAddCustomInput(true);
+                                    }}
+                                    sx={{ 
+                                      display: 'flex', 
+                                      alignItems: 'center', 
+                                      gap: 0.5, 
+                                      color: 'secondary.main',
+                                      cursor: 'pointer',
+                                      '&:hover': { opacity: 0.8 }
+                                    }}
+                                  >
+                                    <Edit fontSize="small" />
+                                    <Typography variant="body2" sx={{ fontWeight: 600 }}>Edit</Typography>
+                                  </Box>
+                                )}
+                              </Box>
                               <Box sx={{ 
                                 bgcolor: '#f5f5f5',
                                 border: '1px solid #e0e0e0',
@@ -1947,7 +1997,7 @@ export default function AssessmentTaking() {
                                 whiteSpace: 'pre-wrap',
                                 fontSize: { xs: '14px', sm: '16px', md: '18px' }
                               }}>
-                                {publicTestCases[currentTestCaseTab].input}
+                                {allTestCases[currentTestCaseTab].input}
                               </Box>
                             </Box>
                             
@@ -1959,7 +2009,7 @@ export default function AssessmentTaking() {
                                 <Box sx={{ 
                                   bgcolor: '#f5f5f5',
                                   border: '2px solid',
-                                  borderColor: testCaseResults[currentTestCaseTab].error ? 'error.main' : 'success.main',
+                                  borderColor: testCaseResults[currentTestCaseTab].error ? 'error.main' : (currentTestCaseTab >= publicTestCases.length ? '#e0e0e0' : 'success.main'),
                                   p: 2.5,
                                   borderRadius: 2,
                                   fontFamily: 'monospace',
@@ -1983,24 +2033,26 @@ export default function AssessmentTaking() {
                               </Box>
                             )}
                             
-                            <Box sx={{ mb: 3 }}>
-                              <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1.5, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5, fontSize: { xs: '14px', sm: '15px', md: '16px' } }}>
-                                Expected Output
-                              </Typography>
-                              <Box sx={{ 
-                                bgcolor: '#f5f5f5',
-                                border: '1px solid #e0e0e0',
-                                p: 2.5,
-                                borderRadius: 2,
-                                fontFamily: 'monospace',
-                                fontSize: { xs: '14px', sm: '16px', md: '18px' },
-                                whiteSpace: 'pre'
-                              }}>
-                                {publicTestCases[currentTestCaseTab].expectedOutput || publicTestCases[currentTestCaseTab].output}
+                            {currentTestCaseTab < publicTestCases.length && (
+                              <Box sx={{ mb: 3 }}>
+                                <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1.5, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5, fontSize: { xs: '14px', sm: '15px', md: '16px' } }}>
+                                  Expected Output
+                                </Typography>
+                                <Box sx={{ 
+                                  bgcolor: '#f5f5f5',
+                                  border: '1px solid #e0e0e0',
+                                  p: 2.5,
+                                  borderRadius: 2,
+                                  fontFamily: 'monospace',
+                                  fontSize: { xs: '14px', sm: '16px', md: '18px' },
+                                  whiteSpace: 'pre'
+                                }}>
+                                  {allTestCases[currentTestCaseTab].expectedOutput || allTestCases[currentTestCaseTab].output}
+                                </Box>
                               </Box>
-                            </Box>
+                            )}
                             
-                            {publicTestCases[currentTestCaseTab].explanation && (
+                            {allTestCases[currentTestCaseTab].explanation && (
                               <Box sx={{ mb: 3 }}>
                                 <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1.5, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5, fontSize: { xs: '14px', sm: '15px', md: '16px' } }}>
                                   Explanation
@@ -2013,7 +2065,7 @@ export default function AssessmentTaking() {
                                   fontSize: { xs: '14px', sm: '16px', md: '18px' },
                                   lineHeight: 1.6
                                 }}>
-                                  {publicTestCases[currentTestCaseTab].explanation}
+                                  {allTestCases[currentTestCaseTab].explanation}
                                 </Box>
                               </Box>
                             )}
@@ -2032,6 +2084,41 @@ export default function AssessmentTaking() {
           )}
         </Box>
       </Box>
+
+      <Joyride
+        steps={tourSteps}
+        run={runTour}
+        continuous
+        showProgress
+        showSkipButton={false}
+        disableCloseOnEsc
+        disableOverlayClose
+        hideCloseButton
+        callback={handleJoyrideCallback}
+        styles={{
+          options: {
+            primaryColor: '#6a0dad',
+            zIndex: 10000,
+          },
+          tooltip: {
+            fontSize: '1.1rem',
+          },
+          buttonNext: {
+            backgroundColor: '#6a0dad',
+            fontSize: '1rem',
+            padding: '10px 20px'
+          },
+          buttonBack: {
+            color: '#6a0dad',
+            fontSize: '1rem'
+          }
+        }}
+        locale={{
+          back: 'Back',
+          last: 'Finish',
+          next: 'Next'
+        }}
+      />
 
       <Modal open={showFullscreenWarning} disableEscapeKeyDown>
         <Box sx={{
@@ -2413,7 +2500,7 @@ export default function AssessmentTaking() {
         <DialogTitle>Last Executed Code</DialogTitle>
         <DialogContent>
           {lastCodeData ? (
-            <Box sx={{ bgcolor: '#1e1e1e', color: '#d4d4d4', p: 2, borderRadius: 1, overflow: 'auto', fontFamily: 'monospace', fontSize: '14px', whiteSpace: 'pre' }}>
+            <Box sx={{ bgcolor: '#f5f5f5', color: '#333', p: 2, borderRadius: 1, overflow: 'auto', fontFamily: 'monospace', fontSize: '18px', whiteSpace: 'pre', border: '1px solid #e0e0e0', lineHeight: 1.6 }}>
               {lastCodeData}
             </Box>
           ) : (
@@ -2433,6 +2520,72 @@ export default function AssessmentTaking() {
               Load Code
             </Button>
           )}
+        </DialogActions>
+      </Dialog>
+
+      {/* Add Custom Input Dialog */}
+      <Dialog open={showAddCustomInput} onClose={() => {
+        setShowAddCustomInput(false);
+        setCustomInput('');
+        setEditingCustomIndex(null);
+      }} maxWidth="sm" fullWidth>
+        <DialogTitle>{editingCustomIndex !== null ? 'Edit Custom Test Input' : 'Add Custom Test Input'}</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
+            {editingCustomIndex !== null ? 'Edit your custom input' : 'Enter your custom input (max 4 custom inputs allowed)'}
+          </Typography>
+          <Box
+            component="textarea"
+            value={customInput}
+            onChange={(e) => setCustomInput(e.target.value)}
+            placeholder="Enter custom input here..."
+            sx={{
+              width: '100%',
+              minHeight: '150px',
+              p: 2,
+              border: '1px solid #e0e0e0',
+              borderRadius: 1,
+              fontFamily: 'monospace',
+              fontSize: '14px',
+              resize: 'vertical',
+              outline: 'none',
+              '&:focus': {
+                borderColor: 'secondary.main'
+              }
+            }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => {
+            setShowAddCustomInput(false);
+            setCustomInput('');
+            setEditingCustomIndex(null);
+          }}>Cancel</Button>
+          <Button 
+            variant="contained" 
+            onClick={() => {
+              if (customInput.trim()) {
+                if (editingCustomIndex !== null) {
+                  // Edit existing custom test case
+                  setCustomTestCases(prev => {
+                    const updated = [...prev];
+                    updated[editingCustomIndex] = { input: customInput, isCustom: true };
+                    return updated;
+                  });
+                  setEditingCustomIndex(null);
+                } else {
+                  // Add new custom test case
+                  setCustomTestCases(prev => [...prev, { input: customInput, isCustom: true }]);
+                  setCurrentTestCaseTab((questions[currentQuestionIndex]?.testCases?.filter(tc => tc.isPublic) || []).length + customTestCases.length);
+                }
+                setShowAddCustomInput(false);
+                setCustomInput('');
+              }
+            }}
+            disabled={!customInput.trim()}
+          >
+            {editingCustomIndex !== null ? 'Update' : 'Add Input'}
+          </Button>
         </DialogActions>
       </Dialog>
     </Box>

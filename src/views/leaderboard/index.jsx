@@ -5,6 +5,7 @@ import MainCard from 'ui-component/cards/MainCard';
 import { useAuth } from 'contexts/AuthContext';
 import { useDashboard } from 'contexts/DashboardContext';
 import tenantConfig from 'config/tenantConfig';
+import TableSkeleton from 'ui-component/skeletons/TableSkeleton';
 
 export default function Leaderboard() {
   const { user } = useAuth();
@@ -194,7 +195,7 @@ export default function Leaderboard() {
       </Dialog>
 
       {loading ? (
-        <Typography>Loading...</Typography>
+        <TableSkeleton rows={10} columns={9} />
       ) : (
         <>
           <TableContainer component={Paper} sx={{ mb: 3 }}>

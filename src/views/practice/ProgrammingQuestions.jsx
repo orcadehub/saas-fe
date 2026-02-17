@@ -3,6 +3,7 @@ import { Box, Card, CardContent, Typography, Chip, Breadcrumbs, Link } from '@mu
 import { useNavigate, useParams } from 'react-router-dom';
 import { IconCode, IconChevronRight } from '@tabler/icons-react';
 import MainCard from 'ui-component/cards/MainCard';
+import CardSkeleton from 'ui-component/skeletons/CardSkeleton';
 import axios from 'axios';
 
 export default function ProgrammingQuestions() {
@@ -72,7 +73,7 @@ export default function ProgrammingQuestions() {
       </Typography>
 
       {loading ? (
-        <Typography>Loading...</Typography>
+        <CardSkeleton count={12} />
       ) : questions.length === 0 ? (
         <Typography>No questions found</Typography>
       ) : (

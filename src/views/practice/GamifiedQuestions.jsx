@@ -3,6 +3,7 @@ import { Box, Card, CardContent, Typography, Chip, Breadcrumbs, Link } from '@mu
 import { useNavigate, useParams } from 'react-router-dom';
 import { IconTrophy, IconChevronRight } from '@tabler/icons-react';
 import MainCard from 'ui-component/cards/MainCard';
+import CardSkeleton from 'ui-component/skeletons/CardSkeleton';
 import { gamifiedData } from '../../data/gamifiedData';
 import { getMazeQuestions } from '../../data/mazeQuestions';
 import { getMemoryGameQuestions } from '../../data/memoryGameQuestions';

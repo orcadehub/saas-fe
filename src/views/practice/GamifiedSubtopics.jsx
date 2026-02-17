@@ -3,6 +3,7 @@ import { Box, Card, CardContent, Typography, Chip, Breadcrumbs, Link } from '@mu
 import { useNavigate, useParams } from 'react-router-dom';
 import { IconTrophy, IconChevronRight } from '@tabler/icons-react';
 import MainCard from 'ui-component/cards/MainCard';
+import CardSkeleton from 'ui-component/skeletons/CardSkeleton';
 import apiService from 'services/apiService';
 
 export default function GamifiedSubtopics() {
@@ -71,7 +72,7 @@ export default function GamifiedSubtopics() {
       </Typography>
 
       {loading ? (
-        <Typography>Loading...</Typography>
+        <CardSkeleton count={12} />
       ) : subtopics.length === 0 ? (
         <Typography>No subtopics found</Typography>
       ) : (

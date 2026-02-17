@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Box, Typography, Button, IconButton, Tabs, Tab, Select, MenuItem, FormControl, InputLabel, CircularProgress, Dialog, DialogTitle, DialogContent, DialogActions, Card, CardContent, Chip } from '@mui/material';
+import { Box, Typography, Button, IconButton, Tabs, Tab, Select, MenuItem, FormControl, InputLabel, CircularProgress, Dialog, DialogTitle, DialogContent, DialogActions, Card, CardContent, Chip, Skeleton } from '@mui/material';
 import { ArrowBack, PlayArrow, CheckCircle, Close, Add, Remove } from '@mui/icons-material';
 import Editor from '@monaco-editor/react';
 import { submitCode } from 'services/pistonService';
@@ -233,8 +233,23 @@ export default function AssessmentPractice() {
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <CircularProgress />
+      <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+        <Box sx={{ p: 2, borderBottom: '1px solid #e0e0e0' }}>
+          <Skeleton variant="rectangular" height={48} />
+        </Box>
+        <Box sx={{ display: 'grid', gridTemplateColumns: '50% 4px 50%', flexGrow: 1 }}>
+          <Box sx={{ p: 4 }}>
+            <Skeleton variant="text" height={48} width="60%" sx={{ mb: 3 }} />
+            <Skeleton variant="text" height={24} sx={{ mb: 2 }} />
+            <Skeleton variant="text" height={24} sx={{ mb: 2 }} />
+            <Skeleton variant="rectangular" height={200} sx={{ mb: 3 }} />
+          </Box>
+          <Box sx={{ bgcolor: '#6a0dad' }} />
+          <Box sx={{ p: 4 }}>
+            <Skeleton variant="rectangular" height={60} sx={{ mb: 2 }} />
+            <Skeleton variant="rectangular" height="calc(100vh - 300px)" />
+          </Box>
+        </Box>
       </Box>
     );
   }

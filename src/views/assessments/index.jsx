@@ -1,4 +1,4 @@
-import { Typography, Grid, Card, CardContent, Button, Chip, Box, Tabs, Tab, CircularProgress } from '@mui/material';
+import { Typography, Grid, Card, CardContent, Button, Chip, Box, Tabs, Tab, CircularProgress, Skeleton } from '@mui/material';
 import { Assessment, AccessTime, CheckCircle } from '@mui/icons-material';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -45,9 +45,10 @@ export default function Assessments() {
       gridTemplateColumns: {
         xs: '1fr',
         sm: 'repeat(2, 1fr)',
-        md: 'repeat(4, 1fr)'
+        md: 'repeat(3, 1fr)',
+        lg: 'repeat(4, 1fr)'
       },
-      gap: 3,
+      gap: { xs: 2, sm: 2.5, md: 3 },
       width: '100%'
     }}>
       {assessmentList.map((assessment) => {
@@ -72,8 +73,8 @@ export default function Assessments() {
             borderColor: 'primary.main'
           }
         }}>
-          <CardContent sx={{ flexGrow: 1, p: 3, display: 'flex', flexDirection: 'column' }}>
-            <Typography variant="h5" sx={{ fontWeight: 700, mb: 2.5, lineHeight: 1.3, color: '#1e293b', flexShrink: 0 }}>
+          <CardContent sx={{ flexGrow: 1, p: { xs: 2, sm: 2.5, md: 3 }, display: 'flex', flexDirection: 'column' }}>
+            <Typography variant="h5" sx={{ fontWeight: 700, mb: 2.5, lineHeight: 1.3, color: '#1e293b', flexShrink: 0, fontSize: { xs: '1rem', sm: '1.1rem', md: '1.25rem' } }}>
               {assessment.title}
             </Typography>
             
@@ -114,7 +115,7 @@ export default function Assessments() {
             <Box mb={3} sx={{ 
               backgroundColor: '#f8fafc',
               borderRadius: `${borderRadius}px`,
-              p: 2,
+              p: { xs: 1.5, sm: 2 },
               flexShrink: 0
             }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
@@ -191,8 +192,23 @@ export default function Assessments() {
   if (loading) {
     return (
       <MainCard>
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 8 }}>
-          <CircularProgress />
+        <Box sx={{ mb: 4 }}>
+          <Skeleton variant="rectangular" height={56} sx={{ borderRadius: 2 }} />
+        </Box>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 3 }}>
+          {Array.from({ length: 8 }).map((_, idx) => (
+            <Card key={idx} sx={{ borderRadius: 4 }}>
+              <CardContent sx={{ p: 3 }}>
+                <Skeleton variant="text" height={32} sx={{ mb: 2 }} />
+                <Box display="flex" gap={1} mb={2}>
+                  <Skeleton variant="rectangular" width={80} height={24} sx={{ borderRadius: 2 }} />
+                  <Skeleton variant="rectangular" width={80} height={24} sx={{ borderRadius: 2 }} />
+                </Box>
+                <Skeleton variant="rectangular" height={80} sx={{ mb: 2, borderRadius: 2 }} />
+                <Skeleton variant="rectangular" height={48} sx={{ borderRadius: 2 }} />
+              </CardContent>
+            </Card>
+          ))}
         </Box>
       </MainCard>
     );

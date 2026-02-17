@@ -1,9 +1,11 @@
 import { useEffect, useState, useRef } from 'react';
-import { Box, Avatar, Typography, IconButton, Tooltip, Card, CardContent } from '@mui/material';
-import { Edit } from '@mui/icons-material';
+import { Box, Avatar, Typography, IconButton, Tooltip, Card, CardContent, Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, CircularProgress } from '@mui/material';
+import { Edit, Link as LinkIcon } from '@mui/icons-material';
 import MainCard from 'ui-component/cards/MainCard';
 import { useAuth } from 'contexts/AuthContext';
 import { useDashboard } from 'contexts/DashboardContext';
+import DashboardSkeleton from 'ui-component/skeletons/DashboardSkeleton';
+import apiService from 'services/apiService';
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -13,6 +15,13 @@ export default function Dashboard() {
   const [codingProfiles, setCodingProfiles] = useState({});
   const [createdAt, setCreatedAt] = useState(null);
   const fileInputRef = useRef(null);
+  const [showConnectModal, setShowConnectModal] = useState(false);
+  const [connecting, setConnecting] = useState(false);
+  const [usernames, setUsernames] = useState({
+    leetcode: '',
+    hackerrank: '',
+    codeforces: ''
+  });
 
   useEffect(() => {
     if (user?.email) {
@@ -41,6 +50,33 @@ export default function Dashboard() {
       console.log('Upload file:', file);
     }
   };
+
+  const handleConnectPlatforms = async () => {
+    setConnecting(true);
+    try {
+      const token = localStorage.getItem('studentToken');
+      await apiService.connectCodingProfiles(token, {
+        leetcodeUsername: usernames.leetcode,
+        hackerrankUsername: usernames.hackerrank,
+        codeforcesUsername: usernames.codeforces
+      });
+      await fetchDashboardData(true);
+      setShowConnectModal(false);
+      setUsernames({ leetcode: '', hackerrank: '', codeforces: '' });
+    } catch (error) {
+      console.error('Error connecting platforms:', error);
+    } finally {
+      setConnecting(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <MainCard>
+        <DashboardSkeleton />
+      </MainCard>
+    );
+  }
 
   return (
     <MainCard>
@@ -144,7 +180,18 @@ export default function Dashboard() {
         </Box>
 
         <Box>
-          <Typography variant="h4" sx={{ mb: 2, fontWeight: 600 }}>Connected Platforms</Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Typography variant="h4" sx={{ fontWeight: 600 }}>Connected Platforms</Typography>
+            <Button 
+              variant="contained" 
+              size="small" 
+              startIcon={<LinkIcon />}
+              onClick={() => setShowConnectModal(true)} 
+              sx={{ bgcolor: 'secondary.main', '&:hover': { bgcolor: 'secondary.dark' } }}
+            >
+              Connect
+            </Button>
+          </Box>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             {[
               { name: 'LeetCode', username: codingProfiles?.leetcode?.username, connected: codingProfiles?.leetcode?.connected, color: '#FFA116' },
@@ -181,6 +228,47 @@ export default function Dashboard() {
           </Box>
         </Box>
       </Box>
+
+      {/* Connect Platforms Modal */}
+      <Dialog open={showConnectModal} onClose={() => setShowConnectModal(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Connect Coding Platforms</DialogTitle>
+        <DialogContent>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 2 }}>
+            <TextField
+              label="LeetCode Username"
+              value={usernames.leetcode}
+              onChange={(e) => setUsernames(prev => ({ ...prev, leetcode: e.target.value }))}
+              fullWidth
+              placeholder="Enter your LeetCode username"
+            />
+            <TextField
+              label="HackerRank Username"
+              value={usernames.hackerrank}
+              onChange={(e) => setUsernames(prev => ({ ...prev, hackerrank: e.target.value }))}
+              fullWidth
+              placeholder="Enter your HackerRank username"
+            />
+            <TextField
+              label="Codeforces Username"
+              value={usernames.codeforces}
+              onChange={(e) => setUsernames(prev => ({ ...prev, codeforces: e.target.value }))}
+              fullWidth
+              placeholder="Enter your Codeforces username"
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowConnectModal(false)} disabled={connecting}>Cancel</Button>
+          <Button 
+            variant="contained" 
+            onClick={handleConnectPlatforms}
+            disabled={connecting || (!usernames.leetcode && !usernames.hackerrank && !usernames.codeforces)}
+            startIcon={connecting ? <CircularProgress size={20} /> : null}
+          >
+            {connecting ? 'Connecting...' : 'Connect'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </MainCard>
   );
 }

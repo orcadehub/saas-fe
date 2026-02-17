@@ -1,6 +1,8 @@
 import { Box, Typography, Card, CardContent, Chip } from '@mui/material';
 import { IconBook } from '@tabler/icons-react';
 import MainCard from 'ui-component/cards/MainCard';
+import CardSkeleton from 'ui-component/skeletons/CardSkeleton';
+import { useState } from 'react';
 
 const studyMaterials = [
   { id: 1, name: 'C Programming', description: 'Basics to advanced C programming concepts', category: 'Programming' },
@@ -30,8 +32,13 @@ const studyMaterials = [
 ];
 
 export default function StudyMaterials() {
+  const [loading, setLoading] = useState(false);
+
   return (
     <MainCard title="Study Materials">
+      {loading ? (
+        <CardSkeleton count={24} />
+      ) : (
       <Box
         sx={{
           display: 'grid',
@@ -83,6 +90,7 @@ export default function StudyMaterials() {
           </Card>
         ))}
       </Box>
+      )}
     </MainCard>
   );
 }

@@ -3,6 +3,7 @@ import { Box, Card, CardContent, Typography, Chip } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { IconCode } from '@tabler/icons-react';
 import MainCard from 'ui-component/cards/MainCard';
+import CardSkeleton from 'ui-component/skeletons/CardSkeleton';
 import axios from 'axios';
 
 export default function ProgrammingPractice() {
@@ -29,7 +30,7 @@ export default function ProgrammingPractice() {
   return (
     <MainCard title="Programming Practice">
       {loading ? (
-        <Typography>Loading...</Typography>
+        <CardSkeleton count={12} />
       ) : (
         <Box
           sx={{

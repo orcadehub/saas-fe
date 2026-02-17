@@ -3,6 +3,7 @@ import { Card, CardContent, Typography, Box } from '@mui/material';
 import { IconCode, IconTrophy, IconClipboardList, IconBrain, IconBook, IconCalculator, IconBuilding } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
 import MainCard from 'ui-component/cards/MainCard';
+import CardSkeleton from 'ui-component/skeletons/CardSkeleton';
 
 const practiceCategories = [
   {
@@ -51,6 +52,7 @@ const practiceCategories = [
 
 export default function Practice() {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
   const handleCategoryClick = (categoryId) => {
     navigate(`/practice/${categoryId}`);
@@ -58,6 +60,9 @@ export default function Practice() {
 
   return (
     <MainCard title="Practice">
+      {loading ? (
+        <CardSkeleton count={7} />
+      ) : (
       <Box
         sx={{
           display: 'grid',
@@ -104,6 +109,7 @@ export default function Practice() {
           );
         })}
       </Box>
+      )}
     </MainCard>
   );
 }

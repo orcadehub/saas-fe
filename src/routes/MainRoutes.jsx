@@ -6,6 +6,7 @@ import Loadable from 'ui-component/Loadable';
 import ErrorBoundary from './ErrorBoundary';
 import { DashboardProvider } from 'contexts/DashboardContext';
 import { PracticeProvider } from 'contexts/PracticeContext';
+import { AssessmentsProvider } from 'contexts/AssessmentsContext';
 
 // page routing
 const Landing = Loadable(lazy(() => import('views/landing')));
@@ -60,9 +61,11 @@ const MainRoutes = {
       path: '/',
       element: (
         <DashboardProvider>
-          <PracticeProvider>
-            <MainLayout />
-          </PracticeProvider>
+          <AssessmentsProvider>
+            <PracticeProvider>
+              <MainLayout />
+            </PracticeProvider>
+          </AssessmentsProvider>
         </DashboardProvider>
       ),
       children: [

@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import tenantConfig from 'config/tenantConfig';
+import { useDashboard } from 'contexts/DashboardContext';
+import { useAssessments } from 'contexts/AssessmentsContext';
 
 // material-ui
 import Button from '@mui/material/Button';
@@ -35,6 +37,8 @@ export default function AuthLogin() {
   const [error, setError] = useState('');
   const [config, setConfig] = useState(null);
   const navigate = useNavigate();
+  const { fetchDashboardData, fetchLeaderboardData } = useDashboard();
+  const { refreshAssessments } = useAssessments();
 
   useEffect(() => {
     tenantConfig.load().then(setConfig).catch(console.error);
@@ -84,6 +88,13 @@ export default function AuthLogin() {
       // Store token and student data in localStorage
       localStorage.setItem('studentToken', token);
       localStorage.setItem('studentData', JSON.stringify({ ...student, token }));
+      
+      // Fetch dashboard, leaderboard, and assessments data
+      await Promise.all([
+        fetchDashboardData(true),
+        fetchLeaderboardData(true),
+        refreshAssessments()
+      ]);
       
       // Navigate to dashboard
       navigate('/dashboard');

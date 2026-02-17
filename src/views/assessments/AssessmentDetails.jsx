@@ -1,4 +1,4 @@
-import { Typography, Box, Button, Grid, Card, CardContent, Dialog, DialogTitle, DialogContent, DialogActions, CircularProgress, Checkbox, FormControlLabel, Chip } from '@mui/material';
+import { Typography, Box, Button, Grid, Card, CardContent, Dialog, DialogTitle, DialogContent, DialogActions, CircularProgress, Checkbox, FormControlLabel, Chip, Skeleton } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AccessTime, Code, Quiz, CalendarToday, Wifi, Warning } from '@mui/icons-material';
 import { useState, useEffect } from 'react';
@@ -213,8 +213,24 @@ export default function AssessmentDetails() {
 
   if (!assessment) {
     return (
-      <Box sx={{ p: 3, textAlign: 'center' }}>
-        <Typography variant="h5" color="error">Assessment not found</Typography>
+      <Box sx={{ p: 3 }}>
+        <Card sx={{ borderRadius: 4, boxShadow: 2 }}>
+          <CardContent sx={{ p: 4 }}>
+            <Skeleton variant="text" height={48} width="60%" sx={{ mb: 2 }} />
+            <Skeleton variant="text" height={24} width="80%" sx={{ mb: 4 }} />
+            <Grid container spacing={3} sx={{ mb: 4 }}>
+              {Array.from({ length: 4 }).map((_, idx) => (
+                <Grid item xs={12} md={6} key={idx}>
+                  <Skeleton variant="rectangular" height={120} sx={{ borderRadius: 2 }} />
+                </Grid>
+              ))}
+            </Grid>
+            <Skeleton variant="rectangular" height={150} sx={{ mb: 4, borderRadius: 2 }} />
+            <Box display="flex" justifyContent="center">
+              <Skeleton variant="rectangular" width={200} height={56} sx={{ borderRadius: 2 }} />
+            </Box>
+          </CardContent>
+        </Card>
       </Box>
     );
   }
@@ -700,30 +716,62 @@ export default function AssessmentDetails() {
         
         <DialogContent sx={{ p: 4 }}>
           <Box sx={{ mb: 3 }}>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, fontSize: '1.25rem' }}>
               Instructions
             </Typography>
             <Box component="ol" sx={{ pl: 2 }}>
               <li>
-                <Typography variant="body1" sx={{ mb: 1 }}>
+                <Typography variant="body1" sx={{ mb: 1, fontSize: '1.1rem' }}>
                   The countdown timer displays remaining time. Assessment ends automatically when time expires.
                 </Typography>
               </li>
               <li>
-                <Typography variant="body1" sx={{ mb: 1 }}>
+                <Typography variant="body1" sx={{ mb: 1, fontSize: '1.1rem' }}>
                   Navigate between questions using the Question Palette to track your progress.
                 </Typography>
               </li>
               <li>
-                <Typography variant="body1" sx={{ mb: 1 }}>
+                <Typography variant="body1" sx={{ mb: 1, fontSize: '1.1rem' }}>
                   Click "Submit Code" for programming questions to ensure proper submission.
                 </Typography>
               </li>
               <li>
-                <Typography variant="body1" sx={{ mb: 1 }}>
+                <Typography variant="body1" sx={{ mb: 1, fontSize: '1.1rem' }}>
                   Review all questions before submitting - submission is final and cannot be undone.
                 </Typography>
               </li>
+            </Box>
+          </Box>
+
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, fontSize: '1.25rem' }}>
+              Question Status Colors
+            </Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Box sx={{ width: 48, height: 48, bgcolor: '#4caf50', borderRadius: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 600 }}>1</Box>
+                <Typography variant="body1" sx={{ fontSize: '1.1rem' }}>
+                  <strong>Green:</strong> Submitted/Completed questions
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Box sx={{ width: 48, height: 48, bgcolor: 'secondary.main', borderRadius: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 600 }}>2</Box>
+                <Typography variant="body1" sx={{ fontSize: '1.1rem' }}>
+                  <strong>Purple:</strong> Currently viewing question
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Box sx={{ width: 48, height: 48, bgcolor: '#ff9800', borderRadius: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 600 }}>3</Box>
+                <Typography variant="body1" sx={{ fontSize: '1.1rem' }}>
+                  <strong>Orange:</strong> Visited but not submitted
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Box sx={{ width: 48, height: 48, border: '2px solid', borderColor: 'secondary.main', borderRadius: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'secondary.main', fontWeight: 600 }}>4</Box>
+                <Typography variant="body1" sx={{ fontSize: '1.1rem' }}>
+                  <strong>Outlined:</strong> Not visited yet
+                </Typography>
+              </Box>
             </Box>
           </Box>
 
@@ -739,7 +787,7 @@ export default function AssessmentDetails() {
                 Declaration & Agreement
               </Typography>
             </Box>
-            <Typography variant="body2" sx={{ color: 'error.dark', lineHeight: 1.7 }}>
+            <Typography variant="body2" sx={{ color: 'error.dark', lineHeight: 1.7, fontSize: '1.05rem' }}>
               I acknowledge that I have read and understood all assessment instructions. I confirm that all 
               computer hardware is functioning properly and I am not in possession of any prohibited devices 
               including mobile phones, smartwatches, or unauthorized materials. I understand that any 
@@ -761,7 +809,7 @@ export default function AssessmentDetails() {
                 />
               }
               label={
-                <Typography sx={{ fontWeight: 600, fontSize: '1rem' }}>
+                <Typography sx={{ fontWeight: 600, fontSize: '1.1rem' }}>
                   I have read and agree to all instructions and terms
                 </Typography>
               }

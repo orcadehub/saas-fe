@@ -14,7 +14,8 @@ import {
   AccordionDetails,
   LinearProgress,
   Tabs,
-  Tab
+  Tab,
+  Skeleton
 } from '@mui/material';
 import { 
   ArrowBack, 
@@ -136,12 +137,29 @@ export default function AssessmentResults() {
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-        <Box sx={{ textAlign: 'center' }}>
-          <CircularProgress size={60} sx={{ mb: 2 }} />
-          <Typography variant="h6">Loading Results...</Typography>
+      <MainCard>
+        <Box sx={{ px: 4, maxWidth: 1400, mx: 'auto' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 4 }}>
+            <Skeleton variant="text" height={48} width="40%" />
+            <Skeleton variant="rectangular" width={120} height={40} sx={{ borderRadius: 2 }} />
+          </Box>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(3, 1fr)', md: 'repeat(4, 1fr)' }, gap: 2, mb: 3 }}>
+            {Array.from({ length: 8 }).map((_, idx) => (
+              <Card key={idx} sx={{ borderRadius: 4 }}>
+                <CardContent sx={{ py: 3 }}>
+                  <Skeleton variant="text" height={40} sx={{ mb: 1 }} />
+                  <Skeleton variant="text" height={20} />
+                </CardContent>
+              </Card>
+            ))}
+          </Box>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            {Array.from({ length: 3 }).map((_, idx) => (
+              <Skeleton key={idx} variant="rectangular" height={200} sx={{ borderRadius: 3 }} />
+            ))}
+          </Box>
         </Box>
-      </Box>
+      </MainCard>
     );
   }
 

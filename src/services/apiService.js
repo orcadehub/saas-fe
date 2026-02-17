@@ -138,5 +138,13 @@ class ApiService {
     );
     return response.data;
   }
+
+  async connectCodingProfiles(token, data) {
+    const response = await this.client.post('/auth/student/connect-coding-profiles',
+      data,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return response.data;
+  }
 }
 export default new ApiService();

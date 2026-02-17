@@ -4,6 +4,8 @@ import { lazy } from 'react';
 import Loadable from 'ui-component/Loadable';
 import MinimalLayout from 'layout/MinimalLayout';
 import ErrorBoundary from './ErrorBoundary';
+import { DashboardProvider } from 'contexts/DashboardContext';
+import { AssessmentsProvider } from 'contexts/AssessmentsContext';
 
 // maintenance routing
 const LoginPage = Loadable(lazy(() => import('views/pages/authentication/Login')));
@@ -13,7 +15,13 @@ const RegisterPage = Loadable(lazy(() => import('views/pages/authentication/Regi
 
 const AuthenticationRoutes = {
   path: '/',
-  element: <MinimalLayout />,
+  element: (
+    <DashboardProvider>
+      <AssessmentsProvider>
+        <MinimalLayout />
+      </AssessmentsProvider>
+    </DashboardProvider>
+  ),
   errorElement: <ErrorBoundary />,
   children: [
     {

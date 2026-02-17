@@ -6,6 +6,7 @@ import {
 import { IconCode } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
 import MainCard from 'ui-component/cards/MainCard';
+import CardSkeleton from 'ui-component/skeletons/CardSkeleton';
 import { useAuth } from 'contexts/AuthContext';
 import tenantConfig from 'config/tenantConfig';
 

@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
-import { Box, Avatar, Typography, IconButton, Tooltip, Card, CardContent, Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, CircularProgress } from '@mui/material';
-import { Edit, Link as LinkIcon } from '@mui/icons-material';
+import { Box, Avatar, Typography, IconButton, Tooltip, Card, CardContent, Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, CircularProgress, InputAdornment, Snackbar, Alert } from '@mui/material';
+import { Edit, Link as LinkIcon, Lock, Visibility, VisibilityOff } from '@mui/icons-material';
 import MainCard from 'ui-component/cards/MainCard';
 import { useAuth } from 'contexts/AuthContext';
 import { useDashboard } from 'contexts/DashboardContext';
@@ -22,6 +22,19 @@ export default function Dashboard() {
     hackerrank: '',
     codeforces: ''
   });
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastSeverity, setToastSeverity] = useState('success');
 
   useEffect(() => {
     if (user?.email) {
@@ -103,6 +116,14 @@ export default function Dashboard() {
             <Typography variant="h3" sx={{ fontWeight: 600, mb: 0.5 }}>{user?.name || 'Student'}</Typography>
             <Typography variant="body2" color="text.secondary">{user?.email || 'student@example.com'}</Typography>
           </Box>
+          <Button
+            variant="outlined"
+            startIcon={<Lock />}
+            onClick={() => setShowPasswordModal(true)}
+            sx={{ borderColor: 'primary.main', color: 'primary.main' }}
+          >
+            Change Password
+          </Button>
         </Box>
       </Box>
 
@@ -229,6 +250,124 @@ export default function Dashboard() {
         </Box>
       </Box>
 
+      {/* Change Password Modal */}
+      <Dialog open={showPasswordModal} onClose={() => !changingPassword && setShowPasswordModal(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Change Password</DialogTitle>
+        <DialogContent>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 2 }}>
+            <TextField
+              label="Current Password"
+              type={showCurrentPassword ? 'text' : 'password'}
+              value={passwordData.currentPassword}
+              onChange={(e) => setPasswordData(prev => ({ ...prev, currentPassword: e.target.value }))}
+              fullWidth
+              required
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={() => setShowCurrentPassword(!showCurrentPassword)} edge="end">
+                      {showCurrentPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                )
+              }}
+            />
+            <TextField
+              label="New Password"
+              type={showNewPassword ? 'text' : 'password'}
+              value={passwordData.newPassword}
+              onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
+              fullWidth
+              required
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={() => setShowNewPassword(!showNewPassword)} edge="end">
+                      {showNewPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                )
+              }}
+            />
+            <TextField
+              label="Confirm New Password"
+              type={showConfirmPassword ? 'text' : 'password'}
+              value={passwordData.confirmPassword}
+              onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+              fullWidth
+              required
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={() => setShowConfirmPassword(!showConfirmPassword)} edge="end">
+                      {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                )
+              }}
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => {
+            setShowPasswordModal(false);
+            setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+            setShowCurrentPassword(false);
+            setShowNewPassword(false);
+            setShowConfirmPassword(false);
+          }} disabled={changingPassword}>Cancel</Button>
+          <Button
+            variant="contained"
+            onClick={async () => {
+              if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
+                setToastMessage('All fields are required');
+                setToastSeverity('error');
+                setShowToast(true);
+                return;
+              }
+              if (passwordData.newPassword !== passwordData.confirmPassword) {
+                setToastMessage('New passwords do not match');
+                setToastSeverity('error');
+                setShowToast(true);
+                return;
+              }
+              if (passwordData.newPassword.length < 6) {
+                setToastMessage('New password must be at least 6 characters');
+                setToastSeverity('error');
+                setShowToast(true);
+                return;
+              }
+              setChangingPassword(true);
+              try {
+                const token = localStorage.getItem('studentToken');
+                await apiService.changePassword(token, {
+                  currentPassword: passwordData.currentPassword,
+                  newPassword: passwordData.newPassword
+                });
+                setShowPasswordModal(false);
+                setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+                setShowCurrentPassword(false);
+                setShowNewPassword(false);
+                setShowConfirmPassword(false);
+                setToastMessage('Password changed successfully!');
+                setToastSeverity('success');
+                setShowToast(true);
+              } catch (error) {
+                setToastMessage(error.response?.data?.message || 'Failed to change password');
+                setToastSeverity('error');
+                setShowToast(true);
+              } finally {
+                setChangingPassword(false);
+              }
+            }}
+            disabled={changingPassword}
+            startIcon={changingPassword ? <CircularProgress size={20} /> : null}
+          >
+            {changingPassword ? 'Changing...' : 'Change Password'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       {/* Connect Platforms Modal */}
       <Dialog open={showConnectModal} onClose={() => setShowConnectModal(false)} maxWidth="sm" fullWidth>
         <DialogTitle>Connect Coding Platforms</DialogTitle>
@@ -269,6 +408,18 @@ export default function Dashboard() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Toast Notification */}
+      <Snackbar 
+        open={showToast} 
+        autoHideDuration={4000} 
+        onClose={() => setShowToast(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert onClose={() => setShowToast(false)} severity={toastSeverity} sx={{ width: '100%' }}>
+          {toastMessage}
+        </Alert>
+      </Snackbar>
     </MainCard>
   );
 }

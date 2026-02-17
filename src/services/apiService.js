@@ -146,5 +146,13 @@ class ApiService {
     );
     return response.data;
   }
+
+  async changePassword(token, data) {
+    const response = await this.client.post('/auth/student/change-password',
+      data,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return response.data;
+  }
 }
 export default new ApiService();

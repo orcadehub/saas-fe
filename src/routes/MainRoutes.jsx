@@ -19,6 +19,7 @@ const AssessmentTaking = Loadable(lazy(() => import('views/assessments/Assessmen
 const AssessmentResults = Loadable(lazy(() => import('views/assessments/AssessmentResults')));
 const AssessmentPractice = Loadable(lazy(() => import('views/assessments/AssessmentPractice')));
 const StudyMaterials = Loadable(lazy(() => import('views/study-materials')));
+const StudyMaterialDetail = Loadable(lazy(() => import('views/study-materials/StudyMaterialDetail')));
 const Quizzes = Loadable(lazy(() => import('views/quizzes')));
 const QuizDetails = Loadable(lazy(() => import('views/quizzes/QuizDetails')));
 const Practice = Loadable(lazy(() => import('views/practice')));
@@ -96,6 +97,10 @@ const MainRoutes = {
         {
           path: 'study-materials',
           element: <StudyMaterials />
+        },
+        {
+          path: 'study-materials/:id',
+          element: <StudyMaterialDetail />
         },
         {
           path: 'quizzes',

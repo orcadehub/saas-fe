@@ -189,11 +189,98 @@ export default function Assessments() {
     }
   }, [tabValue]);
 
-  if (loading) {
+  if (loading || assessments.length === 0) {
     return (
       <MainCard>
         <Box sx={{ mb: 4 }}>
-          <Skeleton variant="rectangular" height={56} sx={{ borderRadius: 2 }} />
+          <Tabs 
+            value={tabValue} 
+            onChange={(e, newValue) => setTabValue(newValue)}
+            sx={{
+              '& .MuiTabs-indicator': {
+                height: 4,
+                borderRadius: '4px 4px 0 0',
+                bgcolor: 'secondary.main'
+              },
+              '& .MuiTab-root': {
+                textTransform: 'none',
+                fontWeight: 600,
+                fontSize: '0.9rem',
+                minHeight: 56,
+                color: '#94a3b8',
+                transition: 'all 0.2s ease',
+                '&:hover': {
+                  color: 'secondary.main',
+                  bgcolor: 'secondary.lighter'
+                },
+                '&.Mui-selected': {
+                  color: 'secondary.main',
+                  fontWeight: 700
+                }
+              }
+            }}
+          >
+            <Tab 
+              label={
+                <Box display="flex" alignItems="center" gap={1.5}>
+                  <CheckCircle sx={{ fontSize: 18 }} />
+                  <Typography fontWeight="inherit" fontSize="inherit">Available</Typography>
+                  <Chip 
+                    label={0} 
+                    size="small" 
+                    sx={{
+                      bgcolor: tabValue === 0 ? 'secondary.main' : 'secondary.light',
+                      color: tabValue === 0 ? '#ffffff' : 'secondary.main',
+                      fontWeight: 700,
+                      fontSize: '0.75rem',
+                      height: 24,
+                      minWidth: 32
+                    }}
+                  />
+                </Box>
+              }
+            />
+            <Tab 
+              label={
+                <Box display="flex" alignItems="center" gap={1.5}>
+                  <Assessment sx={{ fontSize: 18 }} />
+                  <Typography fontWeight="inherit" fontSize="inherit">Completed</Typography>
+                  <Chip 
+                    label={0} 
+                    size="small" 
+                    sx={{
+                      bgcolor: tabValue === 1 ? 'secondary.main' : 'secondary.light',
+                      color: tabValue === 1 ? '#ffffff' : 'secondary.main',
+                      fontWeight: 700,
+                      fontSize: '0.75rem',
+                      height: 24,
+                      minWidth: 32
+                    }}
+                  />
+                </Box>
+              }
+            />
+            <Tab 
+              label={
+                <Box display="flex" alignItems="center" gap={1.5}>
+                  <AccessTime sx={{ fontSize: 18 }} />
+                  <Typography fontWeight="inherit" fontSize="inherit">Expired</Typography>
+                  <Chip 
+                    label={0} 
+                    size="small" 
+                    sx={{
+                      bgcolor: tabValue === 2 ? 'secondary.main' : 'secondary.light',
+                      color: tabValue === 2 ? '#ffffff' : 'secondary.main',
+                      fontWeight: 700,
+                      fontSize: '0.75rem',
+                      height: 24,
+                      minWidth: 32
+                    }}
+                  />
+                </Box>
+              }
+            />
+          </Tabs>
         </Box>
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 3 }}>
           {Array.from({ length: 8 }).map((_, idx) => (

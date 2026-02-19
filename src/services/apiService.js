@@ -154,5 +154,15 @@ class ApiService {
     );
     return response.data;
   }
+
+  async getStudyMaterials() {
+    const response = await this.client.get('/study-materials');
+    return response.data;
+  }
+
+  async getStudyMaterialById(id) {
+    const response = await this.client.get(`/study-materials/${id}`);
+    return response.data;
+  }
 }
 export default new ApiService();

@@ -8,8 +8,8 @@ import Stack from '@mui/material/Stack';
 export default function AuthFooter() {
   return (
     <Stack direction="row" sx={{ justifyContent: 'center' }}>
-      <Typography variant="subtitle2" component={Link} href="https://orcode.in" target="_blank" underline="hover">
-        orcode.in
+      <Typography variant="subtitle2" component={Link} href="https://orcadehub.com" target="_blank" underline="hover">
+        Orcadehub Innovations LLP
       </Typography>
     </Stack>
   );

@@ -11,6 +11,7 @@ import { AssessmentsProvider } from 'contexts/AssessmentsContext';
 // page routing
 const Landing = Loadable(lazy(() => import('views/landing')));
 const Services = Loadable(lazy(() => import('views/landing/Services')));
+const Pricing = Loadable(lazy(() => import('views/landing/Pricing')));
 const Dashboard = Loadable(lazy(() => import('views/dashboard')));
 const Leaderboard = Loadable(lazy(() => import('views/leaderboard')));
 const Assessments = Loadable(lazy(() => import('views/assessments')));
@@ -53,6 +54,10 @@ const MainRoutes = {
     {
       path: '/services',
       element: <Services />
+    },
+    {
+      path: '/pricing',
+      element: <Pricing />
     },
     {
       path: '/assessments/:id/take',

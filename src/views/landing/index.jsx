@@ -387,20 +387,38 @@ export default function Landing() {
               {
                 step: '01',
                 icon: Groups,
-                title: 'Sign Up & Join',
-                description: 'Create your account and join thousands of students learning to code. Choose your learning path based on your goals.'
+                title: 'Login & Explore Dashboard',
+                description: 'Access your personalized dashboard with comprehensive study materials covering Python, Java, C, and DSA with 400+ lessons across 100+ chapters.'
               },
               {
                 step: '02',
                 icon: Code,
-                title: 'Practice & Learn',
-                description: 'Access 500+ coding problems across multiple topics. Practice with our online IDE supporting Python, Java, C++, and C.'
+                title: 'Interactive Labs & Playgrounds',
+                description: 'Practice on 18+ BTech CSE labs including Data Structures, Algorithms, DBMS, OS, Networks, Web Technologies, and specialized playgrounds for Python (PySpark), Java, Frontend (HTML/CSS/JS/React), Backend (Node.js), and Database (SQL/NoSQL).'
               },
               {
                 step: '03',
+                icon: Psychology,
+                title: 'Online IDE & Real-Time Execution',
+                description: 'Write, test, and debug code with our powerful online IDE supporting Python, Java, C++, and C with instant execution, resizable panels, and syntax highlighting.'
+              },
+              {
+                step: '04',
+                icon: Timer,
+                title: 'Practice Categories',
+                description: 'Master Programming problems, Gamified challenges, Assessment questions, Aptitude reasoning, Verbal ability, Quantitative aptitude, and Company-specific interview questions.'
+              },
+              {
+                step: '05',
+                icon: Assessment,
+                title: 'Timed Assessments & Quizzes',
+                description: 'Take comprehensive assessments with coding and quiz questions, secure proctoring with tab-switch detection, and instant results with detailed performance analytics.'
+              },
+              {
+                step: '06',
                 icon: TrendingUp,
-                title: 'Track & Excel',
-                description: 'Take assessments, compete on leaderboards, and track your progress with detailed analytics and personalized insights.'
+                title: 'Compete & Track Progress',
+                description: 'Compete on leaderboards with LeetCode/HackerRank/Codeforces integration, practice AI mock interviews, monitor your activity calendar, and track your ranking in real-time.'
               }
             ].map((step, index) => (
               <MotionBox
@@ -571,7 +589,21 @@ export default function Landing() {
         <Container maxWidth="lg">
           <Box sx={{ textAlign: 'center' }}>
             <Typography variant="body2" sx={{ color: '#fff' }}>
-              © {new Date().getFullYear()} Orcadehub Innovations LLP. All rights reserved.
+              © {new Date().getFullYear()}{' '}
+              <Typography
+                component="a"
+                href="https://orcadehub.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                sx={{
+                  color: '#fff',
+                  textDecoration: 'none',
+                  '&:hover': { textDecoration: 'underline' }
+                }}
+              >
+                Orcadehub Innovations LLP
+              </Typography>
+              . All rights reserved.
             </Typography>
           </Box>
         </Container>

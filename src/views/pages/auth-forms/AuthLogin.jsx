@@ -174,7 +174,7 @@ export default function AuthLogin() {
           />
         </Grid>
         <Grid>
-          <Typography variant="subtitle1" component={Link} to="#!" sx={{ textDecoration: 'none', color: 'secondary.main' }}>
+          <Typography variant="subtitle1" component={Link} to="/forgot-password" sx={{ textDecoration: 'none', color: 'secondary.main' }}>
             Forgot Password?
           </Typography>
         </Grid>

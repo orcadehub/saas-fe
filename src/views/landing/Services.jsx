@@ -308,7 +308,22 @@ export default function Services() {
             sx={{ justifyContent: 'space-between', alignItems: 'center' }}
           >
             <Typography variant="body2" sx={{ opacity: 0.8 }}>
-              © {new Date().getFullYear()} Orcadehub Innovations LLP. All rights reserved.
+              © {new Date().getFullYear()}{' '}
+              <Typography
+                component="a"
+                href="https://orcadehub.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                sx={{
+                  color: '#fff',
+                  opacity: 0.8,
+                  textDecoration: 'none',
+                  '&:hover': { opacity: 1, textDecoration: 'underline' }
+                }}
+              >
+                Orcadehub Innovations LLP
+              </Typography>
+              . All rights reserved.
             </Typography>
             <Stack direction="row" spacing={3}>
               <Button 

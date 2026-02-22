@@ -1,5 +1,5 @@
 import { Box, Container, Typography, Button, Card, CardContent, Stack, Chip } from '@mui/material';
-import { WhatsApp, CheckCircle } from '@mui/icons-material';
+import { WhatsApp, CheckCircle, CheckCircleOutline } from '@mui/icons-material';
 import PublicHeader from 'components/PublicHeader';
 import useConfig from 'hooks/useConfig';
 import { motion } from 'framer-motion';
@@ -8,25 +8,35 @@ const MotionBox = motion.create(Box);
 const MotionCard = motion.create(Card);
 
 export default function Pricing() {
-  const { state: { borderRadius } } = useConfig();
+  const {
+    state: { borderRadius }
+  } = useConfig();
 
   const features = [
     'Fully White-Labeled Platform',
     'Custom Branding & Logo',
     'Your Own Domain',
     'Complete Admin Control',
+    'Instructor Management Controls',
     'Student Management System',
     'Assessment & Quiz Engine',
     'Online IDE Integration',
+    'AI Mock Interview Module',
+    'Interactive Labs',
+    'Gamified Aptitude Assessments',
+    'Quantitative Reasoning Practice',
+    'Verbal Reasoning Practice',
+    'Company-Specific Questions',
     'Study Materials Management',
     'Leaderboard & Analytics',
     'Secure Proctoring System',
-    'AI Mock Interviews',
-    'Interactive Labs & Playgrounds',
+    'Cross-Platform Student Stats',
+    'LeetCode, HackerRank, Codeforces, CodeChef Sync',
     'Multi-Language Support',
     'Real-Time Code Execution',
     'Activity Tracking',
-    'Custom Tenant Configuration'
+    'Custom Tenant Configuration',
+    'Dedicated Technical Support'
   ];
 
   const handleWhatsAppContact = () => {
@@ -34,146 +44,203 @@ export default function Pricing() {
   };
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'grey.50' }}>
+    <Box sx={{ minHeight: '100vh', bgcolor: '#f8fafc' }}>
       <PublicHeader />
 
-      {/* Hero Section */}
-      <Box sx={{ position: 'relative', overflow: 'hidden', py: { xs: 8, md: 12 }, bgcolor: 'background.paper' }}>
+      <Box sx={{ position: 'relative', overflow: 'hidden', py: { xs: 6, md: 10 } }}>
         <Box
           sx={{
             position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%)',
-            '&::after': {
-              content: '""',
-              position: 'absolute',
-              width: 400,
-              height: 400,
-              background: 'radial-gradient(circle, rgba(103, 58, 183, 0.1) 0%, transparent 70%)',
-              borderRadius: '50%',
-              top: -100,
-              right: -50
-            }
+            inset: 0,
+            background:
+              'radial-gradient(circle at 20% 10%, rgba(106,13,173,0.12), transparent 35%), radial-gradient(circle at 80% 0%, rgba(37,211,102,0.12), transparent 28%)'
           }}
         />
-        
-        <Container maxWidth="md" sx={{ position: 'relative' }}>
-          <MotionBox
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            sx={{ textAlign: 'center' }}
+
+        <Container maxWidth="lg" sx={{ position: 'relative' }}>
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', lg: '1.05fr 0.95fr' },
+              gap: { xs: 3, md: 4 },
+              alignItems: 'stretch'
+            }}
           >
-            <Typography 
-              variant="h1" 
-              sx={{ 
-                fontWeight: 800, 
-                mb: 3,
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                backgroundClip: 'text',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                fontSize: { xs: '2.5rem', md: '3.5rem' }
-              }}
-            >
-              Get Your White-Labeled LMS Today
-            </Typography>
-            <Typography 
-              variant="h5" 
-              color="text.secondary" 
-              sx={{ fontWeight: 400, lineHeight: 1.6, maxWidth: 700, mx: 'auto', mb: 4 }}
-            >
-              Launch your own branded Learning Management System with all features customized for your institution
-            </Typography>
-            <Button
-              variant="contained"
-              size="large"
-              startIcon={<WhatsApp />}
-              onClick={handleWhatsAppContact}
+            <MotionCard
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
               sx={{
-                px: 6,
-                py: 2,
-                fontSize: '1.1rem',
-                fontWeight: 700,
+                p: { xs: 3, sm: 4, md: 5 },
                 borderRadius: `${borderRadius}px`,
-                bgcolor: '#25D366',
-                color: 'white',
-                boxShadow: '0 8px 24px rgba(37, 211, 102, 0.3)',
-                '&:hover': {
-                  bgcolor: '#20BA5A',
-                  transform: 'translateY(-2px)',
-                  boxShadow: '0 12px 32px rgba(37, 211, 102, 0.4)'
-                },
-                transition: 'all 0.3s ease'
+                border: '1px solid',
+                borderColor: 'divider',
+                boxShadow: '0 16px 40px rgba(17, 24, 39, 0.08)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center'
               }}
             >
-              Contact Now on WhatsApp
-            </Button>
-          </MotionBox>
+              <Chip
+                label="White-Labeled LMS"
+                sx={{
+                  mb: 2.5,
+                  width: 'fit-content',
+                  bgcolor: 'rgba(106, 13, 173, 0.1)',
+                  color: '#6a0dad',
+                  fontWeight: 700
+                }}
+              />
+              <Typography
+                variant="h1"
+                sx={{
+                  fontWeight: 800,
+                  lineHeight: 1.1,
+                  fontSize: { xs: '2rem', sm: '2.4rem', md: '3rem' },
+                  mb: 2
+                }}
+              >
+                Get Your Branded LMS Live in Days
+              </Typography>
+              <Typography
+                variant="h6"
+                sx={{
+                  color: 'text.secondary',
+                  fontWeight: 400,
+                  lineHeight: 1.6,
+                  fontSize: { xs: '1rem', md: '1.125rem' },
+                  mb: 4
+                }}
+              >
+                Launch your own institution-ready platform with assessments, practice labs, analytics, and complete control over branding.
+              </Typography>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+                <Button
+                  variant="contained"
+                  size="large"
+                  startIcon={<WhatsApp />}
+                  onClick={handleWhatsAppContact}
+                  sx={{
+                    px: { xs: 2.5, md: 4 },
+                    py: 1.5,
+                    fontWeight: 700,
+                    textTransform: 'none',
+                    borderRadius: `${borderRadius}px`,
+                    bgcolor: '#25D366',
+                    '&:hover': {
+                      bgcolor: '#20BA5A'
+                    }
+                  }}
+                >
+                  Contact on WhatsApp
+                </Button>
+                <Button
+                  variant="outlined"
+                  size="large"
+                  sx={{
+                    px: { xs: 2.5, md: 4 },
+                    py: 1.5,
+                    fontWeight: 700,
+                    textTransform: 'none',
+                    borderRadius: `${borderRadius}px`
+                  }}
+                >
+                  +91 7093012101
+                </Button>
+              </Stack>
+            </MotionCard>
+
+            <MotionCard
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.55, delay: 0.08 }}
+              sx={{
+                p: { xs: 3, sm: 4 },
+                borderRadius: `${borderRadius}px`,
+                border: '1px solid',
+                borderColor: 'divider',
+                boxShadow: '0 16px 40px rgba(17, 24, 39, 0.08)',
+                bgcolor: '#ffffff'
+              }}
+            >
+              <Typography variant="h4" sx={{ fontWeight: 800, mb: 1 }}>
+                What You Get
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                A complete stack for students, instructors, and admins under your own brand.
+              </Typography>
+              <Stack spacing={1.3}>
+                {[
+                  'Your domain, logo and visual identity',
+                  'Complete admin + instructor controls',
+                  'Coding IDE, quizzes and assessments',
+                  'Interactive labs and AI mock interview modules',
+                  'Gamified aptitude with quantitative and verbal reasoning tracks',
+                  'Company-specific question banks and assessments',
+                  'Leaderboard, reports and activity tracking',
+                  'Secure proctoring and session controls',
+                  'Students can connect LeetCode, HackerRank, Codeforces, and CodeChef to view unified stats'
+                ].map((point) => (
+                  <Stack key={point} direction="row" spacing={1.2} sx={{ alignItems: 'flex-start' }}>
+                    <CheckCircleOutline sx={{ color: '#6a0dad', mt: '2px', fontSize: 20 }} />
+                    <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                      {point}
+                    </Typography>
+                  </Stack>
+                ))}
+              </Stack>
+            </MotionCard>
+          </Box>
         </Container>
       </Box>
 
-      {/* Features Section */}
-      <Container maxWidth="lg" sx={{ py: 10 }}>
+      <Container maxWidth="lg" sx={{ py: { xs: 5, md: 8 } }}>
         <MotionBox
-          sx={{ textAlign: 'center', mb: 8 }}
-          initial={{ opacity: 0, y: 30 }}
+          sx={{ textAlign: 'center', mb: { xs: 3.5, md: 5.5 } }}
+          initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.45 }}
         >
-          <Typography 
-            variant="h2" 
-            sx={{ 
-              fontWeight: 800, 
-              mb: 2,
-              color: 'text.heading'
-            }}
-          >
-            Everything You Need
+          <Typography variant="h2" sx={{ fontWeight: 800, mb: 1.5, fontSize: { xs: '1.8rem', md: '2.5rem' } }}>
+            Everything Included
           </Typography>
-          <Typography 
-            variant="h6" 
-            color="text.secondary" 
-            sx={{ maxWidth: 700, mx: 'auto', fontWeight: 400 }}
-          >
-            Complete LMS solution with powerful features for your institution
+          <Typography variant="h6" color="text.secondary" sx={{ fontWeight: 400, fontSize: { xs: '1rem', md: '1.1rem' } }}>
+            No hidden modules. Full LMS capability for your institution from day one.
           </Typography>
         </MotionBox>
 
-        <Box 
-          sx={{ 
-            display: 'grid', 
-            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' },
-            gap: 2
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' },
+            gap: 2,
+            gridAutoRows: '1fr'
           }}
         >
           {features.map((feature, index) => (
             <MotionCard
-              key={index}
-              initial={{ opacity: 0, y: 30 }}
+              key={feature}
+              initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: (index % 4) * 0.1 }}
-              sx={{ 
+              transition={{ duration: 0.35, delay: (index % 4) * 0.06 }}
+              sx={{
                 borderRadius: `${borderRadius}px`,
                 border: '1px solid',
                 borderColor: 'divider',
-                boxShadow: '0 2px 14px 0 rgb(32 40 45 / 8%)',
-                transition: 'all 0.3s ease',
+                boxShadow: '0 4px 12px rgba(15, 23, 42, 0.06)',
+                height: '100%',
+                width: '100%',
                 '&:hover': {
-                  transform: 'translateY(-4px)',
-                  boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
-                  borderColor: 'primary.main'
+                  borderColor: '#6a0dad',
+                  boxShadow: '0 10px 22px rgba(106, 13, 173, 0.12)'
                 }
               }}
             >
-              <CardContent sx={{ p: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
-                <CheckCircle sx={{ color: 'success.main', fontSize: 28, flexShrink: 0 }} />
-                <Typography variant="body1" sx={{ fontWeight: 600, color: 'text.primary' }}>
+              <CardContent sx={{ p: 2.25, height: '100%', display: 'flex', alignItems: 'center', gap: 1.25 }}>
+                <CheckCircle sx={{ color: '#25D366', fontSize: 20, flexShrink: 0 }} />
+                <Typography variant="body2" sx={{ fontWeight: 600 }}>
                   {feature}
                 </Typography>
               </CardContent>
@@ -182,67 +249,96 @@ export default function Pricing() {
         </Box>
       </Container>
 
-      {/* CTA Section */}
-      <Box sx={{ bgcolor: 'background.paper', py: 10, mb: 8 }}>
-        <Container maxWidth="md">
-          <MotionBox
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
+      <Container maxWidth="md" sx={{ pb: { xs: 6, md: 9 } }}>
+        <MotionCard
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.45 }}
+          sx={{
+            p: { xs: 3, sm: 4.5, md: 6 },
+            borderRadius: `${borderRadius}px`,
+            textAlign: 'center',
+            background: 'linear-gradient(135deg, #4b0579 0%, #6a0dad 52%, #8d3bcb 100%)',
+            color: '#ffffff',
+            border: '1px solid rgba(255,255,255,0.18)',
+            boxShadow: '0 24px 54px rgba(75, 5, 121, 0.34)',
+            position: 'relative',
+            overflow: 'hidden',
+            '&::after': {
+              content: '""',
+              position: 'absolute',
+              width: 280,
+              height: 280,
+              borderRadius: '50%',
+              background: 'radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 72%)',
+              top: -130,
+              right: -80
+            }
+          }}
+        >
+          <Chip
+            label="Launch Support"
+            sx={{
+              mb: 2,
+              bgcolor: 'rgba(255,255,255,0.16)',
+              color: '#f8ecff',
+              fontWeight: 700
+            }}
+          />
+          <Typography
+            variant="h3"
+            sx={{
+              fontWeight: 800,
+              mb: 1.5,
+              fontSize: { xs: '1.7rem', md: '2.2rem' },
+              color: '#ffffff',
+              position: 'relative',
+              zIndex: 1
+            }}
           >
-            <Card
-              sx={{
-                p: { xs: 4, md: 8 },
-                borderRadius: `${borderRadius}px`,
-                textAlign: 'center',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                color: '#fff',
-                boxShadow: '0 20px 60px rgba(103, 58, 183, 0.3)'
-              }}
-            >
-              <Typography variant="h2" sx={{ fontWeight: 800, mb: 2 }}>
-                Ready to Launch Your LMS?
-              </Typography>
-              <Typography variant="h6" sx={{ mb: 4, opacity: 0.95, fontWeight: 400, maxWidth: 600, mx: 'auto' }}>
-                Contact us now to get started with your custom white-labeled Learning Management System
-              </Typography>
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ justifyContent: 'center' }}>
-                <Button
-                  variant="contained"
-                  size="large"
-                  startIcon={<WhatsApp />}
-                  onClick={handleWhatsAppContact}
-                  sx={{
-                    px: 6,
-                    py: 2,
-                    fontSize: '1.1rem',
-                    fontWeight: 700,
-                    borderRadius: `${borderRadius}px`,
-                    bgcolor: '#25D366',
-                    color: 'white',
-                    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)',
-                    '&:hover': {
-                      bgcolor: '#20BA5A',
-                      transform: 'translateY(-2px)',
-                      boxShadow: '0 12px 32px rgba(0, 0, 0, 0.25)'
-                    },
-                    transition: 'all 0.3s ease'
-                  }}
-                >
-                  WhatsApp: +91 7093012101
-                </Button>
-              </Stack>
-            </Card>
-          </MotionBox>
-        </Container>
-      </Box>
+            Ready to Launch Your LMS?
+          </Typography>
+          <Typography
+            sx={{
+              mb: 3,
+              color: '#f3dcff',
+              fontWeight: 500,
+              fontSize: { xs: '0.96rem', md: '1.05rem' },
+              position: 'relative',
+              zIndex: 1
+            }}
+          >
+            Let’s set up your branded portal for students, instructors, and admins.
+          </Typography>
+          <Button
+            variant="contained"
+            size="large"
+            startIcon={<WhatsApp />}
+            onClick={handleWhatsAppContact}
+            sx={{
+              px: { xs: 2.5, md: 4.5 },
+              py: 1.5,
+              textTransform: 'none',
+              fontWeight: 800,
+              borderRadius: `${borderRadius}px`,
+              bgcolor: '#25D366',
+              color: '#ffffff',
+              boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+              position: 'relative',
+              zIndex: 1,
+              '&:hover': { bgcolor: '#20BA5A' }
+            }}
+          >
+            WhatsApp: +91 7093012101
+          </Button>
+        </MotionCard>
+      </Container>
 
-      {/* Footer */}
-      <Box sx={{ bgcolor: 'grey.900', color: '#fff', py: 6, mx: 3, mb: 3, borderRadius: `${borderRadius}px` }}>
+      <Box sx={{ bgcolor: 'grey.900', color: '#fff', py: 5 }}>
         <Container maxWidth="lg">
-          <Box sx={{ textAlign: 'center' }}>
-            <Typography variant="body2" sx={{ color: '#fff' }}>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3} sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="body2" sx={{ opacity: 0.8 }}>
               © {new Date().getFullYear()}{' '}
               <Typography
                 component="a"
@@ -251,15 +347,40 @@ export default function Pricing() {
                 rel="noopener noreferrer"
                 sx={{
                   color: '#fff',
+                  opacity: 0.8,
                   textDecoration: 'none',
-                  '&:hover': { textDecoration: 'underline' }
+                  '&:hover': { opacity: 1, textDecoration: 'underline' }
                 }}
               >
                 Orcadehub Innovations LLP
               </Typography>
               . All rights reserved.
             </Typography>
-          </Box>
+            <Stack direction="row" spacing={3}>
+              <Button
+                onClick={() => navigate('/')}
+                sx={{
+                  color: '#fff',
+                  opacity: 0.8,
+                  textTransform: 'none',
+                  '&:hover': { opacity: 1 }
+                }}
+              >
+                Home
+              </Button>
+              <Button
+                onClick={() => navigate('/login')}
+                sx={{
+                  color: '#fff',
+                  opacity: 0.8,
+                  textTransform: 'none',
+                  '&:hover': { opacity: 1 }
+                }}
+              >
+                Login
+              </Button>
+            </Stack>
+          </Stack>
         </Container>
       </Box>
     </Box>

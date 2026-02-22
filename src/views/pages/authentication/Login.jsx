@@ -1,8 +1,7 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 
 import useMediaQuery from '@mui/material/useMediaQuery';
-import Divider from '@mui/material/Divider';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
@@ -21,7 +20,6 @@ import AuthLogin from '../auth-forms/AuthLogin';
 
 export default function Login() {
   const downMD = useMediaQuery((theme) => theme.breakpoints.down('md'));
-  const navigate = useNavigate();
   const [config, setConfig] = useState(null);
 
   useEffect(() => {
@@ -29,26 +27,46 @@ export default function Login() {
   }, []);
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: '#f8fafc' }}>
+    <Box sx={{ height: '100vh', bgcolor: '#f8fafc', overflow: 'hidden' }}>
       <PublicHeader />
-      <AuthWrapper1>
-      <Stack sx={{ justifyContent: 'flex-end', minHeight: '100vh' }}>
-        <Stack sx={{ justifyContent: 'center', alignItems: 'center', minHeight: 'calc(100vh - 68px)' }}>
-          <Box sx={{ m: { xs: 1, sm: 3 }, mb: 0 }}>
-            <AuthCardWrapper>
+      <AuthWrapper1 sx={{ minHeight: 'calc(100vh - 76px)', height: 'calc(100vh - 76px)' }}>
+        <Stack
+          sx={{
+            minHeight: 'calc(100vh - 76px)',
+            height: 'calc(100vh - 76px)',
+            justifyContent: 'center',
+            alignItems: 'center',
+            px: { xs: 1, sm: 2 },
+            py: { xs: 1.5, sm: 2 },
+            overflow: 'hidden',
+            pb: { xs: 6, sm: 7 }
+          }}
+        >
+          <Box sx={{ width: 1, maxWidth: 540 }}>
+            <AuthCardWrapper
+              sx={{
+                maxHeight: { xs: 'calc(100vh - 108px)', sm: 'calc(100vh - 120px)' },
+                overflow: 'auto',
+                '& .MuiCardContent-root': {
+                  p: { xs: 2.25, sm: 3.25 }
+                }
+              }}
+            >
               <Stack sx={{ alignItems: 'center', justifyContent: 'center', gap: 2 }}>
-                <Box sx={{ mb: 3 }}>
+                <Box sx={{ mb: 1.5 }}>
                   {config?.logoUrl ? (
-                    <Box 
+                    <Box
                       component="img"
                       src={config.logoUrl}
                       alt="Logo"
-                      sx={{ 
-                        height: 60, 
-                        maxWidth: 200, 
+                      sx={{
+                        height: { xs: 52, sm: 62 },
+                        maxWidth: { xs: 180, sm: 220 },
                         objectFit: 'contain'
                       }}
-                      onError={(e) => { e.target.style.display = 'none' }}
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                      }}
                     />
                   ) : (
                     <Link to="#" aria-label="logo">
@@ -56,14 +74,16 @@ export default function Login() {
                     </Link>
                   )}
                 </Box>
-                <Stack sx={{ alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-                  <Typography variant={downMD ? 'h3' : 'h2'} sx={{ color: 'secondary.main' }}>
+
+                <Stack sx={{ alignItems: 'center', justifyContent: 'center', gap: 0.75 }}>
+                  <Typography variant={downMD ? 'h3' : 'h2'} sx={{ color: 'secondary.main', textAlign: 'center' }}>
                     Hi, Welcome Back
                   </Typography>
-                  <Typography variant="caption" sx={{ fontSize: '16px', textAlign: { xs: 'center', md: 'inherit' } }}>
+                  <Typography variant="caption" sx={{ fontSize: '15px', textAlign: 'center' }}>
                     Enter your credentials to continue
                   </Typography>
                 </Stack>
+
                 <Box sx={{ width: 1 }}>
                   <AuthLogin />
                 </Box>
@@ -71,11 +91,19 @@ export default function Login() {
             </AuthCardWrapper>
           </Box>
         </Stack>
-        <Box sx={{ px: 3, my: 3 }}>
+
+        <Box
+          sx={{
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            bottom: { xs: 8, sm: 12 },
+            px: 2
+          }}
+        >
           <AuthFooter />
         </Box>
-      </Stack>
-    </AuthWrapper1>
+      </AuthWrapper1>
     </Box>
   );
 }

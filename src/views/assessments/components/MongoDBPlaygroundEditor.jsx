@@ -235,7 +235,8 @@ export default function MongoDBPlaygroundEditor({ question, attemptId, onTestCom
                       borderRadius: '4px',
                       overflow: 'auto',
                       fontSize: '14px',
-                      margin: 0
+                      margin: 0,
+                      maxHeight: '500px'
                     }}>
                       {JSON.stringify(expectedOutput, null, 2)}
                     </pre>
@@ -270,7 +271,8 @@ export default function MongoDBPlaygroundEditor({ question, attemptId, onTestCom
                       borderRadius: '4px',
                       overflow: 'auto',
                       fontSize: '14px',
-                      margin: 0
+                      margin: 0,
+                      maxHeight: '500px'
                     }}>
                       {JSON.stringify(result, null, 2)}
                     </pre>

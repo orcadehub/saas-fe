@@ -44,6 +44,7 @@ export const AssessmentsProvider = ({ children }) => {
   useEffect(() => {
     const fetchAssessments = async () => {
       if (user?.token && config) {
+        setLoading(true);
         try {
           const response = await fetch(`${getApiUrl()}/auth/student/assessments`, {
             headers: getHeaders()
@@ -78,9 +79,7 @@ export const AssessmentsProvider = ({ children }) => {
           setLoading(false);
         }
       } else {
-        if (!user?.token && !config) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
     };
 

@@ -90,13 +90,6 @@ export default function AuthLogin() {
       // Update AuthContext
       login({ ...student, token });
       
-      // Fetch dashboard, leaderboard, and assessments data
-      await Promise.all([
-        fetchDashboardData(true),
-        fetchLeaderboardData(true),
-        refreshAssessments()
-      ]);
-      
       // Navigate to dashboard
       navigate('/dashboard');
     } catch (err) {

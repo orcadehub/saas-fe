@@ -26,7 +26,7 @@ export const DashboardProvider = ({ children }) => {
   const fetchDashboardData = async (forceRefresh = false) => {
     if (dashboardData && !forceRefresh) return dashboardData;
     
-    if (!user?.email) return null;
+    if (!user?.email || !config) return null;
 
     setLoading(true);
     try {
@@ -48,7 +48,7 @@ export const DashboardProvider = ({ children }) => {
   const fetchLeaderboardData = async (forceRefresh = false) => {
     if (leaderboardData && !forceRefresh) return leaderboardData;
     
-    if (!user?.email) return null;
+    if (!user?.email || !config) return null;
 
     setLoading(true);
     try {
@@ -66,6 +66,13 @@ export const DashboardProvider = ({ children }) => {
       return null;
     }
   };
+
+  useEffect(() => {
+    if (user?.email && config) {
+      fetchDashboardData(true);
+      fetchLeaderboardData(true);
+    }
+  }, [user, config]);
 
   const refreshData = () => {
     setDashboardData(null);

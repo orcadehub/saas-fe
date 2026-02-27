@@ -11,6 +11,7 @@ import apiService from 'services/apiService';
 import { submitCode } from 'services/pistonService';
 
 import FrontendEditor from './components/FrontendEditor';
+import MongoDBPlaygroundEditor from './components/MongoDBPlaygroundEditor';
 
 export default function AssessmentTaking() {
   const isProduction = import.meta.env.MODE === 'production';
@@ -67,7 +68,33 @@ export default function AssessmentTaking() {
   const [customInput, setCustomInput] = useState('');
   const [editingCustomIndex, setEditingCustomIndex] = useState(null);
   const [runTour, setRunTour] = useState(false);
-  const [tourSteps] = useState([
+  const [tourSteps, setTourSteps] = useState([]);
+  
+  const quizTourSteps = [
+    {
+      target: '.divider-drag',
+      content: 'Drag this vertical divider left or right to adjust the width of the problem statement and answer options panels.',
+      disableBeacon: true,
+      placement: 'right'
+    },
+    {
+      target: '.question-navigation',
+      content: 'Use these buttons to navigate between quiz questions. Green indicates answered questions.',
+      placement: 'bottom'
+    },
+    {
+      target: '.quiz-options',
+      content: 'Select your answer by clicking on one of the options. Your selection is automatically saved.',
+      placement: 'left'
+    },
+    {
+      target: '.quiz-navigation-buttons',
+      content: 'Use Previous and Save & Next buttons to move between questions.',
+      placement: 'top'
+    }
+  ];
+  
+  const programmingTourSteps = [
     {
       target: '.divider-drag',
       content: 'Drag this vertical divider left or right to adjust the width of the problem statement and code editor panels.',
@@ -89,7 +116,7 @@ export default function AssessmentTaking() {
       content: 'Click here to load your last executed code for this question. Useful if you want to continue from where you left off.',
       placement: 'bottom'
     }
-  ]);
+  ];
 
   const getLanguageTemplate = (lang) => {
     switch (lang) {
@@ -137,7 +164,7 @@ export default function AssessmentTaking() {
 
   // Set initial editor height to 40% when language is first selected
   useEffect(() => {
-    if (language && compilerSplit === null) {
+    if (language && compilerSplit === 60) {
       setCompilerSplit(40);
     }
   }, [language, compilerSplit]);
@@ -512,6 +539,7 @@ export default function AssessmentTaking() {
         const allQuestions = [
           ...(questionsData.programmingQuestions || []).map(q => ({ ...q, type: 'programming' })),
           ...(questionsData.frontendQuestions || []).map(q => ({ ...q, type: 'frontend' })),
+          ...(questionsData.mongodbPlaygroundQuestions || []).map(q => ({ ...q, type: 'mongodb' })),
           ...(questionsData.quizQuestions || []).map(q => ({ ...q, type: 'quiz' }))
         ];
         
@@ -716,20 +744,45 @@ export default function AssessmentTaking() {
   }, []);
 
   useEffect(() => {
-    if (!showPreparation && !loading && questions.length > 0 && showPartB) {
-      const tourData = localStorage.getItem(`assessment_tour_${id}`);
-      if (tourData) {
-        const { timestamp } = JSON.parse(tourData);
-        const oneHour = 60 * 60 * 1000;
-        if (Date.now() - timestamp > oneHour) {
-          localStorage.removeItem(`assessment_tour_${id}`);
+    if (!showPreparation && !loading && questions.length > 0) {
+      const currentQuestion = questions[currentQuestionIndex];
+      const questionType = currentQuestion?.type;
+      
+      if (questionType === 'quiz') {
+        const tourKey = `assessment_tour_${id}_quiz`;
+        const tourData = localStorage.getItem(tourKey);
+        
+        if (tourData) {
+          const { timestamp } = JSON.parse(tourData);
+          const oneHour = 60 * 60 * 1000;
+          if (Date.now() - timestamp > oneHour) {
+            localStorage.removeItem(tourKey);
+            setTourSteps(quizTourSteps);
+            setTimeout(() => setRunTour(true), 1000);
+          }
+        } else {
+          setTourSteps(quizTourSteps);
           setTimeout(() => setRunTour(true), 1000);
         }
-      } else {
-        setTimeout(() => setRunTour(true), 1000);
+      } else if (questionType === 'programming' && showPartB) {
+        const tourKey = `assessment_tour_${id}_programming`;
+        const tourData = localStorage.getItem(tourKey);
+        
+        if (tourData) {
+          const { timestamp } = JSON.parse(tourData);
+          const oneHour = 60 * 60 * 1000;
+          if (Date.now() - timestamp > oneHour) {
+            localStorage.removeItem(tourKey);
+            setTourSteps(programmingTourSteps);
+            setTimeout(() => setRunTour(true), 1000);
+          }
+        } else {
+          setTourSteps(programmingTourSteps);
+          setTimeout(() => setRunTour(true), 1000);
+        }
       }
     }
-  }, [showPreparation, loading, questions, showPartB, id]);
+  }, [showPreparation, loading, questions, currentQuestionIndex, showPartB, id]);
 
   useEffect(() => {
     // Set initial time from assessment start time + duration
@@ -747,6 +800,11 @@ export default function AssessmentTaking() {
     if (timeRemaining > 0) {
       const timer = setInterval(() => {
         setTimeRemaining(prev => {
+          // Open submit modal at 5 seconds
+          if (prev === 5) {
+            setShowFinalSubmitModal(true);
+          }
+          
           if (prev <= 1) {
             clearInterval(timer);
             // Auto-submit when time expires
@@ -782,7 +840,12 @@ export default function AssessmentTaking() {
     const { status } = data;
     if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status)) {
       setRunTour(false);
-      localStorage.setItem(`assessment_tour_${id}`, JSON.stringify({ timestamp: Date.now() }));
+      const currentQuestion = questions[currentQuestionIndex];
+      const questionType = currentQuestion?.type;
+      if (questionType === 'quiz' || questionType === 'programming') {
+        const tourKey = `assessment_tour_${id}_${questionType}`;
+        localStorage.setItem(tourKey, JSON.stringify({ timestamp: Date.now() }));
+      }
     }
   };
 
@@ -1236,21 +1299,22 @@ export default function AssessmentTaking() {
             {(() => {
               const hasQuiz = questions.filter(q => q.type === 'quiz').length > 0;
               const hasFrontend = questions.filter(q => q.type === 'frontend').length > 0;
+              const hasMongoDB = questions.filter(q => q.type === 'mongodb').length > 0;
               const hasProgramming = questions.filter(q => q.type === 'programming').length > 0;
-              const totalParts = [hasQuiz, hasFrontend, hasProgramming].filter(Boolean).length;
+              const totalParts = [hasQuiz, hasFrontend, hasMongoDB, hasProgramming].filter(Boolean).length;
               
               if (totalParts <= 1) return null;
               
-              const currentType = showPartB ? (hasProgramming ? 'programming' : 'frontend') : (hasQuiz ? 'quiz' : 'frontend');
-              const partLabel = hasQuiz && hasFrontend && hasProgramming 
-                ? (currentType === 'quiz' ? 'Part A - Quiz' : currentType === 'frontend' ? 'Part B - Frontend' : 'Part C - Programming')
-                : hasQuiz && hasFrontend
-                ? (currentType === 'quiz' ? 'Part A - Quiz' : 'Part B - Frontend')
-                : hasQuiz && hasProgramming
-                ? (currentType === 'quiz' ? 'Part A - Quiz' : 'Part B - Programming')
-                : hasFrontend && hasProgramming
-                ? (currentType === 'frontend' ? 'Part A - Frontend' : 'Part B - Programming')
-                : '';
+              const types = [];
+              if (hasQuiz) types.push('quiz');
+              if (hasFrontend) types.push('frontend');
+              if (hasMongoDB) types.push('mongodb');
+              if (hasProgramming) types.push('programming');
+              
+              const currentType = questions[currentQuestionIndex]?.type;
+              const currentTypeIndex = types.indexOf(currentType);
+              const partLabels = { quiz: 'Quiz', frontend: 'Frontend', mongodb: 'MongoDB', programming: 'Programming' };
+              const partLabel = `Part ${String.fromCharCode(65 + currentTypeIndex)} - ${partLabels[currentType]}`;
               
               return (
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
@@ -1261,15 +1325,7 @@ export default function AssessmentTaking() {
                     variant="contained"
                     size="small"
                     onClick={() => {
-                      const types = [];
-                      if (hasQuiz) types.push('quiz');
-                      if (hasFrontend) types.push('frontend');
-                      if (hasProgramming) types.push('programming');
-                      
-                      const currentIndex = types.indexOf(currentType);
-                      const nextType = types[(currentIndex + 1) % types.length];
-                      
-                      setShowPartB(nextType !== 'quiz');
+                      const nextType = types[(currentTypeIndex + 1) % types.length];
                       const firstQuestionIndex = questions.findIndex(q => q.type === nextType);
                       if (firstQuestionIndex !== -1) {
                         setCurrentQuestionIndex(firstQuestionIndex);
@@ -1320,10 +1376,7 @@ export default function AssessmentTaking() {
                 }}
               >
                 {(() => {
-                  const hasQuiz = questions.filter(q => q.type === 'quiz').length > 0;
-                  const hasFrontend = questions.filter(q => q.type === 'frontend').length > 0;
-                  const hasProgramming = questions.filter(q => q.type === 'programming').length > 0;
-                  const currentType = showPartB ? (hasProgramming ? 'programming' : 'frontend') : (hasQuiz ? 'quiz' : 'frontend');
+                  const currentType = questions[currentQuestionIndex]?.type;
                   
                   return (questions || [])
                     .filter(q => q.type === currentType)
@@ -1398,7 +1451,8 @@ export default function AssessmentTaking() {
           </Box>
 
           {/* Question Content */}
-          <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, maxWidth: '900px', mx: 'auto', '& *': { fontSize: { xs: '16px', sm: '18px', md: '20px' } } }}>
+          {questions[currentQuestionIndex]?.type !== 'mongodb' ? (
+            <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, maxWidth: '900px', mx: 'auto', '& *': { fontSize: { xs: '16px', sm: '18px', md: '20px' } } }}>
             <Typography variant="h4" sx={{ fontWeight: 700, mb: 2, fontSize: { xs: '22px !important', sm: '25px !important', md: '28px !important' } }}>
               {questions[currentQuestionIndex]?.title || 'Loading...'}
             </Typography>
@@ -1437,7 +1491,7 @@ export default function AssessmentTaking() {
             )}
             
             {/* Tags/Topics */}
-            {showPartB && questions[currentQuestionIndex]?.tags && questions[currentQuestionIndex].tags.length > 0 && (
+            {(questions[currentQuestionIndex]?.type === 'programming' || questions[currentQuestionIndex]?.type === 'mongodb') && questions[currentQuestionIndex]?.tags && questions[currentQuestionIndex].tags.length > 0 && (
               <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 4 }}>
                 {questions[currentQuestionIndex].tags.map((tag, idx) => (
                   <Box key={idx} sx={{ px: 2, py: 0.5, bgcolor: 'secondary.light', borderRadius: 1 }}>
@@ -1448,7 +1502,7 @@ export default function AssessmentTaking() {
             )}
             
             {/* Quiz Question - Code Snippet */}
-            {!showPartB && questions[currentQuestionIndex]?.codeSnippet && (
+            {questions[currentQuestionIndex]?.type === 'quiz' && questions[currentQuestionIndex]?.codeSnippet && (
               <Box sx={{ 
                 mb: 4, 
                 p: 3, 
@@ -1469,7 +1523,7 @@ export default function AssessmentTaking() {
             )}
             
             {/* Programming Question - Description */}
-            {showPartB && questions[currentQuestionIndex]?.description && (
+            {questions[currentQuestionIndex]?.type === 'programming' && questions[currentQuestionIndex]?.description && (
               <Box sx={{ mb: 4 }}>
                 <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, fontSize: { xs: '18px !important', sm: '20px !important', md: '22px !important' } }}>Description</Typography>
                 <Typography variant="body1" sx={{ lineHeight: 1.8, fontSize: { xs: '16px', sm: '18px', md: '20px' } }}>
@@ -1479,7 +1533,7 @@ export default function AssessmentTaking() {
             )}
             
             {/* Constraints */}
-            {showPartB && questions[currentQuestionIndex]?.constraints && (
+            {questions[currentQuestionIndex]?.type === 'programming' && questions[currentQuestionIndex]?.constraints && (
               <Box sx={{ mb: 4 }}>
                 <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, fontSize: { xs: '18px !important', sm: '20px !important', md: '22px !important' } }}>Constraints</Typography>
                 <Box component="ul" sx={{ pl: 3, m: 0 }}>
@@ -1496,7 +1550,7 @@ export default function AssessmentTaking() {
             )}
             
             {/* Example */}
-            {showPartB && questions[currentQuestionIndex]?.example && (
+            {questions[currentQuestionIndex]?.type === 'programming' && questions[currentQuestionIndex]?.example && (
               <Box sx={{ mb: 4 }}>
                 <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, fontSize: { xs: '18px !important', sm: '20px !important', md: '22px !important' } }}>Example</Typography>
                 <Box sx={{ p: 2, bgcolor: '#f8f9fa', borderRadius: 1 }}>
@@ -1520,7 +1574,7 @@ export default function AssessmentTaking() {
             )}
             
             {/* Key Insights */}
-            {showPartB && questions[currentQuestionIndex]?.intuition?.keyInsights && assessment?.showKeyInsights && (
+            {questions[currentQuestionIndex]?.type === 'programming' && questions[currentQuestionIndex]?.intuition?.keyInsights && assessment?.showKeyInsights && (
               <Box sx={{ mb: 4 }}>
                 <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, fontSize: { xs: '18px !important', sm: '20px !important', md: '22px !important' } }}>Key Insights</Typography>
                 <Box component="ul" sx={{ pl: 3, m: 0 }}>
@@ -1534,7 +1588,7 @@ export default function AssessmentTaking() {
             )}
             
             {/* Algorithm Steps */}
-            {showPartB && questions[currentQuestionIndex]?.intuition?.algorithmSteps && assessment?.showAlgorithm && (
+            {questions[currentQuestionIndex]?.type === 'programming' && questions[currentQuestionIndex]?.intuition?.algorithmSteps && assessment?.showAlgorithm && (
               <Box sx={{ mb: 4 }}>
                 <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, fontSize: { xs: '18px !important', sm: '20px !important', md: '22px !important' } }}>Algorithm</Typography>
                 <Box component="ol" sx={{ pl: 3, m: 0 }}>
@@ -1548,7 +1602,7 @@ export default function AssessmentTaking() {
             )}
             
             {/* Complexity */}
-            {showPartB && (questions[currentQuestionIndex]?.intuition?.timeComplexity || questions[currentQuestionIndex]?.intuition?.spaceComplexity) && (
+            {questions[currentQuestionIndex]?.type === 'programming' && (questions[currentQuestionIndex]?.intuition?.timeComplexity || questions[currentQuestionIndex]?.intuition?.spaceComplexity) && (
               <Box sx={{ mb: 4 }}>
                 <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, fontSize: { xs: '18px !important', sm: '20px !important', md: '22px !important' } }}>Complexity</Typography>
                 <Box sx={{ p: 2, bgcolor: '#f8f9fa', borderRadius: 1 }}>
@@ -1566,6 +1620,27 @@ export default function AssessmentTaking() {
               </Box>
             )}
           </Box>
+          ) : (
+            <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, maxWidth: '900px', mx: 'auto', '& *': { fontSize: { xs: '16px', sm: '18px', md: '20px' } } }}>
+              <Typography variant="h4" sx={{ fontWeight: 700, mb: 2, fontSize: { xs: '22px !important', sm: '25px !important', md: '28px !important' } }}>
+                {questions[currentQuestionIndex]?.title || 'Loading...'}
+              </Typography>
+              
+              {questions[currentQuestionIndex]?.tags && questions[currentQuestionIndex].tags.length > 0 && (
+                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 4 }}>
+                  {questions[currentQuestionIndex].tags.map((tag, idx) => (
+                    <Box key={idx} sx={{ px: 2, py: 0.5, bgcolor: 'secondary.light', borderRadius: 1 }}>
+                      <Typography variant="caption" sx={{ fontWeight: 600, fontSize: { xs: '14px !important', sm: '15px !important', md: '16px !important' } }}>{tag}</Typography>
+                    </Box>
+                  ))}
+                </Box>
+              )}
+              
+              <Typography variant="body1" sx={{ lineHeight: 1.8, fontSize: { xs: '16px', sm: '18px', md: '20px' } }}>
+                {questions[currentQuestionIndex]?.problemStatement}
+              </Typography>
+            </Box>
+          )}
         </Box>
 
         {/* Divider */}
@@ -1587,35 +1662,20 @@ export default function AssessmentTaking() {
           '&::-webkit-scrollbar': { display: 'none' },
           scrollbarWidth: 'none'
         }}>
-          {!showPartB && questions[currentQuestionIndex]?.type === 'quiz' ? (
-            <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, '& *': { fontSize: { xs: '16px', sm: '18px', md: '20px' } } }}>
+          {questions[currentQuestionIndex]?.type === 'quiz' ? (
+            <Box className="quiz-options" sx={{ p: { xs: 2, sm: 3, md: 4 }, '& *': { fontSize: { xs: '16px', sm: '18px', md: '20px' } } }}>
               <Typography variant="h5" sx={{ fontWeight: 700, mb: 4, fontSize: { xs: '20px !important', sm: '22px !important', md: '24px !important' } }}>
                 Select Your Answer
               </Typography>
               
               <RadioGroup
                 value={answers[questions[currentQuestionIndex]?._id] || ''}
-                onChange={async (e) => {
+                onChange={(e) => {
                   const selectedOptionId = e.target.value;
                   setAnswers(prev => ({
                     ...prev,
                     [questions[currentQuestionIndex]._id]: selectedOptionId
                   }));
-                  
-                  // Save to backend with original index
-                  if (attemptId) {
-                    try {
-                      const token = localStorage.getItem('studentToken');
-                      const selectedOption = questions[currentQuestionIndex].options.find(opt => opt._id === selectedOptionId);
-                      const originalIndex = selectedOption?.originalIndex ?? 0;
-                      await apiService.saveQuizAnswer(token, attemptId, questions[currentQuestionIndex]._id, originalIndex);
-                      
-                      // Mark as saved to update percentage
-                      setSavedQuestions(prev => new Set([...prev, currentQuestionIndex]));
-                    } catch (error) {
-                      console.error('Error saving quiz answer:', error);
-                    }
-                  }
                 }}
               >
                 {(questions[currentQuestionIndex]?.options || []).map((option, index) => (
@@ -1645,14 +1705,11 @@ export default function AssessmentTaking() {
                 ))}
               </RadioGroup>
               
-              <Box sx={{ mt: 4, display: 'flex', gap: 2, justifyContent: 'space-between' }}>
+              <Box className="quiz-navigation-buttons" sx={{ mt: 4, display: 'flex', gap: 2, justifyContent: 'space-between' }}>
                 <Button
                   variant="outlined"
                   onClick={() => {
-                    const hasQuiz = questions.filter(q => q.type === 'quiz').length > 0;
-                    const hasFrontend = questions.filter(q => q.type === 'frontend').length > 0;
-                    const hasProgramming = questions.filter(q => q.type === 'programming').length > 0;
-                    const currentType = showPartB ? (hasProgramming ? 'programming' : 'frontend') : (hasQuiz ? 'quiz' : 'frontend');
+                    const currentType = questions[currentQuestionIndex]?.type;
                     const filteredQuestions = questions.filter(q => q.type === currentType);
                     const currentFilteredIndex = filteredQuestions.findIndex(q => q._id === questions[currentQuestionIndex]._id);
                     if (currentFilteredIndex > 0) {
@@ -1662,10 +1719,7 @@ export default function AssessmentTaking() {
                     }
                   }}
                   disabled={(() => {
-                    const hasQuiz = questions.filter(q => q.type === 'quiz').length > 0;
-                    const hasFrontend = questions.filter(q => q.type === 'frontend').length > 0;
-                    const hasProgramming = questions.filter(q => q.type === 'programming').length > 0;
-                    const currentType = showPartB ? (hasProgramming ? 'programming' : 'frontend') : (hasQuiz ? 'quiz' : 'frontend');
+                    const currentType = questions[currentQuestionIndex]?.type;
                     const filteredQuestions = questions.filter(q => q.type === currentType);
                     const currentFilteredIndex = filteredQuestions.findIndex(q => q._id === questions[currentQuestionIndex]._id);
                     return currentFilteredIndex === 0;
@@ -1676,12 +1730,24 @@ export default function AssessmentTaking() {
                 </Button>
                 <Button
                   variant="contained"
-                  onClick={() => {
-                    setSavedQuestions(prev => new Set([...prev, currentQuestionIndex]));
-                    const hasQuiz = questions.filter(q => q.type === 'quiz').length > 0;
-                    const hasFrontend = questions.filter(q => q.type === 'frontend').length > 0;
-                    const hasProgramming = questions.filter(q => q.type === 'programming').length > 0;
-                    const currentType = showPartB ? (hasProgramming ? 'programming' : 'frontend') : (hasQuiz ? 'quiz' : 'frontend');
+                  onClick={async () => {
+                    // Save to backend with original index
+                    if (attemptId && answers[questions[currentQuestionIndex]?._id]) {
+                      try {
+                        const token = localStorage.getItem('studentToken');
+                        const selectedOptionId = answers[questions[currentQuestionIndex]._id];
+                        const selectedOption = questions[currentQuestionIndex].options.find(opt => opt._id === selectedOptionId);
+                        const originalIndex = selectedOption?.originalIndex ?? 0;
+                        await apiService.saveQuizAnswer(token, attemptId, questions[currentQuestionIndex]._id, originalIndex);
+                        
+                        // Mark as saved to update percentage
+                        setSavedQuestions(prev => new Set([...prev, currentQuestionIndex]));
+                      } catch (error) {
+                        console.error('Error saving quiz answer:', error);
+                      }
+                    }
+                    
+                    const currentType = questions[currentQuestionIndex]?.type;
                     const filteredQuestions = questions.filter(q => q.type === currentType);
                     const currentFilteredIndex = filteredQuestions.findIndex(q => q._id === questions[currentQuestionIndex]._id);
                     if (currentFilteredIndex < filteredQuestions.length - 1) {
@@ -1697,6 +1763,23 @@ export default function AssessmentTaking() {
                 </Button>
               </Box>
             </Box>
+          ) : questions[currentQuestionIndex]?.type === 'mongodb' ? (
+            <MongoDBPlaygroundEditor 
+              assessment={assessment} 
+              question={questions[currentQuestionIndex]} 
+              attemptId={attemptId}
+              onTestComplete={(passed, total) => {
+                if (passed === total && total > 0) {
+                  setSavedQuestions(prev => new Set([...prev, currentQuestionIndex]));
+                } else {
+                  setSavedQuestions(prev => {
+                    const newSet = new Set(prev);
+                    newSet.delete(currentQuestionIndex);
+                    return newSet;
+                  });
+                }
+              }}
+            />
           ) : questions[currentQuestionIndex]?.type === 'frontend' ? (
             <FrontendEditor 
               assessment={assessment} 
@@ -2054,7 +2137,9 @@ export default function AssessmentTaking() {
                                   fontSize: { xs: '14px', sm: '16px', md: '18px' },
                                   whiteSpace: 'pre'
                                 }}>
-                                  {allTestCases[currentTestCaseTab].expectedOutput || allTestCases[currentTestCaseTab].output}
+                                  {typeof (allTestCases[currentTestCaseTab].expectedOutput || allTestCases[currentTestCaseTab].output) === 'object' 
+                                    ? JSON.stringify(allTestCases[currentTestCaseTab].expectedOutput || allTestCases[currentTestCaseTab].output, null, 2)
+                                    : (allTestCases[currentTestCaseTab].expectedOutput || allTestCases[currentTestCaseTab].output)}
                                 </Box>
                               </Box>
                             )}
@@ -2307,7 +2392,7 @@ export default function AssessmentTaking() {
       </Dialog>
 
       {/* Final Submit Modal */}
-      <Dialog open={showFinalSubmitModal} maxWidth="md" fullWidth>
+      <Dialog open={showFinalSubmitModal} maxWidth="md" fullWidth disableEscapeKeyDown>
         <DialogTitle sx={{ bgcolor: '#f8f9fa', borderBottom: '1px solid #e0e0e0' }}>
           <Typography variant="h5" sx={{ fontWeight: 600 }}>
             Assessment Summary
@@ -2357,7 +2442,13 @@ export default function AssessmentTaking() {
           {questions.filter(q => q.type === 'frontend').length > 0 && (
             <Box sx={{ mb: 4 }}>
               <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: '#ff9800' }}>
-                {questions.filter(q => q.type === 'quiz').length > 0 ? 'Part B' : 'Part A'} - Frontend Questions ({questions.filter(q => q.type === 'frontend').length})
+                {(() => {
+                  const types = [];
+                  if (questions.filter(q => q.type === 'quiz').length > 0) types.push('quiz');
+                  if (questions.filter(q => q.type === 'frontend').length > 0) types.push('frontend');
+                  const partIndex = types.indexOf('frontend');
+                  return `Part ${String.fromCharCode(65 + partIndex)}`;
+                })()} - Frontend Questions ({questions.filter(q => q.type === 'frontend').length})
               </Typography>
               <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                 {questions.filter(q => q.type === 'frontend').map((q, idx) => {
@@ -2388,17 +2479,61 @@ export default function AssessmentTaking() {
             </Box>
           )}
 
+          {/* Part C - MongoDB Questions */}
+          {questions.filter(q => q.type === 'mongodb').length > 0 && (
+            <Box sx={{ mb: 4 }}>
+              <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: '#00bcd4' }}>
+                {(() => {
+                  const types = [];
+                  if (questions.filter(q => q.type === 'quiz').length > 0) types.push('quiz');
+                  if (questions.filter(q => q.type === 'frontend').length > 0) types.push('frontend');
+                  if (questions.filter(q => q.type === 'mongodb').length > 0) types.push('mongodb');
+                  const partIndex = types.indexOf('mongodb');
+                  return `Part ${String.fromCharCode(65 + partIndex)}`;
+                })()} - MongoDB Questions ({questions.filter(q => q.type === 'mongodb').length})
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                {questions.filter(q => q.type === 'mongodb').map((q, idx) => {
+                  const originalIndex = questions.findIndex(oq => oq._id === q._id);
+                  const isCompleted = savedQuestions.has(originalIndex);
+                  const isVisited = visitedQuestions.has(originalIndex);
+                  
+                  return (
+                    <Box
+                      key={q._id}
+                      sx={{
+                        width: '48px',
+                        height: '48px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderRadius: 1,
+                        fontWeight: 600,
+                        bgcolor: isCompleted ? '#4caf50' : isVisited ? '#ff9800' : '#e0e0e0',
+                        color: isCompleted || isVisited ? 'white' : 'text.secondary'
+                      }}
+                    >
+                      {idx + 1}
+                    </Box>
+                  );
+                })}
+              </Box>
+            </Box>
+          )}
+
           {/* Part C - Programming Questions */}
           {questions.filter(q => q.type === 'programming').length > 0 && (
             <Box sx={{ mb: 4 }}>
               <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: '#9c27b0' }}>
                 {(() => {
-                  const hasQuiz = questions.filter(q => q.type === 'quiz').length > 0;
-                  const hasFrontend = questions.filter(q => q.type === 'frontend').length > 0;
-                  if (hasQuiz && hasFrontend) return 'Part C';
-                  if (hasQuiz || hasFrontend) return 'Part B';
-                  return 'Part A';
-                })()} - Programming Questions ({questions.filter(q => q.type === 'programming').length})
+                  const types = [];
+                  if (questions.filter(q => q.type === 'quiz').length > 0) types.push('quiz');
+                  if (questions.filter(q => q.type === 'frontend').length > 0) types.push('frontend');
+                  if (questions.filter(q => q.type === 'mongodb').length > 0) types.push('mongodb');
+                  if (questions.filter(q => q.type === 'programming').length > 0) types.push('programming');
+                  const partIndex = types.indexOf('programming');
+                  return `Part ${String.fromCharCode(65 + partIndex)} - Programming Questions`;
+                })()} ({questions.filter(q => q.type === 'programming').length})
               </Typography>
               <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                 {questions.filter(q => q.type === 'programming').map((q, idx) => {
@@ -2473,12 +2608,14 @@ export default function AssessmentTaking() {
           </Box>
         </DialogContent>
         <DialogActions sx={{ p: 3, borderTop: '1px solid #e0e0e0' }}>
-          <Button onClick={() => {
-            setShowFinalSubmitModal(false);
-            setEndTestInput('');
-          }} variant="outlined" disabled={isSubmittingAssessment}>
-            Cancel
-          </Button>
+          {timeRemaining > 5 && (
+            <Button onClick={() => {
+              setShowFinalSubmitModal(false);
+              setEndTestInput('');
+            }} variant="outlined" disabled={isSubmittingAssessment}>
+              Cancel
+            </Button>
+          )}
           <Button 
             onClick={handleFinalSubmit}
             variant="contained" 

@@ -16,6 +16,14 @@ export default function MongoDBPlaygroundEditor({ question, attemptId, onTestCom
   const [expectedOutput, setExpectedOutput] = useState(null);
   const editorRef = useRef(null);
 
+  const arraysEqual = (arr1, arr2) => {
+    if (!Array.isArray(arr1) || !Array.isArray(arr2)) return false;
+    if (arr1.length !== arr2.length) return false;
+    const sorted1 = JSON.stringify(arr1.map(item => JSON.stringify(item)).sort());
+    const sorted2 = JSON.stringify(arr2.map(item => JSON.stringify(item)).sort());
+    return sorted1 === sorted2;
+  };
+
   // Load query from localStorage when question changes
   useEffect(() => {
     if (question?._id) {
@@ -100,7 +108,7 @@ export default function MongoDBPlaygroundEditor({ question, attemptId, onTestCom
         setCurrentTab(3);
         
         // Check if correct by comparing with expected output
-        const isCorrect = JSON.stringify(response.data.result.sort()) === JSON.stringify(expectedOutput?.sort());
+        const isCorrect = arraysEqual(response.data.result, expectedOutput);
         
         // Save to backend
         if (attemptId && question._id) {
@@ -226,7 +234,7 @@ export default function MongoDBPlaygroundEditor({ question, attemptId, onTestCom
           {currentTab === 2 && (
             <Box sx={{ p: 3 }}>
               {expectedOutput ? (
-                <Card sx={{ bgcolor: result ? (JSON.stringify(result.sort()) === JSON.stringify(expectedOutput?.sort()) ? '#e8f5e9' : '#ffebee') : 'transparent' }}>
+                <Card sx={{ bgcolor: result ? (arraysEqual(result, expectedOutput) ? '#e8f5e9' : '#ffebee') : 'transparent' }}>
                   <CardContent>
                     <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>Expected Output</Typography>
                     <pre style={{ 
@@ -262,7 +270,7 @@ export default function MongoDBPlaygroundEditor({ question, attemptId, onTestCom
               )}
               
               {result && (
-                <Card sx={{ bgcolor: JSON.stringify(result.sort()) === JSON.stringify(expectedOutput?.sort()) ? '#e8f5e9' : '#ffebee' }}>
+                <Card sx={{ bgcolor: arraysEqual(result, expectedOutput) ? '#e8f5e9' : '#ffebee' }}>
                   <CardContent>
                     <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>Query Result</Typography>
                     <pre style={{ 

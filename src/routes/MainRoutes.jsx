@@ -19,6 +19,8 @@ const AssessmentDetails = Loadable(lazy(() => import('views/assessments/Assessme
 const AssessmentTaking = Loadable(lazy(() => import('views/assessments/AssessmentTaking')));
 const AssessmentResults = Loadable(lazy(() => import('views/assessments/AssessmentResults')));
 const AssessmentPractice = Loadable(lazy(() => import('views/assessments/AssessmentPractice')));
+const FrontendPractice = Loadable(lazy(() => import('views/assessments/FrontendPractice')));
+const MongoDBPractice = Loadable(lazy(() => import('views/assessments/MongoDBPractice')));
 const StudyMaterials = Loadable(lazy(() => import('views/study-materials')));
 const StudyMaterialDetail = Loadable(lazy(() => import('views/study-materials/StudyMaterialDetail')));
 const Quizzes = Loadable(lazy(() => import('views/quizzes')));
@@ -98,6 +100,14 @@ const MainRoutes = {
         {
           path: 'assessments/:id/practice',
           element: <AssessmentPractice />
+        },
+        {
+          path: 'assessments/:id/practice-frontend',
+          element: <FrontendPractice />
+        },
+        {
+          path: 'assessments/:id/practice-mongodb',
+          element: <MongoDBPractice />
         },
         {
           path: 'study-materials',

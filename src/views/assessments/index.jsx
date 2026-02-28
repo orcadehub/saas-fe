@@ -147,7 +147,14 @@ export default function Assessments() {
                 } else if (tabType === 'completed') {
                   navigate(`/assessments/${assessment._id}/results`);
                 } else if (tabType === 'expired') {
-                  navigate(`/assessments/${assessment._id}/practice`);
+                  // Route based on assessment type
+                  if (assessment.type === 'frontend') {
+                    navigate(`/assessments/${assessment._id}/practice-frontend`);
+                  } else if (assessment.type === 'mongodb') {
+                    navigate(`/assessments/${assessment._id}/practice-mongodb`);
+                  } else {
+                    navigate(`/assessments/${assessment._id}/practice`);
+                  }
                 }
               }}
               sx={{ 

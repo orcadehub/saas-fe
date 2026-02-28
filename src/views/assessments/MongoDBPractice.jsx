@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Box, Typography, Button, IconButton, Chip, Skeleton } from '@mui/material';
-import { ArrowBack } from '@mui/icons-material';
+import { ArrowBack, Fullscreen, FullscreenExit } from '@mui/icons-material';
 import tenantConfig from 'config/tenantConfig';
 import apiService from 'services/apiService';
 import MongoDBPlaygroundEditor from './components/MongoDBPlaygroundEditor';
@@ -14,6 +14,8 @@ export default function MongoDBPractice() {
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const containerRef = useRef(null);
 
   useEffect(() => {
     tenantConfig.load().then(setConfig).catch(console.error);
@@ -39,6 +41,24 @@ export default function MongoDBPractice() {
       setLoading(false);
     }
   };
+
+  const toggleFullscreen = () => {
+    if (!isFullscreen) {
+      containerRef.current?.requestFullscreen();
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen();
+      setIsFullscreen(false);
+    }
+  };
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
 
   if (loading) {
     return (
@@ -72,16 +92,21 @@ export default function MongoDBPractice() {
   const currentQuestion = questions[currentQuestionIndex];
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-      <Box sx={{ p: 2, borderBottom: '1px solid #e0e0e0', display: 'flex', alignItems: 'center', gap: 2, bgcolor: '#ffffff' }}>
-        <IconButton onClick={() => navigate('/assessments')}>
-          <ArrowBack />
-        </IconButton>
-        <Typography variant="h6" sx={{ fontWeight: 600, flexGrow: 1 }}>
-          {assessment.title} - Practice Mode
-        </Typography>
-        <Chip label="Practice Mode" color="success" />
-      </Box>
+    <Box ref={containerRef} sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#ffffff' }}>
+      {!isFullscreen && (
+        <Box sx={{ p: 2, borderBottom: '1px solid #e0e0e0', display: 'flex', alignItems: 'center', gap: 2, bgcolor: '#ffffff' }}>
+          <IconButton onClick={() => navigate('/assessments')}>
+            <ArrowBack />
+          </IconButton>
+          <Typography variant="h6" sx={{ fontWeight: 600, flexGrow: 1 }}>
+            {assessment.title} - Practice Mode
+          </Typography>
+          <Chip label="Practice Mode" color="success" />
+          <IconButton onClick={toggleFullscreen}>
+            <Fullscreen />
+          </IconButton>
+        </Box>
+      )}
 
       <Box sx={{ display: 'grid', gridTemplateColumns: '50% 4px 50%', flexGrow: 1, height: '100%', overflow: 'hidden' }}>
         <Box sx={{ overflow: 'auto', height: '100%', bgcolor: '#ffffff', '&::-webkit-scrollbar': { display: 'none' }, scrollbarWidth: 'none' }}>
@@ -98,6 +123,11 @@ export default function MongoDBPractice() {
                   {index + 1}
                 </Button>
               ))}
+              {isFullscreen && (
+                <IconButton onClick={toggleFullscreen} sx={{ ml: 'auto' }}>
+                  <FullscreenExit />
+                </IconButton>
+              )}
             </Box>
           </Box>
 

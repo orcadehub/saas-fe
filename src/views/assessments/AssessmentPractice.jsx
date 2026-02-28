@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Box, Typography, Button, IconButton, Tabs, Tab, Select, MenuItem, FormControl, InputLabel, CircularProgress, Dialog, DialogTitle, DialogContent, DialogActions, Card, CardContent, Chip, Skeleton } from '@mui/material';
-import { ArrowBack, PlayArrow, CheckCircle, Close, Add, Remove } from '@mui/icons-material';
+import { ArrowBack, PlayArrow, CheckCircle, Close, Add, Remove, Fullscreen, FullscreenExit } from '@mui/icons-material';
 import Editor from '@monaco-editor/react';
 import { submitCode } from 'services/pistonService';
 import tenantConfig from 'config/tenantConfig';
@@ -26,7 +26,9 @@ export default function AssessmentPractice() {
   const [submitResults, setSubmitResults] = useState([]);
   const [compilerSplit, setCompilerSplit] = useState(60);
   const [isCompilerDragging, setIsCompilerDragging] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const editorRef = useRef(null);
+  const containerRef = useRef(null);
 
   useEffect(() => {
     tenantConfig.load().then(setConfig).catch(console.error);
@@ -205,6 +207,24 @@ export default function AssessmentPractice() {
     setIsSubmitting(false);
   };
 
+  const toggleFullscreen = () => {
+    if (!isFullscreen) {
+      containerRef.current?.requestFullscreen();
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen();
+      setIsFullscreen(false);
+    }
+  };
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
   useEffect(() => {
     if (isCompilerDragging) {
       const handleMouseMove = (e) => {
@@ -266,17 +286,22 @@ export default function AssessmentPractice() {
   const currentQuestion = questions[currentQuestionIndex];
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+    <Box ref={containerRef} sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#ffffff' }}>
       {/* Header */}
-      <Box sx={{ p: 2, borderBottom: '1px solid #e0e0e0', display: 'flex', alignItems: 'center', gap: 2, bgcolor: '#ffffff' }}>
-        <IconButton onClick={() => navigate('/assessments')}>
-          <ArrowBack />
-        </IconButton>
-        <Typography variant="h6" sx={{ fontWeight: 600, flexGrow: 1 }}>
-          {assessment.title} - Practice Mode
-        </Typography>
-        <Chip label="Practice Mode" color="success" />
-      </Box>
+      {!isFullscreen && (
+        <Box sx={{ p: 2, borderBottom: '1px solid #e0e0e0', display: 'flex', alignItems: 'center', gap: 2, bgcolor: '#ffffff' }}>
+          <IconButton onClick={() => navigate('/assessments')}>
+            <ArrowBack />
+          </IconButton>
+          <Typography variant="h6" sx={{ fontWeight: 600, flexGrow: 1 }}>
+            {assessment.title} - Practice Mode
+          </Typography>
+          <Chip label="Practice Mode" color="success" />
+          <IconButton onClick={toggleFullscreen}>
+            <Fullscreen />
+          </IconButton>
+        </Box>
+      )}
 
       <Box sx={{ display: 'grid', gridTemplateColumns: '50% 4px 50%', flexGrow: 1, height: '100%', overflow: 'hidden' }}>
         {/* Problem Statement */}
@@ -443,6 +468,11 @@ export default function AssessmentPractice() {
               <Button variant="contained" onClick={handleSubmit} disabled={!code.trim() || isSubmitting}>
                 Submit
               </Button>
+              {isFullscreen && (
+                <IconButton onClick={toggleFullscreen} sx={{ ml: 1 }}>
+                  <FullscreenExit />
+                </IconButton>
+              )}
             </Box>
 
             <Box sx={{ p: 4, flexGrow: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden' }}>

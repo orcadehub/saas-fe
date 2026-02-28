@@ -72,6 +72,13 @@ export default function FrontendEditor({ assessment, question, attemptId, onTest
         };
       }
       
+      if (allowedFiles.includes('data.js')) {
+        newFiles['data.js'] = { 
+          content: question?.defaultFiles?.dataJs || '', 
+          readOnly: true 
+        };
+      }
+      
       newFiles['test.spec.js'] = { content: question?.jestTestFile || generateJestTests(assessment), readOnly: true };
       
       setFiles(newFiles);
@@ -404,6 +411,7 @@ export default function FrontendEditor({ assessment, question, attemptId, onTest
                   </head>
                   <body>
                     ${files['index.html']?.content || ''}
+                    <script>${files['data.js']?.content || ''}</script>
                     <script>${files['script.js']?.content || ''}</script>
                   </body>
                   </html>

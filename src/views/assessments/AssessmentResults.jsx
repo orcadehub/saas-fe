@@ -189,10 +189,14 @@ export default function AssessmentResults() {
 
   const attemptedQuestions = Object.keys(attempt?.successfulCodes || {}).length;
   const totalQuestions = assessment?.questions?.length || 0;
+  const totalFrontendQuestions = assessment?.frontendQuestions?.length || 0;
+  const totalMongoDBQuestions = assessment?.mongodbPlaygroundQuestions?.length || 0;
   const totalQuizQuestions = assessment?.quizQuestions?.length || 0;
   const overallScore = attempt?.overallPercentage || 0;
   const quizScore = attempt?.quizPercentage || 0;
   const programmingScore = attempt?.programmingPercentage || 0;
+  const frontendScore = attempt?.frontendPercentage || 0;
+  const mongodbScore = attempt?.mongodbPercentage || 0;
 
   const metricCardStyle = {
     minWidth: 200,
@@ -224,7 +228,15 @@ export default function AssessmentResults() {
             <Button
               variant="contained"
               color="primary"
-              onClick={() => navigate(`/assessments/${id}/practice`)}
+              onClick={() => {
+                if (assessment.type === 'frontend') {
+                  navigate(`/assessments/${id}/practice-frontend`);
+                } else if (assessment.type === 'mongodb') {
+                  navigate(`/assessments/${id}/practice-mongodb`);
+                } else {
+                  navigate(`/assessments/${id}/practice`);
+                }
+              }}
             >
               Practice
             </Button>
@@ -345,7 +357,7 @@ export default function AssessmentResults() {
           }}>
             <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 3 }}>
               <Typography variant="h2" fontWeight={700} color="primary.main" sx={{ mb: 1 }}>
-                {totalQuestions + totalQuizQuestions}
+                {totalQuestions + totalQuizQuestions + totalFrontendQuestions + totalMongoDBQuestions}
               </Typography>
               <Typography variant="caption" color="text.secondary">Total</Typography>
             </CardContent>
@@ -385,55 +397,99 @@ export default function AssessmentResults() {
             </CardContent>
           </Card>
           
-          {totalQuizQuestions > 0 && (
+          {(totalQuizQuestions > 0 || totalFrontendQuestions > 0 || totalMongoDBQuestions > 0) && (
             <>
-              <Card sx={{
-                cursor: 'default',
-                transition: 'all 0.3s',
-                borderRadius: 4,
-                '&:hover': { transform: 'translateY(-4px)', boxShadow: 4 },
-                display: 'flex',
-                flexDirection: 'column',
-                height: '100%'
-              }}>
-                <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 3 }}>
-                  <Typography variant="h2" fontWeight={700} color="secondary.main" sx={{ mb: 1 }}>
-                    {quizScore.toFixed(1)}%
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">Quiz</Typography>
-                </CardContent>
-              </Card>
+              {totalQuizQuestions > 0 && (
+                <Card sx={{
+                  cursor: 'default',
+                  transition: 'all 0.3s',
+                  borderRadius: 4,
+                  '&:hover': { transform: 'translateY(-4px)', boxShadow: 4 },
+                  display: 'flex',
+                  flexDirection: 'column',
+                  height: '100%'
+                }}>
+                  <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 3 }}>
+                    <Typography variant="h2" fontWeight={700} color="secondary.main" sx={{ mb: 1 }}>
+                      {quizScore.toFixed(1)}%
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">Quiz</Typography>
+                  </CardContent>
+                </Card>
+              )}
               
-              <Card sx={{
-                cursor: 'default',
-                transition: 'all 0.3s',
-                borderRadius: 4,
-                '&:hover': { transform: 'translateY(-4px)', boxShadow: 4 },
-                display: 'flex',
-                flexDirection: 'column',
-                height: '100%'
-              }}>
-                <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 3 }}>
-                  <Typography variant="h2" fontWeight={700} color="primary.main" sx={{ mb: 1 }}>
-                    {programmingScore.toFixed(1)}%
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">Programming</Typography>
-                </CardContent>
-              </Card>
+              {totalQuestions > 0 && (
+                <Card sx={{
+                  cursor: 'default',
+                  transition: 'all 0.3s',
+                  borderRadius: 4,
+                  '&:hover': { transform: 'translateY(-4px)', boxShadow: 4 },
+                  display: 'flex',
+                  flexDirection: 'column',
+                  height: '100%'
+                }}>
+                  <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 3 }}>
+                    <Typography variant="h2" fontWeight={700} color="primary.main" sx={{ mb: 1 }}>
+                      {programmingScore.toFixed(1)}%
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">Programming</Typography>
+                  </CardContent>
+                </Card>
+              )}
+              
+              {totalFrontendQuestions > 0 && (
+                <Card sx={{
+                  cursor: 'default',
+                  transition: 'all 0.3s',
+                  borderRadius: 4,
+                  '&:hover': { transform: 'translateY(-4px)', boxShadow: 4 },
+                  display: 'flex',
+                  flexDirection: 'column',
+                  height: '100%'
+                }}>
+                  <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 3 }}>
+                    <Typography variant="h2" fontWeight={700} color="info.main" sx={{ mb: 1 }}>
+                      {frontendScore.toFixed(1)}%
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">Frontend</Typography>
+                  </CardContent>
+                </Card>
+              )}
+              
+              {totalMongoDBQuestions > 0 && (
+                <Card sx={{
+                  cursor: 'default',
+                  transition: 'all 0.3s',
+                  borderRadius: 4,
+                  '&:hover': { transform: 'translateY(-4px)', boxShadow: 4 },
+                  display: 'flex',
+                  flexDirection: 'column',
+                  height: '100%'
+                }}>
+                  <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 3 }}>
+                    <Typography variant="h2" fontWeight={700} color="success.main" sx={{ mb: 1 }}>
+                      {mongodbScore.toFixed(1)}%
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">MongoDB</Typography>
+                  </CardContent>
+                </Card>
+              )}
             </>
           )}
         </Box>
 
-        {totalQuizQuestions > 0 && totalQuestions > 0 && (
+        {(totalQuizQuestions > 0 || totalFrontendQuestions > 0 || totalMongoDBQuestions > 0 || totalQuestions > 0) && (
           <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 4 }}>
             <Tabs value={tabValue} onChange={(e, newValue) => setTabValue(newValue)}>
-              <Tab label={`Quiz Results (${totalQuizQuestions})`} />
-              <Tab label={`Programming Results (${totalQuestions})`} />
+              {totalQuizQuestions > 0 && <Tab label={`Quiz Results (${totalQuizQuestions})`} />}
+              {totalQuestions > 0 && <Tab label={`Programming Results (${totalQuestions})`} />}
+              {totalFrontendQuestions > 0 && <Tab label={`Frontend Results (${totalFrontendQuestions})`} />}
+              {totalMongoDBQuestions > 0 && <Tab label={`MongoDB Results (${totalMongoDBQuestions})`} />}
             </Tabs>
           </Box>
         )}
 
-        {totalQuizQuestions > 0 && (tabValue === 0 || totalQuestions === 0) && (
+        {totalQuizQuestions > 0 && (tabValue === 0 || (totalQuestions === 0 && totalFrontendQuestions === 0 && totalMongoDBQuestions === 0)) && (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mb: 4 }}>
             {assessment?.quizQuestions?.map((question, index) => {
               const questionId = question._id;
@@ -541,7 +597,7 @@ export default function AssessmentResults() {
             </Box>
           )}
 
-          {totalQuestions > 0 && (tabValue === 1 || totalQuizQuestions === 0) && (
+          {totalQuestions > 0 && (tabValue === (totalQuizQuestions > 0 ? 1 : 0)) && (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
               {assessment?.questions?.map((question, index) => {
               const questionId = question._id;
@@ -650,7 +706,132 @@ export default function AssessmentResults() {
               })}
             </Box>
           )}
-      </Box>
-    </MainCard>
-  );
-}
+
+          {totalFrontendQuestions > 0 && (tabValue === (totalQuizQuestions > 0 ? 1 : 0) + (totalQuestions > 0 ? 1 : 0)) && (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              {assessment?.frontendQuestions?.map((question, index) => {
+                const questionId = question._id;
+                const frontendCode = attempt?.lastExecutedFrontendCode?.[questionId];
+                
+                return (
+                  <Card key={questionId} sx={{ width: '100%', borderRadius: 3, border: '2px solid #2196f3' }}>
+                    <Box sx={{ bgcolor: 'info.main', color: 'white', p: 3 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Box>
+                          <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
+                            Frontend Question {index + 1}
+                          </Typography>
+                          <Typography variant="body1" sx={{ opacity: 0.9 }}>
+                            {question.title}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </Box>
+                    
+                    <CardContent sx={{ p: 3 }}>
+                      <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+                        {question.problemStatement}
+                      </Typography>
+
+                      {frontendCode && (
+                        <>
+                          {frontendCode.html && (
+                            <Accordion sx={{ mb: 2 }}>
+                              <AccordionSummary expandIcon={<ExpandMore />} sx={{ bgcolor: 'grey.50' }}>
+                                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>HTML Code</Typography>
+                              </AccordionSummary>
+                              <AccordionDetails sx={{ p: 0 }}>
+                                <CodeBlock code={frontendCode.html} language="html" />
+                              </AccordionDetails>
+                            </Accordion>
+                          )}
+
+                          {frontendCode.css && (
+                            <Accordion sx={{ mb: 2 }}>
+                              <AccordionSummary expandIcon={<ExpandMore />} sx={{ bgcolor: 'grey.50' }}>
+                                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>CSS Code</Typography>
+                              </AccordionSummary>
+                              <AccordionDetails sx={{ p: 0 }}>
+                                <CodeBlock code={frontendCode.css} language="css" />
+                              </AccordionDetails>
+                            </Accordion>
+                          )}
+
+                          {frontendCode.js && (
+                            <Accordion>
+                              <AccordionSummary expandIcon={<ExpandMore />} sx={{ bgcolor: 'grey.50' }}>
+                                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>JavaScript Code</Typography>
+                              </AccordionSummary>
+                              <AccordionDetails sx={{ p: 0 }}>
+                                <CodeBlock code={frontendCode.js} language="javascript" />
+                              </AccordionDetails>
+                            </Accordion>
+                          )}
+                        </>
+                      )}
+
+                      {!frontendCode && (
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, color: 'text.secondary', bgcolor: 'grey.50', p: 3, borderRadius: 1 }}>
+                          <Cancel sx={{ fontSize: 24 }} />
+                          <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                            No code submitted for this question
+                          </Typography>
+                        </Box>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </Box>
+          )}
+
+          {totalMongoDBQuestions > 0 && (tabValue === (totalQuizQuestions > 0 ? 1 : 0) + (totalQuestions > 0 ? 1 : 0) + (totalFrontendQuestions > 0 ? 1 : 0)) && (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              {assessment?.mongodbPlaygroundQuestions?.map((question, index) => {
+                const questionId = question._id;
+                const mongoQuery = attempt?.lastExecutedMongoDBQuery?.[questionId];
+                
+                return (
+                  <Card key={questionId} sx={{ width: '100%', borderRadius: 3, border: '2px solid #4caf50' }}>
+                    <Box sx={{ bgcolor: 'success.main', color: 'white', p: 3 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Box>
+                          <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
+                            MongoDB Question {index + 1}
+                          </Typography>
+                          <Typography variant="body1" sx={{ opacity: 0.9 }}>
+                            {question.title}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </Box>
+                    
+                    <CardContent sx={{ p: 3 }}>
+                      <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+                        {question.problemStatement}
+                      </Typography>
+
+                      {mongoQuery && (
+                        <Accordion>
+                          <AccordionSummary expandIcon={<ExpandMore />} sx={{ bgcolor: 'grey.50' }}>
+                            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>MongoDB Query</Typography>
+                          </AccordionSummary>
+                          <AccordionDetails sx={{ p: 0 }}>
+                            <CodeBlock code={mongoQuery} language="javascript" />
+                          </AccordionDetails>
+                        </Accordion>
+                      )}
+
+                      {!mongoQuery && (
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, color: 'text.secondary', bgcolor: 'grey.50', p: 3, borderRadius: 1 }}>
+                          <Cancel sx={{ fontSize: 24 }} />
+                          <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                            No query submitted for this question
+                          </Typography>
+                        </Box>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </Box>

@@ -23,6 +23,7 @@ export default function AssessmentDetails() {
   const [systemInfo, setSystemInfo] = useState({});
   const [timeUntilStart, setTimeUntilStart] = useState(null);
   const [timeUntilLateEnd, setTimeUntilLateEnd] = useState(null);
+  const [serverTime, setServerTime] = useState(null);
   const [showInProgressModal, setShowInProgressModal] = useState(false);
   const [logoutTimer, setLogoutTimer] = useState(5);
 
@@ -31,6 +32,36 @@ export default function AssessmentDetails() {
   const isInProgress = attempt?.attemptStatus === 'IN_PROGRESS';
   const canResume = attempt?.attemptStatus === 'RESUME_ALLOWED';
   const canRetake = attempt?.attemptStatus === 'RETAKE_ALLOWED';
+
+  // Use basic info from context (without questions)
+  const questionCounts = {
+    programming: assessment?.questionCounts?.programming || 0,
+    frontend: assessment?.questionCounts?.frontend || 0,
+    quiz: assessment?.questionCounts?.quiz || 0,
+    mongodb: assessment?.questionCounts?.mongodb || 0
+  };
+
+  useEffect(() => {
+    const fetchServerTime = async () => {
+      try {
+        const config = tenantConfig.get();
+        const apiUrl = import.meta.env.DEV ? 'http://localhost:4000/api' : (config?.apiEndpoint || 'https://backend.orcode.in/api');
+        const response = await fetch(`${apiUrl}/server-time`, { cache: 'no-store' });
+        if (response.ok) {
+          const data = await response.json();
+          setServerTime(data.serverTime);
+        } else {
+          setServerTime(new Date().toISOString());
+        }
+      } catch (error) {
+        console.error('Error fetching server time:', error);
+        setServerTime(new Date().toISOString());
+      }
+    };
+    fetchServerTime();
+    const interval = setInterval(fetchServerTime, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const getSystemInfo = () => {
@@ -88,10 +119,10 @@ export default function AssessmentDetails() {
   }, [isInProgress, canResume, canRetake]);
 
   useEffect(() => {
-    if (!assessment?.startTime) return;
+    if (!assessment?.startTime || !serverTime) return;
 
     const updateTimer = () => {
-      const now = new Date().getTime();
+      const now = new Date(serverTime).getTime() + (Date.now() - new Date(serverTime).getTime());
       const start = new Date(assessment.startTime).getTime();
       const lateStartMinutes = assessment.earlyStartBuffer || 0;
       const lateStartEnd = start + (lateStartMinutes * 60 * 1000);
@@ -112,7 +143,7 @@ export default function AssessmentDetails() {
     updateTimer();
     const interval = setInterval(updateTimer, 1000);
     return () => clearInterval(interval);
-  }, [assessment?.startTime, assessment?.earlyStartBuffer]);
+  }, [assessment?.startTime, assessment?.earlyStartBuffer, serverTime]);
 
   const formatTimeUntilStart = (ms) => {
     if (ms <= 0) return null;
@@ -283,7 +314,7 @@ export default function AssessmentDetails() {
                   <Code sx={{ fontSize: 40, color: 'success.main' }} />
                   <Box>
                     <Typography variant="h4" sx={{ fontWeight: 700, color: 'text.primary' }}>
-                      {assessment.questions?.length || 0} Coding
+                      {(questionCounts.programming + questionCounts.frontend + questionCounts.mongodb)} Coding
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
                       Coding Questions
@@ -303,7 +334,7 @@ export default function AssessmentDetails() {
                   <Quiz sx={{ fontSize: 40, color: 'info.main' }} />
                   <Box>
                     <Typography variant="h4" sx={{ fontWeight: 700, color: 'text.primary' }}>
-                      {assessment.quizQuestions?.length || 0} Quiz
+                      {questionCounts.quiz} Quiz
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
                       Quiz Questions
@@ -323,7 +354,7 @@ export default function AssessmentDetails() {
                   <CalendarToday sx={{ fontSize: 40, color: 'secondary.main' }} />
                   <Box>
                     <Typography variant="h4" sx={{ fontWeight: 700, color: 'text.primary' }}>
-                      {((assessment.questions?.length || 0) * 10) + ((assessment.quizQuestions?.length || 0) * 2)} Marks
+                      100 Marks
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
                       Total Marks

@@ -55,10 +55,28 @@ export const AssessmentsProvider = ({ children }) => {
           }
           
           const data = await response.json();
-          setAssessments(Array.isArray(data) ? data : []);
+          
+          // Fetch basic info (without questions) for each assessment
+          const assessmentsWithInfo = await Promise.all(
+            (Array.isArray(data) ? data : []).map(async (assessment) => {
+              try {
+                const infoResponse = await fetch(`${getApiUrl()}/auth/student/assessment/${assessment._id}/info`, {
+                  headers: getHeaders()
+                });
+                if (infoResponse.ok) {
+                  return await infoResponse.json();
+                }
+                return assessment;
+              } catch (error) {
+                return assessment;
+              }
+            })
+          );
+          
+          setAssessments(assessmentsWithInfo);
 
           const attempts = {};
-          for (const assessment of (Array.isArray(data) ? data : [])) {
+          for (const assessment of assessmentsWithInfo) {
             try {
               const attemptResponse = await fetch(`${getApiUrl()}/auth/student/assessment/${assessment._id}/attempt`, {
                 headers: getHeaders()

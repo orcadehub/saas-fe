@@ -224,7 +224,7 @@ export default function AssessmentResults() {
               {assessment?.title}
             </Typography>
           </Box>
-          {totalQuestions > 0 && (
+          {(totalQuestions > 0 || totalFrontendQuestions > 0 || totalMongoDBQuestions > 0) && (
             <Button
               variant="contained"
               color="primary"
@@ -835,3 +835,8 @@ export default function AssessmentResults() {
                 );
               })}
             </Box>
+          )}
+      </Box>
+    </MainCard>
+  );
+}

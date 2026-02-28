@@ -39,6 +39,13 @@ class ApiService {
     return response.data;
   }
 
+  async getAssessmentInfo(token, assessmentId) {
+    const response = await this.client.get(`/auth/student/assessment/${assessmentId}/info`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
+  }
+
   async getAssessmentAttempt(token, assessmentId) {
     const response = await this.client.get(`/auth/student/assessment/${assessmentId}/attempt`, {
       headers: { Authorization: `Bearer ${token}` }

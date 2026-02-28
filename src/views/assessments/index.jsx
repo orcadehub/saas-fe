@@ -91,7 +91,7 @@ export default function Assessments() {
                 }}
               />
               <Chip 
-                label={`${assessment.questions?.length || 0} coding`}
+                label={`${(assessment.codingQuestionCount || assessment.questionCounts?.programming + assessment.questionCounts?.frontend + assessment.questionCounts?.mongodb || 0)} coding`}
                 size="small"
                 sx={{ 
                   fontWeight: 600,
@@ -101,7 +101,7 @@ export default function Assessments() {
                 }}
               />
               <Chip 
-                label={`${assessment.quizQuestions?.length || 0} quiz`}
+                label={`${(assessment.quizQuestionCount || assessment.questionCounts?.quiz || 0)} quiz`}
                 size="small"
                 sx={{ 
                   fontWeight: 600,

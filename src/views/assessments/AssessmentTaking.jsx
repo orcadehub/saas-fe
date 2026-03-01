@@ -1975,7 +1975,7 @@ export default function AssessmentTaking() {
               />
               
               {/* Test Cases Section */}
-              <Box sx={{ height: `${100 - compilerSplit}%`, display: 'flex', flexDirection: 'column', zIndex: 100, position: 'relative', bgcolor: '#ffffff', minHeight: 0 }}>
+              <Box sx={{ height: `${100 - compilerSplit}%`, display: 'flex', flexDirection: 'column', zIndex: 100, position: 'relative', bgcolor: '#ffffff', minHeight: 0, overflow: 'hidden' }}>
                 {(() => {
                   const publicTestCases = questions[currentQuestionIndex]?.testCases?.filter(tc => tc.isPublic) || [];
                   const allTestCases = [...publicTestCases, ...customTestCases];
@@ -2048,7 +2048,7 @@ export default function AssessmentTaking() {
                         </Tabs>
                       </Box>
                       
-                      <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, flexGrow: 1, overflow: 'auto', pb: 8, bgcolor: '#ffffff' }}>
+                      <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, flexGrow: 1, overflowY: 'auto', pb: 8, bgcolor: '#ffffff' }}>
                         {allTestCases.length > 0 && allTestCases[currentTestCaseTab] ? (
                           <>
                             <Box sx={{ mb: 3 }}>

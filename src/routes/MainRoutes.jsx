@@ -41,6 +41,8 @@ const QuantitativePractice = Loadable(lazy(() => import('views/practice/Quantita
 const CompanyPractice = Loadable(lazy(() => import('views/practice/CompanyPractice')));
 const IDE = Loadable(lazy(() => import('views/ide')));
 const Labs = Loadable(lazy(() => import('views/playgrounds')));
+const LabDetail = Loadable(lazy(() => import('views/playgrounds/LabDetail')));
+const LabPractice = Loadable(lazy(() => import('views/playgrounds/LabPractice')));
 const AIMock = Loadable(lazy(() => import('views/ai-mock')));
 
 // ==============================|| MAIN ROUTING ||============================== //
@@ -184,6 +186,14 @@ const MainRoutes = {
         {
           path: 'labs',
           element: <Labs />
+        },
+        {
+          path: 'labs/:labId',
+          element: <LabDetail />
+        },
+        {
+          path: 'labs/:labId/:questionId',
+          element: <LabPractice />
         },
         {
           path: 'ai-mock',

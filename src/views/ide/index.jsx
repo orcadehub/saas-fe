@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Box, Button, Select, MenuItem, FormControl, InputLabel, IconButton, Typography, CircularProgress, Skeleton } from '@mui/material';
-import { PlayArrow, Add, Remove } from '@mui/icons-material';
+import { Box, Button, Select, MenuItem, FormControl, IconButton, Typography, CircularProgress, Chip } from '@mui/material';
+import { PlayArrow, Add, Remove, Fullscreen, FullscreenExit, LightMode, DarkMode } from '@mui/icons-material';
 import Editor from '@monaco-editor/react';
 import { submitCode } from 'services/pistonService';
-import MainCard from 'ui-component/cards/MainCard';
 
 const templates = {
   python: `# Write your Python code here\nprint("Hello World")`,
@@ -14,7 +13,7 @@ const templates = {
 
 export default function IDE() {
   const [language, setLanguage] = useState('python');
-  const [fontSize, setFontSize] = useState(18);
+  const [fontSize, setFontSize] = useState(16);
   const [code, setCode] = useState(() => {
     const saved = sessionStorage.getItem('ide_code_python');
     return saved || templates.python;
@@ -24,7 +23,11 @@ export default function IDE() {
   const [input, setInput] = useState('');
   const [output, setOutput] = useState('');
   const [isRunning, setIsRunning] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const saved = sessionStorage.getItem('ide_theme');
+    return saved === 'dark';
+  });
 
   const languageIds = {
     python: 71,
@@ -32,6 +35,10 @@ export default function IDE() {
     java: 62,
     c: 50
   };
+
+  useEffect(() => {
+    sessionStorage.setItem('ide_theme', isDarkMode ? 'dark' : 'light');
+  }, [isDarkMode]);
 
   useEffect(() => {
     sessionStorage.setItem(`ide_code_${language}`, code);
@@ -70,19 +77,82 @@ export default function IDE() {
     }
   };
 
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen();
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen();
+      setIsFullscreen(false);
+    }
+  };
+
+  const theme = {
+    dark: {
+      bg: '#1e1e1e',
+      headerBg: '#252526',
+      border: '#3e3e42',
+      selectBg: '#3c3c3c',
+      text: '#fff',
+      textSecondary: '#d4d4d4',
+      inputBg: '#1e1e1e',
+      chipBg: '#3c3c3c',
+      chipText: '#888',
+      outputSuccess: '#4ade80',
+      outputError: '#f87171',
+      editorTheme: 'vs-dark'
+    },
+    light: {
+      bg: '#ffffff',
+      headerBg: '#f5f5f5',
+      border: '#e0e0e0',
+      selectBg: '#ffffff',
+      text: '#1e293b',
+      textSecondary: '#333',
+      inputBg: '#ffffff',
+      chipBg: '#e0e0e0',
+      chipText: '#666',
+      outputSuccess: '#16a34a',
+      outputError: '#dc2626',
+      editorTheme: 'light'
+    }
+  };
+
+  const currentTheme = isDarkMode ? theme.dark : theme.light;
+
   return (
-    <MainCard sx={{ height: 'calc(100vh - 140px)', '& .MuiCardContent-root': { height: '100%', p: 0 } }}>
-      {loading ? (
-        <Box sx={{ p: 4 }}>
-          <Skeleton variant="rectangular" height={60} sx={{ mb: 2 }} />
-          <Skeleton variant="rectangular" height="calc(100vh - 300px)" />
-        </Box>
-      ) : (
-      <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <Box sx={{ p: 2, borderBottom: '1px solid #e0e0e0', display: 'flex', alignItems: 'center', gap: 2 }}>
-        <FormControl size="small" sx={{ minWidth: 150 }}>
-          <InputLabel>Language</InputLabel>
-          <Select value={language} label="Language" onChange={handleLanguageChange}>
+    <Box sx={{ 
+      height: isFullscreen ? '100vh' : 'calc(100vh - 140px)', 
+      bgcolor: currentTheme.bg, 
+      display: 'flex', 
+      flexDirection: 'column',
+      overflow: 'hidden'
+    }}>
+      {/* Header */}
+      <Box sx={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        gap: 2, 
+        px: 3, 
+        py: 1.5,
+        bgcolor: currentTheme.headerBg,
+        borderBottom: `1px solid ${currentTheme.border}`
+      }}>
+        <Typography variant="h6" sx={{ color: currentTheme.text, fontWeight: 600, fontSize: '1rem' }}>
+          Online IDE
+        </Typography>
+
+        <FormControl size="small" sx={{ minWidth: 120 }}>
+          <Select 
+            value={language} 
+            onChange={handleLanguageChange}
+            sx={{ 
+              color: currentTheme.text,
+              bgcolor: currentTheme.selectBg,
+              '& .MuiOutlinedInput-notchedOutline': { border: `1px solid ${currentTheme.border}` },
+              '& .MuiSvgIcon-root': { color: currentTheme.text }
+            }}
+          >
             <MenuItem value="python">Python</MenuItem>
             <MenuItem value="cpp">C++</MenuItem>
             <MenuItem value="java">Java</MenuItem>
@@ -92,48 +162,70 @@ export default function IDE() {
 
         <Box sx={{ flex: 1 }} />
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <IconButton size="small" onClick={() => setFontSize(prev => Math.max(16, prev - 2))}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: currentTheme.selectBg, borderRadius: '6px', px: 1, border: `1px solid ${currentTheme.border}` }}>
+          <IconButton size="small" onClick={() => setFontSize(prev => Math.max(12, prev - 2))} sx={{ color: currentTheme.text }}>
             <Remove fontSize="small" />
           </IconButton>
-          <Typography variant="body2" sx={{ minWidth: '30px', textAlign: 'center' }}>
-            {fontSize}
+          <Typography variant="body2" sx={{ color: currentTheme.text, minWidth: '30px', textAlign: 'center', fontSize: '0.875rem' }}>
+            {fontSize}px
           </Typography>
-          <IconButton size="small" onClick={() => setFontSize(prev => Math.min(50, prev + 2))}>
+          <IconButton size="small" onClick={() => setFontSize(prev => Math.min(32, prev + 2))} sx={{ color: currentTheme.text }}>
             <Add fontSize="small" />
           </IconButton>
         </Box>
 
-        <Box sx={{ flex: 1 }} />
+        <IconButton onClick={() => setIsDarkMode(!isDarkMode)} sx={{ color: currentTheme.text }}>
+          {isDarkMode ? <LightMode /> : <DarkMode />}
+        </IconButton>
+
+        <IconButton onClick={toggleFullscreen} sx={{ color: currentTheme.text }}>
+          {isFullscreen ? <FullscreenExit /> : <Fullscreen />}
+        </IconButton>
 
         <Button 
           variant="contained" 
           startIcon={isRunning ? <CircularProgress size={16} sx={{ color: '#fff' }} /> : <PlayArrow />}
           onClick={handleRun}
           disabled={isRunning}
-          sx={{ bgcolor: '#4caf50', '&:hover': { bgcolor: '#45a049' } }}
+          sx={{ 
+            bgcolor: '#16a34a', 
+            color: '#fff',
+            textTransform: 'none',
+            fontWeight: 600,
+            px: 3,
+            '&:hover': { bgcolor: '#15803d' },
+            '&:disabled': { bgcolor: currentTheme.chipBg, color: currentTheme.chipText }
+          }}
         >
-          {isRunning ? 'Running...' : 'Run'}
+          {isRunning ? 'Running...' : 'Run Code'}
         </Button>
       </Box>
 
+      {/* Main Content */}
       <Box sx={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
-        <Box sx={{ width: `${editorWidth}%`, height: '100%' }}>
+        {/* Editor */}
+        <Box sx={{ width: `${editorWidth}%`, height: '100%', position: 'relative' }}>
           <Editor
             height="100%"
             language={language === 'cpp' ? 'cpp' : language}
             value={code}
-            theme="light"
+            theme={currentTheme.editorTheme}
             onChange={(value) => setCode(value || '')}
             options={{
               fontSize: fontSize,
               minimap: { enabled: false },
               scrollBeyondLastLine: false,
-              wordWrap: 'on'
+              wordWrap: 'on',
+              lineNumbers: 'on',
+              renderLineHighlight: 'all',
+              cursorBlinking: 'smooth',
+              fontFamily: 'Consolas, Monaco, monospace',
+              padding: { top: 16, bottom: 16 }
             }}
           />
         </Box>
 
+        {/* Resizer */}
         <Box
           onMouseDown={(e) => {
             e.preventDefault();
@@ -153,36 +245,52 @@ export default function IDE() {
             document.addEventListener('mouseup', handleMouseUp);
           }}
           sx={{
-            width: '4px',
+            width: '3px',
             cursor: 'col-resize',
-            bgcolor: '#6a0dad',
-            '&:hover': { bgcolor: '#5a0d9d' }
+            bgcolor: currentTheme.border,
+            '&:hover': { bgcolor: '#6a0dad' },
+            transition: 'background-color 0.2s'
           }}
         />
 
-        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%' }}>
-          <Box sx={{ height: `${ioHeight}%`, display: 'flex', flexDirection: 'column', borderBottom: '1px solid #e0e0e0' }}>
-            <Typography sx={{ p: 1.5, bgcolor: '#f5f5f5', fontWeight: 600, borderBottom: '1px solid #e0e0e0' }}>
-              Input
-            </Typography>
+        {/* Input/Output Panel */}
+        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%', bgcolor: currentTheme.bg }}>
+          {/* Input */}
+          <Box sx={{ height: `${ioHeight}%`, display: 'flex', flexDirection: 'column' }}>
+            <Box sx={{ 
+              px: 2, 
+              py: 1.5, 
+              bgcolor: currentTheme.headerBg, 
+              borderBottom: `1px solid ${currentTheme.border}`,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1
+            }}>
+              <Typography sx={{ color: currentTheme.text, fontWeight: 600, fontSize: '0.875rem' }}>
+                Input
+              </Typography>
+              <Chip label="stdin" size="small" sx={{ bgcolor: currentTheme.chipBg, color: currentTheme.chipText, fontSize: '0.75rem', height: '20px' }} />
+            </Box>
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Enter input here..."
               style={{
                 flex: 1,
-                padding: '12px',
-                backgroundColor: '#fff',
-                color: '#333',
+                padding: '16px',
+                backgroundColor: currentTheme.inputBg,
+                color: currentTheme.textSecondary,
                 border: 'none',
                 outline: 'none',
-                fontFamily: 'monospace',
+                fontFamily: 'Consolas, Monaco, monospace',
                 fontSize: `${fontSize}px`,
-                resize: 'none'
+                resize: 'none',
+                lineHeight: '1.6'
               }}
             />
           </Box>
 
+          {/* Resizer */}
           <Box
             onMouseDown={(e) => {
               e.preventDefault();
@@ -202,33 +310,46 @@ export default function IDE() {
               document.addEventListener('mouseup', handleMouseUp);
             }}
             sx={{
-              height: '4px',
+              height: '3px',
               cursor: 'row-resize',
-              bgcolor: '#6a0dad',
-              '&:hover': { bgcolor: '#5a0d9d' }
+              bgcolor: currentTheme.border,
+              '&:hover': { bgcolor: '#6a0dad' },
+              transition: 'background-color 0.2s'
             }}
           />
 
+          {/* Output */}
           <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-            <Typography sx={{ p: 1.5, bgcolor: '#f5f5f5', fontWeight: 600, borderBottom: '1px solid #e0e0e0' }}>
-              Output
-            </Typography>
+            <Box sx={{ 
+              px: 2, 
+              py: 1.5, 
+              bgcolor: currentTheme.headerBg, 
+              borderBottom: `1px solid ${currentTheme.border}`,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1
+            }}>
+              <Typography sx={{ color: currentTheme.text, fontWeight: 600, fontSize: '0.875rem' }}>
+                Output
+              </Typography>
+              <Chip label="stdout" size="small" sx={{ bgcolor: currentTheme.chipBg, color: currentTheme.chipText, fontSize: '0.75rem', height: '20px' }} />
+            </Box>
             <Box sx={{
               flex: 1,
-              p: 1.5,
-              fontFamily: 'monospace',
+              p: 2,
+              fontFamily: 'Consolas, Monaco, monospace',
               fontSize: `${fontSize}px`,
               overflowY: 'auto',
-              whiteSpace: 'pre',
-              bgcolor: '#fff'
+              whiteSpace: 'pre-wrap',
+              bgcolor: currentTheme.inputBg,
+              color: output.includes('Error') ? currentTheme.outputError : currentTheme.outputSuccess,
+              lineHeight: '1.6'
             }}>
               {output || 'Output will appear here...'}
             </Box>
           </Box>
         </Box>
       </Box>
-      </Box>
-      )}
-    </MainCard>
+    </Box>
   );
 }

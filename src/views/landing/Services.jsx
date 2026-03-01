@@ -1,6 +1,6 @@
 import { Box, Container, Typography, Card, CardContent, Avatar, Stack, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import PublicHeader from 'components/PublicHeader';
+import LandingHeader from 'components/LandingHeader';
 import {
   Code,
   Assessment,
@@ -18,9 +18,69 @@ import {
 } from '@mui/icons-material';
 import useConfig from 'hooks/useConfig';
 import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
 
 const MotionBox = motion.create(Box);
 const MotionCard = motion.create(Card);
+
+const InteractiveCursor = () => {
+  const [mousePos, setMousePos] = useState({ x: -100, y: -100 });
+  const [isHovering, setIsHovering] = useState(false);
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      setMousePos({ x: e.clientX, y: e.clientY });
+    };
+    const handleMouseOver = (e) => {
+      if (e.target.closest('button') || e.target.closest('a') || e.target.closest('.interactive')) {
+        setIsHovering(true);
+      } else {
+        setIsHovering(false);
+      }
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseover', handleMouseOver);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseover', handleMouseOver);
+    };
+  }, []);
+
+  return (
+    <motion.div
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: 32,
+        height: 32,
+        borderRadius: '50%',
+        pointerEvents: 'none',
+        zIndex: 9999,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+      animate={{
+        x: mousePos.x - 16,
+        y: mousePos.y - 16,
+        scale: isHovering ? 2 : 1,
+      }}
+      transition={{ type: 'spring', stiffness: 500, damping: 28, mass: 0.5 }}
+    >
+      <Box sx={{ 
+        width: '8px', 
+        height: '8px', 
+        bgcolor: '#6a0dad', 
+        borderRadius: '50%',
+        boxShadow: '0 0 15px 2px rgba(106,13,173,0.4)',
+        opacity: 0.6
+      }} />
+    </motion.div>
+  );
+};
 
 export default function Services() {
   const navigate = useNavigate();
@@ -132,116 +192,122 @@ export default function Services() {
   ];
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: '#f8fafc' }}>
-      <PublicHeader />
+    <Box sx={{ minHeight: '100vh', bgcolor: '#f8fafc', position: 'relative', overflowX: 'hidden' }}>
+      <InteractiveCursor />
+      {/* Particle Background */}
+      <Box sx={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0, overflow: 'hidden', pointerEvents: 'none' }}>
+        <Box sx={{
+          position: 'absolute',
+          top: '20%',
+          left: '10%',
+          width: '60vw',
+          height: '60vw',
+          background: 'radial-gradient(circle, rgba(99,102,241,0.05) 0%, rgba(255,255,255,0) 70%)',
+          borderRadius: '50%',
+          filter: 'blur(60px)',
+        }}/>
+        <Box sx={{
+          position: 'absolute',
+          bottom: '-10%',
+          right: '-10%',
+          width: '50vw',
+          height: '50vw',
+          background: 'radial-gradient(circle, rgba(168,85,247,0.03) 0%, rgba(255,255,255,0) 70%)',
+          borderRadius: '50%',
+          filter: 'blur(80px)',
+        }}/>
+      </Box>
 
-      <Box sx={{ position: 'relative', overflow: 'hidden', py: { xs: 6, md: 10 } }}>
-        <Box
-          sx={{
-            position: 'absolute',
-            inset: 0,
-            background:
-              'radial-gradient(circle at 18% 10%, rgba(106,13,173,0.1), transparent 34%), radial-gradient(circle at 80% 0%, rgba(37,211,102,0.1), transparent 28%)',
-            '&::after': {
-              content: '""',
-              position: 'absolute',
-              width: 340,
-              height: 340,
-              background: 'radial-gradient(circle, rgba(106,13,173,0.16) 0%, transparent 70%)',
-              borderRadius: '50%',
-              top: -120,
-              right: -80
-            }
-          }}
-        />
+      <LandingHeader />
 
-        <Container maxWidth="lg" sx={{ position: 'relative' }}>
-          <MotionBox
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45 }}
-            sx={{
-              borderRadius: `${borderRadius}px`,
-              border: '1px solid',
-              borderColor: 'divider',
-              bgcolor: 'rgba(255,255,255,0.9)',
-              boxShadow: '0 14px 34px rgba(15, 23, 42, 0.08)',
-              px: { xs: 2.5, sm: 4, md: 6 },
-              py: { xs: 4, sm: 5, md: 6 },
-              textAlign: 'center'
-            }}
-          >
-            <Typography
-              variant="overline"
-              sx={{
-                display: 'inline-block',
-                px: 1.5,
-                py: 0.5,
-                borderRadius: 999,
-                bgcolor: 'rgba(106,13,173,0.1)',
-                color: '#6a0dad',
-                letterSpacing: 0.5,
-                fontWeight: 700,
-                mb: 2
-              }}
+      <Box sx={{ position: 'relative', overflow: 'hidden', py: { xs: 6, md: 10 }, mt: 8 }}>
+        <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 10 }}>
+          <Stack alignItems="center" textAlign="center" spacing={4}>
+            <MotionBox
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
             >
-              Our Services
-            </Typography>
-            <Typography
-              variant="h1"
-              sx={{
-                fontWeight: 800,
-                mb: 2,
-                fontSize: { xs: '2rem', sm: '2.4rem', md: '3rem' }
-              }}
-            >
-              Our Services
-            </Typography>
-            <Typography
-              variant="h6"
-              color="text.secondary"
-              sx={{
-                fontWeight: 400,
-                lineHeight: 1.65,
-                maxWidth: 760,
-                mx: 'auto',
-                fontSize: { xs: '1rem', md: '1.1rem' },
-                mb: 3
-              }}
-            >
-              Everything you need to master coding and excel in your career
-            </Typography>
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ justifyContent: 'center' }}>
-              <Button
-                variant="contained"
-                onClick={() => navigate('/pricing')}
+              <Typography
+                variant="h1"
                 sx={{
-                  borderRadius: `${borderRadius}px`,
-                  textTransform: 'none',
-                  fontWeight: 700,
-                  bgcolor: '#6a0dad',
-                  '&:hover': { bgcolor: '#570b8c' }
+                  fontWeight: 800,
+                  fontSize: { xs: '3rem', sm: '4.5rem', md: '6rem' },
+                  lineHeight: 1.05,
+                  letterSpacing: '-2px',
+                  maxWidth: '1000px',
+                  mx: 'auto',
+                  background: 'linear-gradient(180deg, #1A202C 0%, #4A5568 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                  color: 'transparent'
                 }}
               >
-                View Pricing
-              </Button>
-              <Button
-                variant="outlined"
-                onClick={() => navigate('/login')}
-                sx={{
-                  borderRadius: `${borderRadius}px`,
-                  textTransform: 'none',
-                  fontWeight: 700
-                }}
-              >
-                Go to Login
-              </Button>
-            </Stack>
-          </MotionBox>
+                Our Services
+              </Typography>
+            </MotionBox>
+
+            <MotionBox
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <Typography variant="h5" sx={{ color: '#64748b', maxWidth: '600px', mx: 'auto', lineHeight: 1.6, fontWeight: 400, fontSize: { xs: '1.1rem', md: '1.3rem' } }}>
+                Everything you need to master coding and excel in your career
+              </Typography>
+            </MotionBox>
+
+            <MotionBox
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3} sx={{ mt: 4 }}>
+                <Button
+                  variant="contained"
+                  onClick={() => navigate('/pricing')}
+                  sx={{
+                    background: '#1e293b',
+                    color: '#fff',
+                    px: 4,
+                    py: 2,
+                    borderRadius: '100px',
+                    fontWeight: 600,
+                    fontSize: '1.1rem',
+                    textTransform: 'none',
+                    boxShadow: '0 10px 25px rgba(30, 41, 59, 0.2)',
+                    '&:hover': { background: '#0f172a', transform: 'translateY(-2px)' },
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  View Pricing
+                </Button>
+                <Button
+                  variant="outlined"
+                  onClick={() => navigate('/login')}
+                  sx={{
+                    borderColor: 'rgba(0,0,0,0.1)',
+                    color: '#1e293b',
+                    px: 4,
+                    py: 2,
+                    borderRadius: '100px',
+                    fontWeight: 600,
+                    fontSize: '1.1rem',
+                    textTransform: 'none',
+                    backgroundColor: 'white',
+                    '&:hover': { borderColor: 'rgba(0,0,0,0.2)', background: 'rgba(0,0,0,0.02)' }
+                  }}
+                >
+                  Go to Login
+                </Button>
+              </Stack>
+            </MotionBox>
+          </Stack>
         </Container>
       </Box>
 
-      <Container maxWidth="lg" sx={{ py: { xs: 5, md: 8 } }}>
+      <Container maxWidth="xl" sx={{ py: { xs: 5, md: 8 } }}>
         <Box
           sx={{
             display: 'grid',
@@ -266,33 +332,42 @@ export default function Services() {
                 width: '100%',
                 display: 'flex',
                 flexDirection: 'column',
-                borderRadius: `${borderRadius}px`,
-                border: '1px solid',
-                borderColor: 'divider',
-                boxShadow: '0 4px 12px rgba(15, 23, 42, 0.06)',
+                borderRadius: '24px',
+                border: '1px solid rgba(0, 0, 0, 0.08)',
+                bgcolor: 'rgba(255, 255, 255, 0.7)',
+                backdropFilter: 'blur(16px)',
+                boxShadow: '0 10px 30px rgba(0,0,0,0.03)',
                 transition: 'all 0.3s ease',
                 '&:hover': {
-                  boxShadow: '0 12px 24px rgba(15, 23, 42, 0.12)',
-                  borderColor: service.color === 'primary' ? '#6a0dad' : '#25D366'
+                  boxShadow: '0 20px 40px rgba(0,0,0,0.08)',
+                  borderColor: 'rgba(0,0,0,0.15)',
+                  transform: 'translateY(-4px)',
+                  bgcolor: 'rgba(255, 255, 255, 0.9)'
                 }
               }}
             >
               <CardContent
                 sx={{ p: 2.5, height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}
               >
-                <Avatar
+                <Box
                   sx={{
-                    width: 58,
-                    height: 58,
-                    bgcolor: `${service.color}.light`,
+                    width: 72,
+                    height: 72,
+                    borderRadius: '20px',
+                    background: `linear-gradient(135deg, ${service.color}.light 15%, ${service.color}.lighter 5%)`,
+                    border: `1px solid`,
+                    borderColor: `${service.color}.light`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    mb: 2.5,
                     color: `${service.color}.main`,
-                    mb: 2,
-                    borderRadius: `${borderRadius / 2}px`
+                    boxShadow: `0 8px 16px rgba(0,0,0,0.08)`
                   }}
                 >
-                  <service.icon sx={{ fontSize: 28 }} />
-                </Avatar>
-                <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.25 }}>
+                  <service.icon sx={{ fontSize: 36 }} />
+                </Box>
+                <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.25, fontSize: '1.15rem', letterSpacing: '-0.3px' }}>
                   {service.title}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.65, flexGrow: 1 }}>
@@ -305,7 +380,7 @@ export default function Services() {
       </Container>
 
       <Box sx={{ bgcolor: 'background.paper', py: { xs: 6, md: 8 }, mb: { xs: 5, md: 7 } }}>
-        <Container maxWidth="lg" sx={{ mb: { xs: 5, md: 7 } }}>
+        <Container maxWidth="xl" sx={{ mb: { xs: 5, md: 7 } }}>
           <MotionBox
             sx={{ textAlign: 'center', mb: { xs: 3, md: 4 } }}
             initial={{ opacity: 0, y: 20 }}
@@ -337,15 +412,19 @@ export default function Services() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.35, delay: (index % 4) * 0.06 }}
                 sx={{
-                  borderRadius: `${borderRadius}px`,
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  boxShadow: '0 4px 12px rgba(15, 23, 42, 0.06)',
+                  borderRadius: '24px',
+                  border: '1px solid rgba(0, 0, 0, 0.08)',
+                  bgcolor: 'rgba(255, 255, 255, 0.7)',
+                  backdropFilter: 'blur(16px)',
+                  boxShadow: '0 10px 30px rgba(0,0,0,0.03)',
                   height: '100%',
                   width: '100%',
+                  transition: 'all 0.3s ease',
                   '&:hover': {
-                    borderColor: '#6a0dad',
-                    boxShadow: '0 10px 22px rgba(106, 13, 173, 0.12)'
+                    borderColor: 'rgba(0,0,0,0.15)',
+                    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08)',
+                    transform: 'translateY(-4px)',
+                    bgcolor: 'rgba(255, 255, 255, 0.9)'
                   }
                 }}
               >
@@ -360,7 +439,7 @@ export default function Services() {
           </Box>
         </Container>
 
-        <Container maxWidth="lg">
+        <Container maxWidth="xl">
           <MotionBox
             sx={{ textAlign: 'center', mb: { xs: 3, md: 5 } }}
             initial={{ opacity: 0, y: 20 }}
@@ -422,16 +501,23 @@ export default function Services() {
                 transition={{ duration: 0.35, delay: index * 0.08 }}
                 sx={{
                   p: { xs: 2.5, md: 3.25 },
-                  borderRadius: `${borderRadius}px`,
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  boxShadow: '0 4px 12px rgba(15, 23, 42, 0.06)'
+                  borderRadius: '24px',
+                  border: '1px solid rgba(0, 0, 0, 0.08)',
+                  bgcolor: 'rgba(255, 255, 255, 0.7)',
+                  backdropFilter: 'blur(16px)',
+                  boxShadow: '0 10px 30px rgba(0,0,0,0.03)',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    transform: 'translateY(-4px)',
+                    boxShadow: '0 20px 40px rgba(0,0,0,0.08)',
+                    bgcolor: 'rgba(255, 255, 255, 0.9)'
+                  }
                 }}
               >
-                <Typography variant="h5" sx={{ fontWeight: 700, mb: 1.2, color: '#6a0dad', fontSize: { xs: '1.2rem', md: '1.4rem' } }}>
+                <Typography variant="h5" sx={{ fontWeight: 700, mb: 1.2, color: '#1e293b', fontSize: { xs: '1.2rem', md: '1.4rem' } }}>
                   {feature.title}
                 </Typography>
-                <Typography variant="body1" color="text.secondary" sx={{ lineHeight: 1.7 }}>
+                <Typography variant="body1" sx={{ color: '#475569', lineHeight: 1.7 }}>
                   {feature.description}
                 </Typography>
               </MotionCard>
@@ -440,10 +526,10 @@ export default function Services() {
         </Container>
       </Box>
 
-      <Box sx={{ bgcolor: 'grey.900', color: '#fff', py: 5 }}>
-        <Container maxWidth="lg">
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3} sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="body2" sx={{ opacity: 0.8 }}>
+      <Box sx={{ borderTop: '1px solid rgba(0,0,0,0.08)', py: 6, position: 'relative', zIndex: 10, background: '#ffffff' }}>
+        <Container maxWidth="xl">
+          <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems="center" spacing={3}>
+            <Typography variant="body2" sx={{ color: '#64748b' }}>
               © {new Date().getFullYear()}{' '}
               <Typography
                 component="a"
@@ -451,39 +537,28 @@ export default function Services() {
                 target="_blank"
                 rel="noopener noreferrer"
                 sx={{
-                  color: '#fff',
-                  opacity: 0.8,
+                  color: '#64748b',
                   textDecoration: 'none',
-                  '&:hover': { opacity: 1, textDecoration: 'underline' }
+                  '&:hover': { color: '#0f172a' },
+                  transition: 'color 0.2s'
                 }}
               >
                 Orcadehub Innovations LLP
               </Typography>
               . All rights reserved.
             </Typography>
-            <Stack direction="row" spacing={3}>
-              <Button
-                onClick={() => navigate('/')}
-                sx={{
-                  color: '#fff',
-                  opacity: 0.8,
-                  textTransform: 'none',
-                  '&:hover': { opacity: 1 }
-                }}
-              >
-                Home
-              </Button>
-              <Button
-                onClick={() => navigate('/login')}
-                sx={{
-                  color: '#fff',
-                  opacity: 0.8,
-                  textTransform: 'none',
-                  '&:hover': { opacity: 1 }
-                }}
-              >
-                Login
-              </Button>
+            <Stack direction="row" spacing={4}>
+              {['X / Twitter', 'GitHub', 'LinkedIn'].map((link) => (
+                <Typography
+                  key={link}
+                  variant="body2"
+                  component="a"
+                  href="#"
+                  sx={{ color: '#64748b', textDecoration: 'none', '&:hover': { color: '#0f172a' }, transition: 'color 0.2s' }}
+                >
+                  {link}
+                </Typography>
+              ))}
             </Stack>
           </Stack>
         </Container>

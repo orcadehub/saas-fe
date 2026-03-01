@@ -1,461 +1,525 @@
-import { Box, Container, Stack, Card, CardContent, Typography, Button, Avatar, Chip } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Box, Container, Stack, Typography, Button, IconButton, useTheme } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Code,
+  CodeRounded,
+  SpeedRounded,
+  SecurityRounded,
+  AutoAwesomeRounded,
+  ArrowForwardRounded,
+  PlayArrowRounded,
   Assessment,
-  EmojiEvents,
-  Speed,
-  Security,
-  TrendingUp,
-  CheckCircleOutline,
-  Groups,
-  Timer,
-  Psychology
+  Psychology,
+  SmartToy,
+  SportsEsports,
+  Analytics,
+  EmojiEvents
 } from '@mui/icons-material';
+import tenantConfig from 'config/tenantConfig';
 import PublicHeader from 'components/PublicHeader';
-import useConfig from 'hooks/useConfig';
-import { motion } from 'framer-motion';
 
-const MotionBox = motion.create(Box);
-const MotionCard = motion.create(Card);
+// --- Custom Components for Antigravity Vibe (Light Mode) ---
+
+const GlassCard = ({ children, sx, ...props }) => (
+  <Box
+    sx={{
+      background: 'rgba(255, 255, 255, 0.7)',
+      backdropFilter: 'blur(16px)',
+      WebkitBackdropFilter: 'blur(16px)',
+      border: '1px solid rgba(0, 0, 0, 0.08)',
+      borderRadius: '24px',
+      overflow: 'hidden',
+      transition: 'all 0.3s ease-in-out',
+      '&:hover': {
+        background: 'rgba(255, 255, 255, 0.9)',
+        border: '1px solid rgba(0, 0, 0, 0.15)',
+        transform: 'translateY(-4px)',
+        boxShadow: '0 20px 40px rgba(0,0,0,0.08)',
+      },
+      ...sx,
+    }}
+    {...props}
+  >
+    {children}
+  </Box>
+);
+
+const GlowingText = ({ children, variant = "h1", sx = {} }) => (
+  <Typography
+    variant={variant}
+    sx={{
+      background: 'linear-gradient(180deg, #1A202C 0%, #4A5568 100%)',
+      WebkitBackgroundClip: 'text',
+      WebkitTextFillColor: 'transparent',
+      backgroundClip: 'text',
+      color: 'transparent',
+      ...sx
+    }}
+  >
+    {children}
+  </Typography>
+);
+
+// --- Main Interactive Cursor ---
+const InteractiveCursor = () => {
+    const [mousePos, setMousePos] = useState({ x: -100, y: -100 });
+    const [isHovering, setIsHovering] = useState(false);
+
+    useEffect(() => {
+        const handleMouseMove = (e) => {
+            setMousePos({ x: e.clientX, y: e.clientY });
+        };
+        const handleMouseOver = (e) => {
+            if (e.target.closest('button') || e.target.closest('a') || e.target.closest('.interactive')) {
+               setIsHovering(true);
+            } else {
+               setIsHovering(false);
+            }
+        };
+
+        window.addEventListener('mousemove', handleMouseMove);
+        window.addEventListener('mouseover', handleMouseOver);
+
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('mouseover', handleMouseOver);
+        };
+    }, []);
+
+    return (
+        <motion.div
+            style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: 32,
+                height: 32,
+                borderRadius: '50%',
+                pointerEvents: 'none',
+                zIndex: 9999,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+            }}
+            animate={{
+                x: mousePos.x - 16,
+                y: mousePos.y - 16,
+                scale: isHovering ? 2 : 1,
+            }}
+            transition={{ type: 'spring', stiffness: 500, damping: 28, mass: 0.5 }}
+        >
+            <Box sx={{ 
+                width: '8px', 
+                height: '8px', 
+                bgcolor: '#6a0dad', 
+                borderRadius: '50%',
+                boxShadow: '0 0 15px 2px rgba(106,13,173,0.4)',
+                opacity: 0.6
+            }} />
+        </motion.div>
+    );
+};
+
+
+// --- Main Landing Component ---
 
 export default function Landing() {
   const navigate = useNavigate();
-  const {
-    state: { borderRadius }
-  } = useConfig();
+  const theme = useTheme();
+  const [config, setConfig] = useState(null);
 
-  const stats = [
-    { value: '10K+', label: 'Active Students' },
-    { value: '500+', label: 'Practice Problems' },
-    { value: '95%', label: 'Success Rate' },
-    { value: '24/7', label: 'Support' }
-  ];
+  useEffect(() => {
+    tenantConfig.load().then(setConfig).catch(console.error);
+  }, []);
 
   const features = [
     {
-      icon: Code,
-      title: 'Real-Time Code Execution',
-      description: 'Practice in Python, Java, C++, and C with immediate output and fast feedback.',
-      color: 'secondary'
+      icon: <AutoAwesomeRounded sx={{ fontSize: 32, color: '#6a0dad' }} />,
+      title: 'Agentic Intelligence',
+      description: 'Powered by advanced AI to guide, evaluate, and adapt to your coding journey autonomously.',
+      glow: 'rgba(106, 13, 173, 0.1)'
     },
     {
-      icon: Assessment,
-      title: 'Structured Assessments',
-      description: 'Run timed assessments with coding + quiz sections and clear performance analysis.',
-      color: 'primary'
+      icon: <CodeRounded sx={{ fontSize: 32, color: '#3B82F6' }} />,
+      title: 'Real-Time IDE',
+      description: 'A seamless, browser-based environment for multi-language execution and instant feedback.',
+      glow: 'rgba(59, 130, 246, 0.1)'
     },
     {
-      icon: EmojiEvents,
-      title: 'Leaderboard & Ranking',
-      description: 'Track progress against peers through transparent scoring and ranking updates.',
-      color: 'secondary'
+      icon: <SpeedRounded sx={{ fontSize: 32, color: '#10B981' }} />,
+      title: 'Instant Validation',
+      description: 'Immediate correctness checks, performance metrics, and detailed execution insights.',
+      glow: 'rgba(16, 185, 129, 0.1)'
     },
     {
-      icon: Psychology,
-      title: 'AI Mock Interviews',
-      description: 'Improve interview readiness with guided mock interview sessions and feedback.',
-      color: 'primary'
-    },
-    {
-      icon: Speed,
-      title: 'Instant Evaluation',
-      description: 'Review outcomes quickly with execution details, correctness, and attempt insights.',
-      color: 'secondary'
-    },
-    {
-      icon: Security,
-      title: 'Secure Proctoring',
-      description: 'Enable tab-switch and fullscreen controls for more reliable test environments.',
-      color: 'primary'
+      icon: <SecurityRounded sx={{ fontSize: 32, color: '#F59E0B' }} />,
+      title: 'Secure Environment',
+      description: 'Proctored assessments with strict tab-switch and fullscreen monitoring capabilities.',
+      glow: 'rgba(245, 158, 11, 0.1)'
     }
   ];
 
-  const benefits = [
-    'Curated coding and aptitude practice',
-    'Real-time compiler and IDE workflow',
-    'Detailed performance analytics',
-    'Clear improvement roadmap for students'
-  ];
-
-  const howItWorks = [
-    {
-      step: '01',
-      icon: Groups,
-      title: 'Login & Onboard',
-      description: 'Students log in and access a clean dashboard with goals, topics, and recommended tracks.'
-    },
-    {
-      step: '02',
-      icon: Code,
-      title: 'Practice & Learn',
-      description: 'Use labs, IDE, and guided question sets across programming, aptitude, and company-specific prep.'
-    },
-    {
-      step: '03',
-      icon: Timer,
-      title: 'Take Timed Assessments',
-      description: 'Simulate real tests through timed assessments, quizzes, and monitored attempts.'
-    },
-    {
-      step: '04',
-      icon: TrendingUp,
-      title: 'Track Growth',
-      description: 'Analyze reports and ranking trends to identify gaps and continuously improve outcomes.'
-    }
-  ];
+  // Particle background effect component
+  const ParticleBackground = () => (
+    <Box sx={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0, overflow: 'hidden', pointerEvents: 'none' }}>
+        <Box sx={{
+            position: 'absolute',
+            top: '20%',
+            left: '10%',
+            width: '60vw',
+            height: '60vw',
+            background: 'radial-gradient(circle, rgba(99,102,241,0.05) 0%, rgba(255,255,255,0) 70%)',
+            borderRadius: '50%',
+            filter: 'blur(60px)',
+            animation: 'pulse 15s infinite alternate',
+        }}/>
+        <Box sx={{
+            position: 'absolute',
+            bottom: '-10%',
+            right: '-10%',
+            width: '50vw',
+            height: '50vw',
+            background: 'radial-gradient(circle, rgba(168,85,247,0.03) 0%, rgba(255,255,255,0) 70%)',
+            borderRadius: '50%',
+            filter: 'blur(80px)',
+        }}/>
+        <style dangerouslySetInnerHTML={{__html: `
+          @keyframes pulse {
+            0% { transform: scale(1) translate(0, 0); }
+            50% { transform: scale(1.1) translate(2%, 2%); }
+            100% { transform: scale(0.9) translate(-2%, -2%); }
+          }
+          body { cursor: default; }
+          a, button, [role="button"], .interactive { cursor: pointer; }
+        `}} />
+    </Box>
+  );
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: '#f3f6fb' }}>
-      <PublicHeader />
+    <Box sx={{ 
+        minHeight: '100vh', 
+        bgcolor: '#f8fafc', 
+        color: '#1e293b',
+        fontFamily: "'Inter', sans-serif",
+        position: 'relative',
+        overflowX: 'hidden'
+    }}>
+      <ParticleBackground />
+      <InteractiveCursor />
 
-      <Box sx={{ py: { xs: 6, md: 9 } }}>
-        <Container maxWidth={false} disableGutters sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
-          <MotionCard
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.42 }}
-            sx={{
-              p: { xs: 2, sm: 3, md: 4 },
-              borderRadius: `${borderRadius}px`,
-              border: '1px solid',
-              borderColor: 'divider',
-              bgcolor: '#fff',
-              boxShadow: '0 8px 22px rgba(16, 24, 40, 0.07)'
-            }}
-          >
-            <Box
-              sx={{
-                display: 'grid',
-                gridTemplateColumns: { xs: '1fr', md: '1.05fr 0.95fr' },
-                gap: { xs: 2.5, md: 3.5 },
-                alignItems: 'stretch'
-              }}
-            >
-              <Box sx={{ p: { xs: 1, sm: 1.5, md: 2 } }}>
-                <Chip
-                  label="Professional LMS Platform"
-                  sx={{
-                    mb: 2,
-                    width: 'fit-content',
-                    bgcolor: 'rgba(106,13,173,0.12)',
-                    color: '#6a0dad',
-                    fontWeight: 700
-                  }}
-                />
-                <Typography
-                  variant="h1"
-                  sx={{ fontWeight: 800, lineHeight: 1.08, mb: 2, fontSize: { xs: '2rem', sm: '2.4rem', md: '2.9rem' } }}
-                >
-                  Master Coding Through Structured Practice
-                </Typography>
-                <Typography
-                  variant="h6"
-                  color="text.secondary"
-                  sx={{ fontWeight: 400, lineHeight: 1.65, fontSize: { xs: '1rem', md: '1.08rem' }, mb: 3 }}
-                >
-                  A focused learning system with coding practice, assessments, interview prep, and measurable performance tracking.
-                </Typography>
-
-                <Stack spacing={1.25} sx={{ mb: 3 }}>
-                  {benefits.map((item) => (
-                    <Stack key={item} direction="row" spacing={1.1} sx={{ alignItems: 'center' }}>
-                      <CheckCircleOutline sx={{ color: '#16a34a', fontSize: 20 }} />
-                      <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                        {item}
-                      </Typography>
-                    </Stack>
-                  ))}
+      {/* --- Dynamic Navbar (Antigravity Style + Original Content) --- */}
+      <Box component="nav" sx={{ position: 'fixed', top: 0, width: '100%', zIndex: 50, borderBottom: '1px solid rgba(0,0,0,0.05)', background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(20px)' }}>
+        <Container maxWidth="xl">
+            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ py: 1.5 }}>
+                
+                {/* Logo Section */}
+                <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', cursor: 'pointer' }} onClick={() => navigate('/')}>
+                    {config?.logoUrl ? (
+                         <Box
+                         component="img"
+                         src={config.logoUrl}
+                         alt="Logo"
+                         sx={{ height: 40, objectFit: 'contain' }}
+                         onError={(e) => { e.target.style.display = 'none'; }}
+                       />
+                    ) : (
+                        <Typography variant="h5" sx={{ fontWeight: 800, letterSpacing: '-0.5px', display: 'flex', alignItems: 'center', gap: 1, color: '#1e293b' }}>
+                            <AutoAwesomeRounded sx={{ color: '#6a0dad' }} />
+                            {config?.tenantName || 'ORCADEHUB'}
+                        </Typography>
+                    )}
                 </Stack>
 
-                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25}>
-                  <Button
-                    variant="contained"
-                    size="large"
-                    onClick={() => navigate('/login')}
-                    sx={{
-                      px: 3.2,
-                      py: 1.35,
-                      borderRadius: `${borderRadius}px`,
-                      fontWeight: 700,
-                      textTransform: 'none',
-                      bgcolor: '#6a0dad',
-                      '&:hover': { bgcolor: '#570b8c' }
-                    }}
-                  >
-                    Get Started
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    size="large"
-                    onClick={() => navigate('/services')}
-                    sx={{
-                      px: 3.2,
-                      py: 1.35,
-                      borderRadius: `${borderRadius}px`,
-                      fontWeight: 700,
-                      textTransform: 'none'
-                    }}
-                  >
-                    View Services
-                  </Button>
+                {/* Navigation Links */}
+                <Stack direction="row" spacing={1} sx={{ display: { xs: 'none', md: 'flex' } }}>
+                    {[{ label: 'Home', path: '/' }, { label: 'Services', path: '/services' }, { label: 'Pricing', path: '/pricing' }].map((item) => (
+                        <Button 
+                            key={item.path}
+                            variant="text" 
+                            onClick={() => navigate(item.path)}
+                            sx={{ color: '#475569', '&:hover': { color: '#0f172a', background: 'rgba(0,0,0,0.04)' }, textTransform: 'none', fontSize: '0.95rem', fontWeight: 600, px: 2 }}
+                            className="interactive"
+                        >
+                            {item.label}
+                        </Button>
+                    ))}
                 </Stack>
-              </Box>
 
-              <Box sx={{ overflow: 'hidden', borderRadius: `${Math.max(borderRadius - 4, 8)}px` }}>
-                <Box
-                  component="img"
-                  src="https://images.pexels.com/photos/5483077/pexels-photo-5483077.jpeg"
-                  alt="Students coding"
-                  sx={{ width: '100%', height: '100%', minHeight: { xs: 250, md: 430 }, objectFit: 'cover' }}
-                />
-              </Box>
-            </Box>
-          </MotionCard>
+                {/* Login Button */}
+                <Stack direction="row" spacing={2} alignItems="center">
+                    <Button 
+                        onClick={() => navigate('/login')}
+                        sx={{ 
+                            background: '#1e293b', 
+                            color: '#ffffff', 
+                            borderRadius: '100px', 
+                            px: 3.5, 
+                            py: 1,
+                            textTransform: 'none',
+                            fontWeight: 600,
+                            boxShadow: '0 4px 12px rgba(30, 41, 59, 0.2)',
+                            '&:hover': { background: '#0f172a', transform: 'translateY(-1px)', boxShadow: '0 6px 16px rgba(30, 41, 59, 0.3)' },
+                            transition: 'all 0.2s'
+                        }}
+                        className="interactive"
+                    >
+                        Login
+                    </Button>
+                </Stack>
+            </Stack>
         </Container>
       </Box>
 
-      <Container maxWidth="lg" sx={{ mb: { xs: 5, md: 7 } }}>
-        <Card
-          sx={{
-            p: { xs: 2.5, md: 3.25 },
-            borderRadius: `${borderRadius}px`,
-            border: '1px solid',
-            borderColor: 'divider',
-            boxShadow: '0 8px 22px rgba(16, 24, 40, 0.07)'
-          }}
+      {/* --- Hero Section --- */}
+      <Container maxWidth="xl" sx={{ pt: { xs: 12, md: 18 }, pb: { xs: 8, md: 12 }, position: 'relative', zIndex: 10 }}>
+        <Stack alignItems="center" textAlign="center" spacing={4}>
+            
+            <motion.div
+                initial={{ opacity: 0, y: 40 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+            >
+                <GlowingText variant="h1" sx={{ 
+                    fontWeight: 800, 
+                    fontSize: { xs: '3rem', sm: '4.5rem', md: '6rem' },
+                    lineHeight: 1.05,
+                    letterSpacing: '-2px',
+                    maxWidth: '1000px',
+                    mx: 'auto'
+                }}>
+                    Code at the speed of thought.
+                </GlowingText>
+            </motion.div>
+
+            <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            >
+                <Typography variant="h5" sx={{ 
+                    color: '#64748b', 
+                    maxWidth: '600px', 
+                    mx: 'auto', 
+                    lineHeight: 1.6,
+                    fontWeight: 400,
+                    fontSize: { xs: '1.1rem', md: '1.3rem' }
+                }}>
+                    Master coding with 500+ practice problems, AI-powered mock interviews, interactive labs, and real-time assessments.
+                </Typography>
+            </motion.div>
+
+            <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            >
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3} sx={{ mt: 4 }}>
+                    <Button
+                        variant="contained"
+                        onClick={() => navigate('/login')}
+                        endIcon={<ArrowForwardRounded />}
+                        className="interactive"
+                        sx={{
+                            background: '#1e293b',
+                            color: '#fff',
+                            px: 4,
+                            py: 2,
+                            borderRadius: '100px',
+                            fontWeight: 600,
+                            fontSize: '1.1rem',
+                            textTransform: 'none',
+                            boxShadow: '0 10px 25px rgba(30, 41, 59, 0.2)',
+                            '&:hover': { background: '#0f172a', transform: 'translateY(-2px)' },
+                            transition: 'all 0.2s'
+                        }}
+                    >
+                        Get Started
+                    </Button>
+                    <Button
+                        variant="outlined"
+                        startIcon={<PlayArrowRounded />}
+                        onClick={() => navigate('/services')}
+                        className="interactive"
+                        sx={{
+                            borderColor: 'rgba(0,0,0,0.1)',
+                            color: '#1e293b',
+                            px: 4,
+                            py: 2,
+                            borderRadius: '100px',
+                            fontWeight: 600,
+                            fontSize: '1.1rem',
+                            textTransform: 'none',
+                            backgroundColor: 'white',
+                            '&:hover': { borderColor: 'rgba(0,0,0,0.2)', background: 'rgba(0,0,0,0.02)' }
+                        }}
+                    >
+                        View Services
+                    </Button>
+                </Stack>
+            </motion.div>
+
+        </Stack>
+
+        {/* Mock IDE Interface Graphic */}
+        <motion.div
+            initial={{ opacity: 0, y: 60 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            style={{ marginTop: '80px' }}
         >
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 2 }}>
-            {stats.map((stat) => (
-              <Box key={stat.label} sx={{ textAlign: 'center' }}>
-                <Typography variant="h3" sx={{ fontWeight: 800, color: '#6a0dad', fontSize: { xs: '1.55rem', md: '1.95rem' } }}>
-                  {stat.value}
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>
-                  {stat.label}
-                </Typography>
-              </Box>
-            ))}
-          </Box>
-        </Card>
+            <Box sx={{
+                width: '100%',
+                maxWidth: '1200px',
+                mx: 'auto',
+                height: { xs: '300px', md: '500px' },
+                borderRadius: '16px',
+                border: '1px solid rgba(0,0,0,0.08)',
+                background: '#ffffff',
+                boxShadow: '0 30px 60px rgba(0,0,0,0.08)',
+                overflow: 'hidden',
+                display: 'flex',
+                flexDirection: 'column'
+            }}>
+                {/* Window Controls */}
+                <Box sx={{ p: 2, borderBottom: '1px solid rgba(0,0,0,0.05)', display: 'flex', gap: 1, background: '#f8fafc' }}>
+                    <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#FF5F56' }} />
+                    <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#FFBD2E' }} />
+                    <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#27C93F' }} />
+                </Box>
+                {/* Code Body Mock */}
+                <Box sx={{ p: 4, flex: 1, display: 'flex', gap: 4 }}>
+                    <Stack spacing={2} sx={{ width: '40px', color: '#cbd5e1', fontFamily: 'monospace' }}>
+                        {[1,2,3,4,5,6,7,8,9,10].map(n => <span key={n}>{n}</span>)}
+                    </Stack>
+                    <Box sx={{ flex: 1, fontFamily: "monospace", color: '#475569', fontSize: '1rem', lineHeight: 2 }}>
+                        <span style={{color: '#9333ea'}}>import</span> {'{'} OrcadeHub {'}'} <span style={{color: '#9333ea'}}>from</span> <span style={{color: '#16a34a'}}>'@orcadehub/platform'</span>;<br/><br/>
+                        <span style={{color: '#2563eb'}}>const</span> journey = <span style={{color: '#9333ea'}}>new</span> <span style={{color: '#2563eb'}}>OrcadeHub</span>();<br/>
+                        journey.<span style={{color: '#0284c7'}}>startLearning</span>();<br/><br/>
+                        <span style={{color: '#94a3b8'}}>// Start your coding journey today...</span>
+                    </Box>
+                </Box>
+            </Box>
+        </motion.div>
       </Container>
 
-      <Container maxWidth="lg" sx={{ pb: { xs: 5, md: 8 } }}>
-        <MotionBox
-          sx={{ textAlign: 'center', mb: { xs: 3, md: 4 } }}
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.4 }}
-        >
-          <Typography variant="h2" sx={{ fontWeight: 800, mb: 1.2, fontSize: { xs: '1.8rem', md: '2.35rem' } }}>
-            Key Platform Capabilities
-          </Typography>
-          <Typography
-            variant="h6"
-            color="text.secondary"
-            sx={{ fontWeight: 400, fontSize: { xs: '1rem', md: '1.08rem' }, maxWidth: 720, mx: 'auto' }}
-          >
-            Built for institutions and students who need a practical, measurable, and scalable learning environment.
-          </Typography>
-        </MotionBox>
 
-        <Box
-          sx={{
-            display: 'grid',
-            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' },
-            gap: 2,
-            gridAutoRows: '1fr'
-          }}
-        >
-          {features.map((feature, index) => (
-            <MotionCard
-              key={feature.title}
-              initial={{ opacity: 0, y: 14 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.32, delay: (index % 3) * 0.07 }}
-              sx={{
-                height: '100%',
-                borderRadius: `${borderRadius}px`,
-                border: '1px solid',
-                borderColor: 'divider',
-                boxShadow: '0 4px 12px rgba(15, 23, 42, 0.06)',
-                '&:hover': { boxShadow: '0 10px 22px rgba(15, 23, 42, 0.12)' }
-              }}
+      {/* --- Key Services Grid --- */}
+      <Container maxWidth="xl" sx={{ py: { xs: 10, md: 16 }, position: 'relative', zIndex: 10 }}>
+        <Stack spacing={3} sx={{ mb: 10, textAlign: 'center', alignItems: 'center' }}>
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6 }}
             >
-              <CardContent sx={{ p: 2.5, height: '100%', display: 'flex', flexDirection: 'column' }}>
-                <Avatar
-                  sx={{
-                    width: 54,
-                    height: 54,
-                    bgcolor: `${feature.color}.light`,
-                    color: `${feature.color}.main`,
-                    mb: 1.8,
-                    borderRadius: `${borderRadius / 2}px`
-                  }}
+                <Typography variant="h2" sx={{ fontWeight: 800, fontSize: { xs: '2.5rem', md: '4rem' }, letterSpacing: '-1.5px', color: '#1e293b', mb: 2 }}>
+                    Everything you need to excel.
+                </Typography>
+            </motion.div>
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.1 }}
+            >
+                <Typography variant="h6" sx={{ color: '#64748b', fontWeight: 400, maxWidth: '700px', lineHeight: 1.7, fontSize: { xs: '1rem', md: '1.2rem' } }}>
+                    Comprehensive platform with practice problems, assessments, AI interviews, and real-time analytics.
+                </Typography>
+            </motion.div>
+        </Stack>
+
+        <Box sx={{ 
+            display: 'grid', 
+            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' }, 
+            gap: 4,
+            mb: 16
+        }}>
+            {[
+                { icon: <CodeRounded sx={{ fontSize: 36 }} />, title: 'Practice Problems', description: '500+ curated coding problems across multiple difficulty levels and topics with detailed solutions.', color: '#3B82F6' },
+                { icon: <Assessment sx={{ fontSize: 36 }} />, title: 'Assessments & Quizzes', description: 'Timed assessments with instant results, detailed analytics, and performance tracking.', color: '#10B981' },
+                { icon: <Psychology sx={{ fontSize: 36 }} />, title: 'Online IDE', description: 'Powerful browser-based IDE supporting Python, Java, C++, and C with instant execution.', color: '#F59E0B' },
+                { icon: <SmartToy sx={{ fontSize: 36 }} />, title: 'AI Mock Interviews', description: 'Practice with AI-powered interview sessions and get personalized feedback to improve.', color: '#6a0dad' },
+                { icon: <SportsEsports sx={{ fontSize: 36 }} />, title: 'Interactive Labs', description: 'Hands-on coding labs and playgrounds for practical learning in an engaging environment.', color: '#EC4899' },
+                { icon: <EmojiEvents sx={{ fontSize: 36 }} />, title: 'Leaderboard & Analytics', description: 'Compete with peers, track rankings, and get detailed insights into your progress.', color: '#EF4444' }
+            ].map((service, idx) => (
+                <motion.div
+                    key={service.title}
+                    initial={{ opacity: 0, y: 40 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-80px" }}
+                    transition={{ duration: 0.6, delay: idx * 0.08 }}
                 >
-                  <feature.icon sx={{ fontSize: 26 }} />
-                </Avatar>
-                <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
-                  {feature.title}
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.65 }}>
-                  {feature.description}
-                </Typography>
-              </CardContent>
-            </MotionCard>
-          ))}
+                    <GlassCard sx={{ p: 5, height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                        <Box sx={{ 
+                            width: 72, 
+                            height: 72, 
+                            borderRadius: '20px', 
+                            background: `linear-gradient(135deg, ${service.color}15, ${service.color}05)`,
+                            border: `1px solid ${service.color}20`,
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center',
+                            mb: 3,
+                            color: service.color,
+                            boxShadow: `0 8px 16px ${service.color}10`
+                        }}>
+                            {service.icon}
+                        </Box>
+                        <Typography variant="h5" sx={{ fontWeight: 700, mb: 2, letterSpacing: '-0.5px', color: '#1e293b', fontSize: '1.4rem' }}>
+                            {service.title}
+                        </Typography>
+                        <Typography variant="body1" sx={{ color: '#64748b', lineHeight: 1.7, fontSize: '0.95rem' }}>
+                            {service.description}
+                        </Typography>
+                    </GlassCard>
+                </motion.div>
+            ))}
         </Box>
       </Container>
 
-      <Box sx={{ bgcolor: '#ffffff', py: { xs: 6, md: 8 }, mb: { xs: 5, md: 7 } }}>
-        <Container maxWidth="lg">
-          <MotionBox
-            sx={{ textAlign: 'center', mb: { xs: 3, md: 4.5 } }}
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.4 }}
-          >
-            <Typography variant="h2" sx={{ fontWeight: 800, mb: 1.2, fontSize: { xs: '1.8rem', md: '2.35rem' } }}>
-              How It Works
-            </Typography>
-            <Typography
-              variant="h6"
-              color="text.secondary"
-              sx={{ fontWeight: 400, fontSize: { xs: '1rem', md: '1.08rem' }, maxWidth: 700, mx: 'auto' }}
-            >
-              A simple, disciplined workflow from onboarding to measurable improvement.
-            </Typography>
-          </MotionBox>
 
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 2 }}>
-            {howItWorks.map((item, index) => (
-              <MotionCard
-                key={item.step}
-                initial={{ opacity: 0, x: index % 2 === 0 ? -14 : 14 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.32, delay: index * 0.07 }}
-                sx={{
-                  p: { xs: 2.3, md: 2.8 },
-                  borderRadius: `${borderRadius}px`,
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  boxShadow: '0 4px 12px rgba(15, 23, 42, 0.06)'
-                }}
-              >
-                <Stack direction="row" spacing={1.4} sx={{ alignItems: 'flex-start' }}>
-                  <Avatar sx={{ width: 46, height: 46, bgcolor: 'rgba(106,13,173,0.12)', color: '#6a0dad', fontWeight: 800 }}>
-                    {item.step}
-                  </Avatar>
-                  <Box>
-                    <Stack direction="row" spacing={0.9} sx={{ alignItems: 'center', mb: 0.7 }}>
-                      <item.icon sx={{ color: '#6a0dad', fontSize: 19 }} />
-                      <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                        {item.title}
-                      </Typography>
-                    </Stack>
-                    <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.65 }}>
-                      {item.description}
+      {/* --- Footer --- */}
+      <Box sx={{ borderTop: '1px solid rgba(0,0,0,0.08)', py: 6, position: 'relative', zIndex: 10, background: '#ffffff' }}>
+        <Container maxWidth="xl">
+            <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems="center" spacing={3}>
+                <Typography variant="body2" sx={{ color: '#64748b' }}>
+                    © {new Date().getFullYear()}{' '}
+                    <Typography
+                        component="a"
+                        href="https://orcadehub.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        sx={{
+                            color: '#64748b',
+                            textDecoration: 'none',
+                            '&:hover': { color: '#0f172a' },
+                            transition: 'color 0.2s'
+                        }}
+                    >
+                        Orcadehub Innovations LLP
                     </Typography>
-                  </Box>
+                    . All rights reserved.
+                </Typography>
+                <Stack direction="row" spacing={4}>
+                    {['X / Twitter', 'GitHub', 'LinkedIn'].map((link) => (
+                        <Typography 
+                            key={link} 
+                            variant="body2" 
+                            className="interactive"
+                            component="a" 
+                            href="#" 
+                            sx={{ color: '#64748b', textDecoration: 'none', '&:hover': { color: '#0f172a' }, transition: 'color 0.2s' }}
+                        >
+                            {link}
+                        </Typography>
+                    ))}
                 </Stack>
-              </MotionCard>
-            ))}
-          </Box>
-        </Container>
-      </Box>
-
-      <Container maxWidth="md" sx={{ pb: { xs: 6, md: 9 } }}>
-        <MotionCard
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.4 }}
-          sx={{
-            p: { xs: 3, sm: 4.5, md: 5.5 },
-            borderRadius: `${borderRadius}px`,
-            textAlign: 'center',
-            background: 'linear-gradient(135deg, #4b0579 0%, #6a0dad 60%, #7a1fbe 100%)',
-            color: '#fff',
-            boxShadow: '0 20px 48px rgba(75, 5, 121, 0.3)'
-          }}
-        >
-          <Typography variant="h3" sx={{ fontWeight: 800, mb: 1.3, color: '#ffffff', fontSize: { xs: '1.65rem', md: '2.1rem' } }}>
-            Ready to Level Up Your Coding Skills?
-          </Typography>
-          <Typography sx={{ mb: 3, color: '#f5e9ff', fontWeight: 500, fontSize: { xs: '0.96rem', md: '1.04rem' } }}>
-            Join students building confidence through practice, assessments, and consistent performance tracking.
-          </Typography>
-          <Button
-            variant="contained"
-            size="large"
-            onClick={() => navigate('/login')}
-            sx={{
-              px: { xs: 3, md: 4.3 },
-              py: 1.35,
-              textTransform: 'none',
-              fontWeight: 800,
-              borderRadius: `${borderRadius}px`,
-              bgcolor: '#25D366',
-              '&:hover': { bgcolor: '#20BA5A' }
-            }}
-          >
-            Start Now
-          </Button>
-        </MotionCard>
-      </Container>
-
-      <Box sx={{ bgcolor: 'grey.900', color: '#fff', py: 5 }}>
-        <Container maxWidth="lg">
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3} sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="body2" sx={{ opacity: 0.8 }}>
-              © {new Date().getFullYear()}{' '}
-              <Typography
-                component="a"
-                href="https://orcadehub.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                sx={{
-                  color: '#fff',
-                  opacity: 0.8,
-                  textDecoration: 'none',
-                  '&:hover': { opacity: 1, textDecoration: 'underline' }
-                }}
-              >
-                Orcadehub Innovations LLP
-              </Typography>
-              . All rights reserved.
-            </Typography>
-            <Stack direction="row" spacing={3}>
-              <Button
-                onClick={() => navigate('/')}
-                sx={{
-                  color: '#fff',
-                  opacity: 0.8,
-                  textTransform: 'none',
-                  '&:hover': { opacity: 1 }
-                }}
-              >
-                Home
-              </Button>
-              <Button
-                onClick={() => navigate('/login')}
-                sx={{
-                  color: '#fff',
-                  opacity: 0.8,
-                  textTransform: 'none',
-                  '&:hover': { opacity: 1 }
-                }}
-              >
-                Login
-              </Button>
             </Stack>
-          </Stack>
         </Container>
       </Box>
+
     </Box>
   );
 }
+

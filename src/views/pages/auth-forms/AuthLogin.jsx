@@ -7,8 +7,6 @@ import { useAuth } from 'contexts/AuthContext';
 
 // material-ui
 import Button from '@mui/material/Button';
-import Checkbox from '@mui/material/Checkbox';
-import FormControlLabel from '@mui/material/FormControlLabel';
 import Grid from '@mui/material/Grid';
 import IconButton from '@mui/material/IconButton';
 import InputAdornment from '@mui/material/InputAdornment';
@@ -19,7 +17,6 @@ import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
 
 // project imports
-import AnimateButton from 'ui-component/extended/AnimateButton';
 import CustomFormControl from 'ui-component/extended/Form/CustomFormControl';
 
 // assets
@@ -31,7 +28,6 @@ const API_BASE_URL = import.meta.env.DEV ? 'http://localhost:4000/api' : 'https:
 // ===============================|| JWT - LOGIN ||=============================== //
 
 export default function AuthLogin() {
-  const [checked, setChecked] = useState(true);
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -160,13 +156,7 @@ export default function AuthLogin() {
         />
       </CustomFormControl>
 
-      <Grid container sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-        <Grid>
-          <FormControlLabel
-            control={<Checkbox checked={checked} onChange={(event) => setChecked(event.target.checked)} name="checked" color="primary" />}
-            label="Keep me logged in"
-          />
-        </Grid>
+      <Grid container sx={{ alignItems: 'center', justifyContent: 'flex-end' }}>
         <Grid>
           <Typography variant="subtitle1" component={Link} to="/forgot-password" sx={{ textDecoration: 'none', color: 'secondary.main' }}>
             Forgot Password?
@@ -174,11 +164,9 @@ export default function AuthLogin() {
         </Grid>
       </Grid>
       <Box sx={{ mt: 2 }}>
-        <AnimateButton>
-          <Button color="secondary" fullWidth size="large" type="submit" variant="contained" disabled={loading}>
-            {loading ? 'Signing In...' : 'Sign In'}
-          </Button>
-        </AnimateButton>
+        <Button fullWidth size="large" type="submit" variant="contained" disabled={loading} sx={{ bgcolor: '#1e293b', '&:hover': { bgcolor: '#0f172a' } }}>
+          {loading ? 'Signing In...' : 'Sign In'}
+        </Button>
       </Box>
     </form>
   );

@@ -169,6 +169,13 @@ export default function AssessmentTaking() {
     }
   }, [language, compilerSplit]);
 
+  // Ensure compiler split stays within bounds (max 85% to keep test cases visible)
+  useEffect(() => {
+    if (compilerSplit > 85) {
+      setCompilerSplit(85);
+    }
+  }, [compilerSplit]);
+
   // Save code to session storage when it changes
   useEffect(() => {
     if (questions[currentQuestionIndex]?._id && language && code) {
@@ -351,6 +358,13 @@ export default function AssessmentTaking() {
       };
     }
   }, [isCompilerDragging]);
+
+  // Ensure compiler split stays within bounds
+  useEffect(() => {
+    if (compilerSplit > 85) {
+      setCompilerSplit(85);
+    }
+  }, [compilerSplit]);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -1730,23 +1744,23 @@ export default function AssessmentTaking() {
                 </Button>
                 <Button
                   variant="contained"
-                  onClick={async () => {
-                    // Save to backend with original index
-                    if (attemptId && answers[questions[currentQuestionIndex]?._id]) {
-                      try {
+                  onClick={() => {
+                    // Mark as saved immediately
+                    if (answers[questions[currentQuestionIndex]?._id]) {
+                      setSavedQuestions(prev => new Set([...prev, currentQuestionIndex]));
+                      
+                      // Save to backend asynchronously
+                      if (attemptId) {
                         const token = localStorage.getItem('studentToken');
                         const selectedOptionId = answers[questions[currentQuestionIndex]._id];
                         const selectedOption = questions[currentQuestionIndex].options.find(opt => opt._id === selectedOptionId);
                         const originalIndex = selectedOption?.originalIndex ?? 0;
-                        await apiService.saveQuizAnswer(token, attemptId, questions[currentQuestionIndex]._id, originalIndex);
-                        
-                        // Mark as saved to update percentage
-                        setSavedQuestions(prev => new Set([...prev, currentQuestionIndex]));
-                      } catch (error) {
-                        console.error('Error saving quiz answer:', error);
+                        apiService.saveQuizAnswer(token, attemptId, questions[currentQuestionIndex]._id, originalIndex)
+                          .catch(error => console.error('Error saving quiz answer:', error));
                       }
                     }
                     
+                    // Move to next question immediately
                     const currentType = questions[currentQuestionIndex]?.type;
                     const filteredQuestions = questions.filter(q => q.type === currentType);
                     const currentFilteredIndex = filteredQuestions.findIndex(q => q._id === questions[currentQuestionIndex]._id);
@@ -1975,7 +1989,7 @@ export default function AssessmentTaking() {
               />
               
               {/* Test Cases Section */}
-              <Box sx={{ height: `${100 - compilerSplit}%`, display: 'flex', flexDirection: 'column', zIndex: 100, position: 'relative', bgcolor: '#ffffff', minHeight: 0, overflow: 'hidden' }}>
+              <Box sx={{ height: `${100 - compilerSplit}%`, display: 'flex', flexDirection: 'column', zIndex: 100, position: 'relative', bgcolor: '#ffffff', minHeight: 0, overflow: 'hidden', maxHeight: `${100 - compilerSplit}%` }}>
                 {(() => {
                   const publicTestCases = questions[currentQuestionIndex]?.testCases?.filter(tc => tc.isPublic) || [];
                   const allTestCases = [...publicTestCases, ...customTestCases];
@@ -1983,7 +1997,7 @@ export default function AssessmentTaking() {
                   
                   return (
                     <>
-                      <Box sx={{ borderBottom: '1px solid #e0e0e0', bgcolor: '#ffffff' }}>
+                      <Box sx={{ borderBottom: '1px solid #e0e0e0', bgcolor: '#ffffff', flexShrink: 0 }}>
                         <Tabs 
                           value={currentTestCaseTab} 
                           onChange={(e, newValue) => setCurrentTestCaseTab(newValue)}
@@ -2048,7 +2062,7 @@ export default function AssessmentTaking() {
                         </Tabs>
                       </Box>
                       
-                      <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, flexGrow: 1, overflowY: 'auto', pb: 8, bgcolor: '#ffffff' }}>
+                      <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, flexGrow: 1, flexShrink: 1, overflowY: 'auto', pb: 8, bgcolor: '#ffffff', minHeight: 0, maxHeight: '100%', '&::-webkit-scrollbar': { width: '8px' }, '&::-webkit-scrollbar-thumb': { bgcolor: '#bdbdbd', borderRadius: '4px' } }}>
                         {allTestCases.length > 0 && allTestCases[currentTestCaseTab] ? (
                           <>
                             <Box sx={{ mb: 3 }}>

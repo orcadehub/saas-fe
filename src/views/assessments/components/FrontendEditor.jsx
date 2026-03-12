@@ -3,6 +3,7 @@ import { Box, Typography, IconButton, Button, TextField, Dialog, DialogTitle, Di
 import { Add, Delete, FolderOpen, InsertDriveFile, PlayArrow, Remove } from '@mui/icons-material';
 import Editor from '@monaco-editor/react';
 import apiService from '../../../services/apiService';
+import frontendTestValidator from '../../../utils/frontendTestValidator';
 
 export default function FrontendEditor({ assessment, question, attemptId, onTestComplete }) {
   const isProduction = import.meta.env.MODE === 'production';
@@ -194,13 +195,16 @@ export default function FrontendEditor({ assessment, question, attemptId, onTest
     setShowTestResults(true);
     try {
       const token = localStorage.getItem('studentToken');
-      const results = await apiService.runFrontendTests(token, {
-        html: files['index.html']?.content || '',
-        css: files['styles.css']?.content || '',
-        js: files['script.js']?.content || '',
-        dataJs: files['data.js']?.content || '',
-        testFile: files['test.spec.js']?.content || ''
-      });
+      
+      // Run tests in frontend
+      const results = await frontendTestValidator.runAllTests(
+        files['test.spec.js']?.content || '',
+        files['index.html']?.content || '',
+        files['styles.css']?.content || '',
+        files['script.js']?.content || '',
+        files['data.js']?.content || ''
+      );
+      
       setTestResults(results);
       
       // Notify parent component about test completion
@@ -208,7 +212,7 @@ export default function FrontendEditor({ assessment, question, attemptId, onTest
         onTestComplete(results.passed, results.total);
       }
       
-      // Save code to backend after running tests
+      // Save code to backend with percentage
       if (attemptId && question?._id) {
         await apiService.saveFrontendCode(
           token,
@@ -217,7 +221,13 @@ export default function FrontendEditor({ assessment, question, attemptId, onTest
           files['index.html']?.content || '',
           files['styles.css']?.content || '',
           files['script.js']?.content || '',
-          results
+          {
+            passed: results.passed,
+            failed: results.failed,
+            total: results.total,
+            percentage: results.percentage,
+            tests: results.tests
+          }
         );
       }
     } catch (error) {
@@ -227,7 +237,8 @@ export default function FrontendEditor({ assessment, question, attemptId, onTest
         failed: 0,
         total: 0,
         tests: [],
-        error: 'Failed to run tests'
+        percentage: 0,
+        error: 'Failed to run tests: ' + error.message
       });
     }
   };
@@ -453,17 +464,31 @@ export default function FrontendEditor({ assessment, question, attemptId, onTest
                   {testResults.error}
                 </Typography>
               )}
+              <Box sx={{ mb: 3, p: 2, bgcolor: '#f0f9ff', borderRadius: 1, border: '1px solid #0ea5e9' }}>
+                <Typography variant="body2" sx={{ fontWeight: 600, color: '#0369a1' }}>
+                  Percentage: {testResults.percentage}%
+                </Typography>
+              </Box>
               {testResults.tests?.map((test, idx) => (
-                <Box key={idx} sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2, p: 2, bgcolor: test.status === 'passed' ? '#e8f5e9' : '#ffebee', borderRadius: 1 }}>
+                <Box key={idx} sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, mb: 2, p: 2, bgcolor: test.passed ? '#e8f5e9' : '#ffebee', borderRadius: 1 }}>
                   <Box
                     sx={{
                       width: 12,
                       height: 12,
                       borderRadius: '50%',
-                      bgcolor: test.status === 'passed' ? '#10b981' : '#ef4444'
+                      bgcolor: test.passed ? '#10b981' : '#ef4444',
+                      mt: 0.5,
+                      flexShrink: 0
                     }}
                   />
-                  <Typography variant="body1" sx={{ fontWeight: 500 }}>{test.name}</Typography>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="body1" sx={{ fontWeight: 500 }}>{test.name}</Typography>
+                    {test.error && (
+                      <Typography variant="caption" sx={{ color: '#dc2626', display: 'block', mt: 0.5 }}>
+                        Error: {test.error}
+                      </Typography>
+                    )}
+                  </Box>
                 </Box>
               ))}
             </>

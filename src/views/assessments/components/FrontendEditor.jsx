@@ -198,6 +198,7 @@ export default function FrontendEditor({ assessment, question, attemptId, onTest
         html: files['index.html']?.content || '',
         css: files['styles.css']?.content || '',
         js: files['script.js']?.content || '',
+        dataJs: files['data.js']?.content || '',
         testFile: files['test.spec.js']?.content || ''
       });
       setTestResults(results);
@@ -310,18 +311,6 @@ export default function FrontendEditor({ assessment, question, attemptId, onTest
             >
               <InsertDriveFile sx={{ fontSize: 16 }} />
               <Typography variant="body2">{filename}</Typography>
-              {/* {!files[filename].readOnly && (
-                <IconButton
-                  size="small"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDeleteFile(filename);
-                  }}
-                  sx={{ color: '#000', p: 0.5 }}
-                >
-                  <Delete sx={{ fontSize: 14 }} />
-                </IconButton>
-              )} */}
             </Box>
           ))}
           </Box>

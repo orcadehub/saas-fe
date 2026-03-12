@@ -7,6 +7,7 @@ import ErrorBoundary from './ErrorBoundary';
 import { DashboardProvider } from 'contexts/DashboardContext';
 import { PracticeProvider } from 'contexts/PracticeContext';
 import { AssessmentsProvider } from 'contexts/AssessmentsContext';
+import { LabsProvider } from 'contexts/LabsContext';
 
 // page routing
 const Landing = Loadable(lazy(() => import('views/landing')));
@@ -43,6 +44,7 @@ const IDE = Loadable(lazy(() => import('views/ide')));
 const Labs = Loadable(lazy(() => import('views/playgrounds')));
 const LabDetail = Loadable(lazy(() => import('views/playgrounds/LabDetail')));
 const LabPractice = Loadable(lazy(() => import('views/playgrounds/LabPractice')));
+const TechnologyLabs = Loadable(lazy(() => import('views/playgrounds/TechnologyLabs')));
 const AIMock = Loadable(lazy(() => import('views/ai-mock')));
 
 // ==============================|| MAIN ROUTING ||============================== //
@@ -70,13 +72,15 @@ const MainRoutes = {
     {
       path: '/',
       element: (
-        <DashboardProvider>
-          <AssessmentsProvider>
-            <PracticeProvider>
-              <MainLayout />
-            </PracticeProvider>
-          </AssessmentsProvider>
-        </DashboardProvider>
+        <LabsProvider>
+          <DashboardProvider>
+            <AssessmentsProvider>
+              <PracticeProvider>
+                <MainLayout />
+              </PracticeProvider>
+            </AssessmentsProvider>
+          </DashboardProvider>
+        </LabsProvider>
       ),
       children: [
         {
@@ -186,6 +190,10 @@ const MainRoutes = {
         {
           path: 'labs',
           element: <Labs />
+        },
+        {
+          path: 'labs/technology/:technology',
+          element: <TechnologyLabs />
         },
         {
           path: 'labs/:labId',

@@ -33,7 +33,7 @@ const labQuestions = {
         timeComplexity: 'O(1)',
         spaceComplexity: 'O(1)'
       },
-      defaultCode: '#include <stdio.h>\n\nint main() {\n    // Write your code here\n    printf("Hello, World!\\n");\n    return 0;\n}',
+      defaultCode: '#include <stdio.h>\\n\\nint main() {\\n    // Write your code here\\n    printf("Hello, World!\\\\n");\\n    return 0;\\n}',
       testCases: [
         { input: '', output: 'Hello, World!', isPublic: true }
       ]
@@ -66,7 +66,7 @@ const labQuestions = {
         timeComplexity: 'O(1)',
         spaceComplexity: 'O(1)'
       },
-      defaultCode: '#include <iostream>\nusing namespace std;\n\nint main() {\n    // Write your code here\n    cout << "Hello, World!" << endl;\n    return 0;\n}',
+      defaultCode: '#include <iostream>\\nusing namespace std;\\n\\nint main() {\\n    // Write your code here\\n    cout << "Hello, World!" << endl;\\n    return 0;\\n}',
       testCases: [
         { input: '', output: 'Hello, World!', isPublic: true }
       ]
@@ -98,7 +98,7 @@ const labQuestions = {
         timeComplexity: 'O(1)',
         spaceComplexity: 'O(1)'
       },
-      defaultCode: 'public class Main {\n    public static void main(String[] args) {\n        // Write your code here\n        System.out.println("Hello, World!");\n    }\n}',
+      defaultCode: 'public class Main {\\n    public static void main(String[] args) {\\n        // Write your code here\\n        System.out.println("Hello, World!");\\n    }\\n}',
       testCases: [
         { input: '', output: 'Hello, World!', isPublic: true }
       ]
@@ -128,7 +128,7 @@ const labQuestions = {
         timeComplexity: 'O(1)',
         spaceComplexity: 'O(1)'
       },
-      defaultCode: '# Write your code here\nprint("Hello, World!")',
+      defaultCode: '# Write your code here\\nprint("Hello, World!")',
       testCases: [
         { input: '', output: 'Hello, World!', isPublic: true }
       ]

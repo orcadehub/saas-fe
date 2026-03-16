@@ -209,7 +209,7 @@ export default function FrontendEditor({ assessment, question, attemptId, onTest
       
       // Notify parent component about test completion
       if (onTestComplete) {
-        onTestComplete(results.passed, results.total);
+        onTestComplete(results.passed, results.total, results.percentage);
       }
       
       // Save code to backend with percentage

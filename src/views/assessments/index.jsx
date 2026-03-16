@@ -196,7 +196,7 @@ export default function Assessments() {
     }
   }, [tabValue]);
 
-  if (loading || assessments.length === 0) {
+  if (loading && assessments.length === 0) {
     return (
       <MainCard>
         <Box sx={{ mb: 4 }}>

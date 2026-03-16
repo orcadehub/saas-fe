@@ -13,6 +13,17 @@ import MainCard from 'ui-component/cards/MainCard';
 
 const API_BASE_URL = import.meta.env.DEV ? 'http://localhost:4000/api' : 'https://backend.orcode.in/api';
 
+const PctBadge = ({ value, bold }) => {
+  const pct = value || 0;
+  const bg = pct === 0 ? '#f5f5f5' : pct < 40 ? '#ffebee' : pct < 70 ? '#fff3e0' : '#e8f5e9';
+  const color = pct === 0 ? '#9e9e9e' : pct < 40 ? '#c62828' : pct < 70 ? '#e65100' : '#2e7d32';
+  return (
+    <Box sx={{ display: 'inline-block', px: 1.5, py: 0.3, borderRadius: 2, bgcolor: bg, minWidth: 48, textAlign: 'center' }}>
+      <Typography sx={{ fontWeight: bold ? 700 : 500, color, fontSize: '0.8rem' }}>{pct}%</Typography>
+    </Box>
+  );
+};
+
 const InstructorAssessmentDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -379,20 +390,26 @@ const InstructorAssessmentDetails = () => {
           <TableContainer component={Paper}>
             <Table>
               <TableHead>
-                <TableRow>
-                  <TableCell>Student</TableCell>
-                  <TableCell>Email</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell>Start Time</TableCell>
-                  <TableCell>Time Used</TableCell>
-                  <TableCell>Tab Switches</TableCell>
-                  <TableCell>Actions</TableCell>
+                <TableRow sx={{ bgcolor: '#f8fafc' }}>
+                  <TableCell sx={{ fontWeight: 700 }}>Student</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>Email</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>Status</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>Submission Reason</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>Start Time</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>Time Used</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>Tab Switches</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>Fullscreen Exits</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 700 }}>Quiz %</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 700 }}>Coding %</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 700 }}>Frontend %</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 700, color: '#1e40af' }}>Overall %</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {paginatedStudents.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} align="center">No students found</TableCell>
+                    <TableCell colSpan={13} align="center">No students found</TableCell>
                   </TableRow>
                 ) : (
                   paginatedStudents.map((student) => (
@@ -402,6 +419,11 @@ const InstructorAssessmentDetails = () => {
                       <TableCell>
                         <Chip label={student.attemptStatus || 'NOT_STARTED'} 
                               color={getStatusColor(student.attemptStatus)} size="small" />
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                          {student.submissionReason ? student.submissionReason.replace(/_/g, ' ') : '-'}
+                        </Typography>
                       </TableCell>
                       <TableCell>
                         {student.startedAt ? new Date(student.startedAt).toLocaleTimeString() : '-'}
@@ -414,6 +436,11 @@ const InstructorAssessmentDetails = () => {
                       <TableCell>
                         {student.tabSwitchCount || 0} / {maxTabSwitches === -1 ? '∞' : maxTabSwitches}
                       </TableCell>
+                      <TableCell align="center">{student.fullscreenExitCount || 0}</TableCell>
+                      <TableCell align="center"><PctBadge value={student.quizPercentage} /></TableCell>
+                      <TableCell align="center"><PctBadge value={student.programmingPercentage} /></TableCell>
+                      <TableCell align="center"><PctBadge value={student.frontendPercentage} /></TableCell>
+                      <TableCell align="center"><PctBadge value={student.overallPercentage} bold /></TableCell>
                       <TableCell>
                         <Box sx={{ display: 'flex', gap: 0.5 }}>
                           <Tooltip title="Allow Resume">

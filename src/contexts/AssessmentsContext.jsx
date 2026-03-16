@@ -12,10 +12,17 @@ export const useAssessments = () => {
   return context;
 };
 
+const CACHE_KEY = 'assessments_cache';
+const ATTEMPTS_CACHE_KEY = 'assessment_attempts_cache';
+
 export const AssessmentsProvider = ({ children }) => {
   const { user } = useAuth();
-  const [assessments, setAssessments] = useState([]);
-  const [assessmentAttempts, setAssessmentAttempts] = useState({});
+  const [assessments, setAssessments] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(CACHE_KEY)) || []; } catch { return []; }
+  });
+  const [assessmentAttempts, setAssessmentAttempts] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(ATTEMPTS_CACHE_KEY)) || {}; } catch { return {}; }
+  });
   const [loading, setLoading] = useState(true);
   const [config, setConfig] = useState(null);
 
@@ -33,70 +40,45 @@ export const AssessmentsProvider = ({ children }) => {
       'x-api-key': config?.apiKey || '',
       'x-tenant-id': config?.tenantId || ''
     };
-    
-    if (user?.token) {
-      headers['Authorization'] = `Bearer ${user.token}`;
-    }
-    
+    if (user?.token) headers['Authorization'] = `Bearer ${user.token}`;
     return headers;
   };
 
   useEffect(() => {
     const fetchAssessments = async () => {
-      if (user?.token && config) {
-        setLoading(true);
-        try {
-          const response = await fetch(`${getApiUrl()}/auth/student/assessments`, {
-            headers: getHeaders()
-          });
-          
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          
-          const data = await response.json();
-          
-          // Fetch basic info (without questions) for each assessment
-          const assessmentsWithInfo = await Promise.all(
-            (Array.isArray(data) ? data : []).map(async (assessment) => {
-              try {
-                const infoResponse = await fetch(`${getApiUrl()}/auth/student/assessment/${assessment._id}/info`, {
-                  headers: getHeaders()
-                });
-                if (infoResponse.ok) {
-                  return await infoResponse.json();
-                }
-                return assessment;
-              } catch (error) {
-                return assessment;
-              }
-            })
-          );
-          
-          setAssessments(assessmentsWithInfo);
+      if (!user?.token || !config) { setLoading(false); return; }
 
-          const attempts = {};
-          for (const assessment of assessmentsWithInfo) {
+      // Show cached data immediately, no loading spinner if cache exists
+      const hasCached = assessments.length > 0;
+      if (!hasCached) setLoading(true);
+
+      try {
+        const response = await fetch(`${getApiUrl()}/auth/student/assessments`, { headers: getHeaders() });
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const data = await response.json();
+        const list = Array.isArray(data) ? data : [];
+
+        setAssessments(list);
+        localStorage.setItem(CACHE_KEY, JSON.stringify(list));
+
+        // Fetch all attempts in parallel
+        const attemptResults = await Promise.all(
+          list.map(async (assessment) => {
             try {
-              const attemptResponse = await fetch(`${getApiUrl()}/auth/student/assessment/${assessment._id}/attempt`, {
-                headers: getHeaders()
-              });
-              if (attemptResponse.ok) {
-                const attemptData = await attemptResponse.json();
-                attempts[assessment._id] = attemptData;
-              }
-            } catch (error) {
-              // No attempt found
-            }
-          }
-          setAssessmentAttempts(attempts);
-        } catch (error) {
-          console.error('Error fetching assessments:', error);
-          setAssessments([]);
-        } finally {
-          setLoading(false);
-        }
-      } else {
+              const res = await fetch(`${getApiUrl()}/auth/student/assessment/${assessment._id}/attempt`, { headers: getHeaders() });
+              if (res.ok) return [assessment._id, await res.json()];
+            } catch {}
+            return [assessment._id, null];
+          })
+        );
+
+        const attempts = Object.fromEntries(attemptResults.filter(([, v]) => v !== null));
+        setAssessmentAttempts(attempts);
+        localStorage.setItem(ATTEMPTS_CACHE_KEY, JSON.stringify(attempts));
+      } catch (error) {
+        console.error('Error fetching assessments:', error);
+        if (!hasCached) setAssessments([]);
+      } finally {
         setLoading(false);
       }
     };
@@ -113,41 +95,32 @@ export const AssessmentsProvider = ({ children }) => {
   };
 
   const refreshAssessments = async () => {
-    if (user?.token && config) {
-      setLoading(true);
-      try {
-        const response = await fetch(`${getApiUrl()}/auth/student/assessments`, {
-          headers: getHeaders()
-        });
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        setAssessments(Array.isArray(data) ? data : []);
+    if (!user?.token || !config) return;
+    setLoading(true);
+    try {
+      const response = await fetch(`${getApiUrl()}/auth/student/assessments`, { headers: getHeaders() });
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      const data = await response.json();
+      const list = Array.isArray(data) ? data : [];
+      setAssessments(list);
+      localStorage.setItem(CACHE_KEY, JSON.stringify(list));
 
-        const attempts = {};
-        for (const assessment of (Array.isArray(data) ? data : [])) {
+      const attemptResults = await Promise.all(
+        list.map(async (assessment) => {
           try {
-            const attemptResponse = await fetch(`${getApiUrl()}/auth/student/assessment/${assessment._id}/attempt`, {
-              headers: getHeaders()
-            });
-            if (attemptResponse.ok) {
-              const attemptData = await attemptResponse.json();
-              attempts[assessment._id] = attemptData;
-            }
-          } catch (error) {
-            // No attempt found
-          }
-        }
-        setAssessmentAttempts(attempts);
-      } catch (error) {
-        console.error('Error refreshing assessments:', error);
-        setAssessments([]);
-      } finally {
-        setLoading(false);
-      }
+            const res = await fetch(`${getApiUrl()}/auth/student/assessment/${assessment._id}/attempt`, { headers: getHeaders() });
+            if (res.ok) return [assessment._id, await res.json()];
+          } catch {}
+          return [assessment._id, null];
+        })
+      );
+      const attempts = Object.fromEntries(attemptResults.filter(([, v]) => v !== null));
+      setAssessmentAttempts(attempts);
+      localStorage.setItem(ATTEMPTS_CACHE_KEY, JSON.stringify(attempts));
+    } catch (error) {
+      console.error('Error refreshing assessments:', error);
+    } finally {
+      setLoading(false);
     }
   };
 

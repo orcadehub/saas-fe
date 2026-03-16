@@ -63,6 +63,7 @@ export default function AssessmentTaking() {
   const [lastCodeData, setLastCodeData] = useState(null);
   const [fontSize, setFontSize] = useState(18);
   const [frontendCompletedQuestions, setFrontendCompletedQuestions] = useState(new Set());
+  const [frontendQuestionPercentages, setFrontendQuestionPercentages] = useState({});
   const [customTestCases, setCustomTestCases] = useState([]);
   const [showAddCustomInput, setShowAddCustomInput] = useState(false);
   const [customInput, setCustomInput] = useState('');
@@ -1399,6 +1400,7 @@ export default function AssessmentTaking() {
                     const isCompleted = q.type === 'frontend' 
                       ? frontendCompletedQuestions.has(originalIndex)
                       : savedQuestions.has(originalIndex);
+                    const isPartial = q.type === 'frontend' && !frontendCompletedQuestions.has(originalIndex) && (frontendQuestionPercentages[originalIndex] || 0) > 0;
                     
                     return (
                       <Button
@@ -1419,7 +1421,12 @@ export default function AssessmentTaking() {
                             color: 'white',
                             '&:hover': { bgcolor: '#45a049' }
                           }),
-                          ...(originalIndex === currentQuestionIndex && !isCompleted && {
+                          ...(originalIndex === currentQuestionIndex && !isCompleted && isPartial && {
+                            bgcolor: '#f59e0b',
+                            color: 'white',
+                            '&:hover': { bgcolor: '#d97706' }
+                          }),
+                          ...(originalIndex === currentQuestionIndex && !isCompleted && !isPartial && {
                             bgcolor: 'secondary.main',
                             color: 'white',
                             '&:hover': { bgcolor: 'secondary.dark' }
@@ -1430,13 +1437,19 @@ export default function AssessmentTaking() {
                             borderColor: '#4caf50',
                             '&:hover': { bgcolor: '#45a049' }
                           }),
-                          ...(originalIndex !== currentQuestionIndex && !isCompleted && visitedQuestions.has(originalIndex) && {
+                          ...(originalIndex !== currentQuestionIndex && !isCompleted && isPartial && {
+                            bgcolor: '#f59e0b',
+                            color: 'white',
+                            borderColor: '#f59e0b',
+                            '&:hover': { bgcolor: '#d97706' }
+                          }),
+                          ...(originalIndex !== currentQuestionIndex && !isCompleted && !isPartial && visitedQuestions.has(originalIndex) && {
                             bgcolor: '#ff9800',
                             color: 'white',
                             borderColor: '#ff9800',
                             '&:hover': { bgcolor: '#f57c00' }
                           }),
-                          ...(originalIndex !== currentQuestionIndex && !isCompleted && !visitedQuestions.has(originalIndex) && {
+                          ...(originalIndex !== currentQuestionIndex && !isCompleted && !isPartial && !visitedQuestions.has(originalIndex) && {
                             borderColor: 'secondary.main',
                             color: 'secondary.main',
                             '&:hover': { borderColor: 'secondary.dark', bgcolor: 'secondary.light' }
@@ -1799,7 +1812,8 @@ export default function AssessmentTaking() {
               assessment={assessment} 
               question={questions[currentQuestionIndex]} 
               attemptId={attemptId}
-              onTestComplete={(passed, total) => {
+              onTestComplete={(passed, total, percentage) => {
+                setFrontendQuestionPercentages(prev => ({ ...prev, [currentQuestionIndex]: percentage || 0 }));
                 if (passed === total && total > 0) {
                   setFrontendCompletedQuestions(prev => new Set([...prev, currentQuestionIndex]));
                 } else {
@@ -2468,6 +2482,7 @@ export default function AssessmentTaking() {
                 {questions.filter(q => q.type === 'frontend').map((q, idx) => {
                   const originalIndex = questions.findIndex(oq => oq._id === q._id);
                   const isCompleted = frontendCompletedQuestions.has(originalIndex);
+                  const isPartial = !isCompleted && (frontendQuestionPercentages[originalIndex] || 0) > 0;
                   const isVisited = visitedQuestions.has(originalIndex);
                   
                   return (
@@ -2481,8 +2496,8 @@ export default function AssessmentTaking() {
                         justifyContent: 'center',
                         borderRadius: 1,
                         fontWeight: 600,
-                        bgcolor: isCompleted ? '#4caf50' : isVisited ? '#ff9800' : '#e0e0e0',
-                        color: isCompleted || isVisited ? 'white' : 'text.secondary'
+                        bgcolor: isCompleted ? '#4caf50' : isPartial ? '#f59e0b' : isVisited ? '#ff9800' : '#e0e0e0',
+                        color: isCompleted || isPartial || isVisited ? 'white' : 'text.secondary'
                       }}
                     >
                       {idx + 1}

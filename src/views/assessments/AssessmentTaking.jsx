@@ -595,20 +595,33 @@ export default function AssessmentTaking() {
         
         // Get attempt ID from cached assessment or fetch
         const assessmentData = cachedAssessment ? JSON.parse(cachedAssessment) : assessment;
-        if (assessmentData?.attemptId) {
-          setAttemptId(assessmentData.attemptId);
-        } else if (assessmentData?.attempt?._id) {
-          setAttemptId(assessmentData.attempt._id);
+        let attemptStatus = null;
+        let currentAttemptId = null;
+
+        if (assessmentData?.attempt) {
+          currentAttemptId = assessmentData.attempt._id;
+          attemptStatus = assessmentData.attempt.attemptStatus;
         } else {
           try {
             const attemptResponse = await apiService.getAssessmentAttempt(token, id);
-            if (attemptResponse._id) {
-              setAttemptId(attemptResponse._id);
+            if (attemptResponse) {
+              currentAttemptId = attemptResponse._id;
+              attemptStatus = attemptResponse.attemptStatus;
             }
           } catch (error) {
             console.error('Error fetching attempt:', error);
           }
         }
+
+        if (attemptStatus && attemptStatus !== 'IN_PROGRESS') {
+           navigate('/assessments');
+           return;
+        }
+
+        if (currentAttemptId) {
+          setAttemptId(currentAttemptId);
+        }
+
       } catch (error) {
         console.error('Error fetching assessment data:', error);
         setIsDataReady(true);
@@ -1378,7 +1391,11 @@ export default function AssessmentTaking() {
           height: '100%', 
           bgcolor: '#ffffff',
           '&::-webkit-scrollbar': { display: 'none' },
-          scrollbarWidth: 'none'
+          scrollbarWidth: 'none',
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+          MozUserSelect: 'none',
+          msUserSelect: 'none'
         }}>
           {/* Question Navigation */}
           <Box sx={{ p: 2, borderBottom: '1px solid #e0e0e0', bgcolor: '#f8f9fa', position: 'sticky', top: 0, zIndex: 99 }}>
@@ -1809,7 +1826,7 @@ export default function AssessmentTaking() {
           scrollbarWidth: 'none'
         }}>
           {questions[currentQuestionIndex]?.type === 'quiz' ? (
-            <Box className="quiz-options" sx={{ p: { xs: 3, md: 5 } }}>
+            <Box className="quiz-options" sx={{ p: { xs: 3, md: 5 }, userSelect: 'none', WebkitUserSelect: 'none' }}>
               <Typography variant="h3" sx={{ fontWeight: 900, mb: 4, color: '#0f172a', letterSpacing: '-0.02em' }}>
                 Select Response
               </Typography>

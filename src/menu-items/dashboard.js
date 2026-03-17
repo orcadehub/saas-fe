@@ -1,5 +1,5 @@
 // assets
-import { IconDashboard, IconClipboardList, IconTrophy, IconCode, IconBrain, IconRobot, IconDeviceGamepad2, IconBook, IconBooks } from '@tabler/icons-react';
+import { IconDashboard, IconClipboardList, IconTrophy, IconCode, IconBrain, IconRobot, IconDeviceGamepad2, IconBook, IconBooks, IconSparkles } from '@tabler/icons-react';
 
 // constant
 const icons = { 
@@ -11,7 +11,8 @@ const icons = {
   IconRobot,
   IconDeviceGamepad2,
   IconBook,
-  IconBooks
+  IconBooks,
+  IconSparkles
 };
 
 // ==============================|| DASHBOARD MENU ITEMS ||============================== //
@@ -83,6 +84,14 @@ const dashboard = {
       type: 'item',
       url: '/ai-mock',
       icon: icons.IconRobot,
+      breadcrumbs: false
+    },
+    {
+      id: 'genai',
+      title: 'GenAI Playground',
+      type: 'item',
+      url: '/genai',
+      icon: icons.IconSparkles,
       breadcrumbs: false
     }
   ]

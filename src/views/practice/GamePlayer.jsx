@@ -280,154 +280,41 @@ const GamePlayer = () => {
       </Box>
 
       <Box>
-          {level.questionType === 'Interactive' ? (
-            <Box sx={{ display: 'flex', gap: 4 }}>
-              {/* Left Side - Question, Hints, Submit */}
-              <Box sx={{ flex: 1 }}>
-                {/* Question */}
-                <Box sx={{ mb: 3 }}>
-                  <Typography variant="h5" sx={{ fontWeight: 700, color: themeColor, lineHeight: 1.6 }}>
-                    {level.question}
-                  </Typography>
-                </Box>
-
-                {/* Hints */}
-                {level.hints && level.hints.length > 0 && !showResult && (
-                  <Box sx={{ mb: 3, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                    {level.hints.map((hint) => (
-                      <Button
-                        key={hint.hintNumber}
-                        onClick={() => handleUseHint(hint)}
-                        disabled={usedHints.includes(hint.hintNumber)}
-                        startIcon={<Lightbulb />}
-                        sx={{
-                          px: 2,
-                          py: 1,
-                          borderRadius: 2,
-                          fontWeight: 600,
-                          bgcolor: usedHints.includes(hint.hintNumber) ? 'rgba(251,191,36,0.2)' : '#fbbf24',
-                          color: usedHints.includes(hint.hintNumber) ? '#92400e' : 'white',
-                          border: '1px solid',
-                          borderColor: usedHints.includes(hint.hintNumber) ? 'rgba(251,191,36,0.4)' : '#f59e0b',
-                          '&:hover': { bgcolor: usedHints.includes(hint.hintNumber) ? `${themeColor}33` : themeColor, filter: 'brightness(0.9)', boxShadow: `0 5px 20px ${themeColor}4D` }
-                        }}
-                      >
-                        {usedHints.includes(hint.hintNumber) ? hint.hintText : `Hint (-${hint.pointsDeduction} pts)`}
-                      </Button>
-                    ))}
-                  </Box>
-                )}
-
-                {/* Result */}
-                {showResult && (
-                  <Box sx={{ mb: 3, p: 3, borderRadius: 3, border: '2px solid', borderColor: isCorrect ? '#10b981' : '#ef4444', background: isCorrect ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)' }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-                      <Typography sx={{ fontSize: '2.5rem' }}>{isCorrect ? '🎉' : (selectedAnswer === 'no-path' && mazeHasPath ? '😂' : '😔')}</Typography>
-                      <Typography variant="h5" sx={{ fontWeight: 700, color: isCorrect ? '#059669' : '#dc2626' }}>
-                        {isCorrect ? 'Correct!' : (selectedAnswer === 'no-path' && mazeHasPath ? 'Incorrect' : 'Incorrect')}
-                      </Typography>
-                    </Box>
-                    <Typography sx={{ color: '#374151', fontSize: '1.125rem' }}>
-                      {isCorrect ? `+${level.pointsForLevel} points earned!` : (
-                        selectedAnswer === 'no-path' && mazeHasPath ? 'Path exists! Check the highlighted path.' : 'Try again!'
-                      )}
-                    </Typography>
-                  </Box>
-                )}
-
-                {/* No Path Button */}
-                {!showResult && (
-                  <Box sx={{ mb: 3, p: 2, borderRadius: 2, bgcolor: '#fef3c7', border: '1px solid #fbbf24' }}>
-                    <Typography sx={{ color: '#92400e', fontSize: '0.95rem', mb: 2 }}>
-                      💡 If you feel there is no path to reach the goal, click the button below
-                    </Typography>
-                    <Button
-                      onClick={() => {
-                        if (mazeHasPath !== null) {
-                          console.log('Button clicked - mazeHasPath:', mazeHasPath);
-                          setMazeDisabled(true);
-                          setShowMazePath(true);
-                          setSelectedAnswer('no-path');
-                          
-                          const level = game.levels[currentLevel];
-                          const correct = !mazeHasPath;
-                          console.log('Immediate check - correct:', correct);
-                          
-                          setIsCorrect(correct);
-                          setShowResult(true);
-                          
-                          if (correct) {
-                            setScore(prev => prev + level.pointsForLevel);
-                          }
-                        }
-                      }}
-                      disabled={mazeHasPath === null}
-                      sx={{
-                        px: 3,
-                        py: 1,
-                        borderRadius: 2,
-                        fontWeight: 600,
-                        bgcolor: mazeHasPath === null ? '#d1d5db' : '#ef4444',
-                        color: 'white',
-                        '&:hover': { bgcolor: mazeHasPath === null ? '#d1d5db' : '#dc2626' },
-                        '&:disabled': { cursor: 'not-allowed' }
-                      }}
-                    >
-                      {mazeHasPath === null ? 'Loading...' : 'No Path Available'}
-                    </Button>
-                  </Box>
-                )}
-
-                {/* Action Button */}
-                {showResult && (
-                  <Box sx={{ display: 'flex', justifyContent: 'flex-start' }}>
-                    <Button
-                      onClick={handleNextLevel}
-                      sx={{
-                        px: 4,
-                        py: 1.5,
-                        borderRadius: 2,
-                        fontWeight: 700,
-                        fontSize: '1.125rem',
-                        bgcolor: themeColor,
-                        color: 'white',
-                        boxShadow: `0 10px 30px ${themeColor}80`,
-                        '&:hover': { bgcolor: themeColor, filter: 'brightness(0.9)', transform: 'scale(1.05)' },
-                        transition: 'all 0.3s'
-                      }}
-                    >
-                      {currentLevel < game.levels.length - 1 ? 'Next Level →' : 'Finish Game 🏆'}
-                    </Button>
-                  </Box>
-                )}
-              </Box>
-
-              {/* Right Side - Maze */}
-              <Box sx={{ flex: 1 }}>
-                <MazeGame 
-                  key={currentLevel}
-                  level={level}
-                  showPath={showMazePath}
-                  disabled={mazeDisabled}
-                  themeColor={themeColor}
-                  onNoPathCheck={(hasPath) => {
-                    console.log('Setting mazeHasPath to:', hasPath);
-                    setMazeHasPath(hasPath);
-                  }}
-                  onComplete={(success) => {
-                    setSelectedAnswer('completed');
-                    setIsCorrect(success);
-                    setShowResult(true);
-                    if (success) setScore(score + level.pointsForLevel);
-                  }} 
-                />
-              </Box>
+          {/* Interactive Maze Game */}
+          {level.questionType === 'Interactive' && !showResult && (
+            <Box sx={{ maxWidth: 700, mx: 'auto' }}>
+              <MazeGame 
+                level={level}
+                themeColor={themeColor}
+                onComplete={(finalScore) => {
+                  setSelectedAnswer('completed');
+                  setIsCorrect(true);
+                  setScore(score + finalScore);
+                  // Auto-advance to next level
+                  if (currentLevel < game.levels.length - 1) {
+                    setTimeout(() => {
+                      setCurrentLevel(currentLevel + 1);
+                      setSelectedAnswer('');
+                      setSelectedDisplayId('');
+                      setShowResult(false);
+                      setUsedHints([]);
+                      setShowMazePath(false);
+                      setMazeDisabled(false);
+                      setMazeHasPath(null);
+                    }, 1500);
+                  } else {
+                    setTimeout(() => setGameCompleted(true), 1500);
+                  }
+                }}
+              />
             </Box>
-          ) : level.questionType === 'MemoryCard' ? (
+          )}
+
+          {level.questionType === 'MemoryCard' ? (
             <Box>
               <Box sx={{ mb: 3 }}>
                 <Typography variant="h5" sx={{ fontWeight: 700, color: themeColor, lineHeight: 1.6 }}>
-                  {level.question}
+                  {level.question} {level.question}
                 </Typography>
               </Box>
 
@@ -672,15 +559,32 @@ const GamePlayer = () => {
 
           {/* Geo-Sudo Game */}
           {level.questionType === 'GeoSudo' && !showResult && (
-            <GeoSudoGame 
-              difficulty={level.difficulty}
-              onComplete={(finalScore) => {
-                setSelectedAnswer('completed');
-                setIsCorrect(true);
-                setShowResult(true);
-                setScore(score + level.pointsForLevel);
-              }}
-            />
+            <Box sx={{ maxWidth: 700, mx: 'auto' }}>
+              <GeoSudoGame 
+                level={level}
+                difficulty={level.difficulty}
+                onComplete={(finalScore) => {
+                  setSelectedAnswer('completed');
+                  setIsCorrect(true);
+                  setScore(score + finalScore);
+                  // Auto-advance to next level
+                  if (currentLevel < game.levels.length - 1) {
+                    setTimeout(() => {
+                      setCurrentLevel(currentLevel + 1);
+                      setSelectedAnswer('');
+                      setSelectedDisplayId('');
+                      setShowResult(false);
+                      setUsedHints([]);
+                      setShowMazePath(false);
+                      setMazeDisabled(false);
+                      setMazeHasPath(null);
+                    }, 1200);
+                  } else {
+                    setTimeout(() => setGameCompleted(true), 1200);
+                  }
+                }}
+              />
+            </Box>
           )}
 
           {/* Inductive Logic Game */}
@@ -711,14 +615,29 @@ const GamePlayer = () => {
 
           {/* Motion Challenge Game */}
           {level.questionType === 'MotionChallenge' && !showResult && (
-            <Box sx={{ maxWidth: 600, mx: 'auto' }}>
+            <Box sx={{ maxWidth: 700, mx: 'auto' }}>
               <MotionChallengeGame 
+                level={level}
                 difficulty={level.difficulty}
                 onComplete={(finalScore) => {
                   setSelectedAnswer('completed');
                   setIsCorrect(true);
-                  setShowResult(true);
-                  setScore(score + level.pointsForLevel);
+                  setScore(score + finalScore);
+                  // Auto-advance to next level
+                  if (currentLevel < game.levels.length - 1) {
+                    setTimeout(() => {
+                      setCurrentLevel(currentLevel + 1);
+                      setSelectedAnswer('');
+                      setSelectedDisplayId('');
+                      setShowResult(false);
+                      setUsedHints([]);
+                      setShowMazePath(false);
+                      setMazeDisabled(false);
+                      setMazeHasPath(null);
+                    }, 1200);
+                  } else {
+                    setTimeout(() => setGameCompleted(true), 1200);
+                  }
                 }}
               />
             </Box>
@@ -779,8 +698,8 @@ const GamePlayer = () => {
             />
           )}
 
-          {/* Hints */}
-          {level.hints && level.hints.length > 0 && !showResult && (
+          {/* Hints - hide for self-managing games */}
+          {!['MotionChallenge', 'GeoSudo'].includes(level.questionType) && level.hints && level.hints.length > 0 && !showResult && (
             <Box sx={{ mb: 3, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
               {level.hints.map((hint) => (
                 <Button
@@ -806,8 +725,8 @@ const GamePlayer = () => {
             </Box>
           )}
 
-          {/* Result */}
-          {showResult && (
+          {/* Result - hide for self-managing games */}
+          {!['MotionChallenge', 'GeoSudo'].includes(level.questionType) && showResult && (
             <Box sx={{ mb: 3, p: 3, borderRadius: 3, border: '2px solid', borderColor: isCorrect ? '#10b981' : '#ef4444', background: isCorrect ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
                 <Typography sx={{ fontSize: '2.5rem' }}>{isCorrect ? '🎉' : '😔'}</Typography>
@@ -830,7 +749,8 @@ const GamePlayer = () => {
             </Box>
           )}
 
-          {/* Action Button */}
+          {/* Action Button - hide for self-managing games */}
+          {!['MotionChallenge', 'GeoSudo'].includes(level.questionType) && (
           <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
             {!showResult ? (
               <Button
@@ -871,6 +791,7 @@ const GamePlayer = () => {
               </Button>
             )}
           </Box>
+          )}
             </Box>
           )}
         </Box>

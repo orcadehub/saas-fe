@@ -16,12 +16,23 @@ export default function MongoDBPlaygroundEditor({ question, attemptId, onTestCom
   const [expectedOutput, setExpectedOutput] = useState(null);
   const editorRef = useRef(null);
 
+  const sortData = (data) => {
+    if (Array.isArray(data)) {
+      return data.map(sortData).sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
+    } else if (data !== null && typeof data === 'object') {
+      const sorted = {};
+      Object.keys(data).sort().forEach(key => {
+        sorted[key] = sortData(data[key]);
+      });
+      return sorted;
+    }
+    return data;
+  };
+
   const arraysEqual = (arr1, arr2) => {
     if (!Array.isArray(arr1) || !Array.isArray(arr2)) return false;
     if (arr1.length !== arr2.length) return false;
-    const sorted1 = JSON.stringify(arr1.map(item => JSON.stringify(item)).sort());
-    const sorted2 = JSON.stringify(arr2.map(item => JSON.stringify(item)).sort());
-    return sorted1 === sorted2;
+    return JSON.stringify(sortData(arr1)) === JSON.stringify(sortData(arr2));
   };
 
   // Load query from localStorage when question changes
@@ -119,7 +130,8 @@ export default function MongoDBPlaygroundEditor({ question, attemptId, onTestCom
               question._id,
               query,
               response.data.result,
-              expectedOutput
+              expectedOutput,
+              isCorrect
             );
           } catch (err) {
             console.error('Error saving MongoDB query:', err);

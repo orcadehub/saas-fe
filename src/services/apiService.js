@@ -146,9 +146,9 @@ class ApiService {
     return response.data;
   }
 
-  async saveMongoDBQuery(token, attemptId, questionId, query, result, expectedOutput) {
+  async saveMongoDBQuery(token, attemptId, questionId, query, result, expectedOutput, isCorrect) {
     const response = await this.client.post(`/auth/student/assessment-attempt/${attemptId}/save-mongodb-query`,
-      { questionId, query, result, expectedOutput },
+      { questionId, query, result, expectedOutput, isCorrect },
       { headers: { Authorization: `Bearer ${token}` } }
     );
     return response.data;

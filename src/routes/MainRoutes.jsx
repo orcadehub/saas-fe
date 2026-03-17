@@ -46,6 +46,7 @@ const LabDetail = Loadable(lazy(() => import('views/playgrounds/LabDetail')));
 const LabPractice = Loadable(lazy(() => import('views/playgrounds/LabPractice')));
 const TechnologyLabs = Loadable(lazy(() => import('views/playgrounds/TechnologyLabs')));
 const AIMock = Loadable(lazy(() => import('views/ai-mock')));
+const GenAIPlayground = Loadable(lazy(() => import('views/genai')));
 
 // ==============================|| MAIN ROUTING ||============================== //
 
@@ -206,6 +207,10 @@ const MainRoutes = {
         {
           path: 'ai-mock',
           element: <AIMock />
+        },
+        {
+          path: 'genai',
+          element: <GenAIPlayground />
         }
       ]
     }

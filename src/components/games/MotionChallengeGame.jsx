@@ -1,6 +1,26 @@
-import React, { useState, useEffect } from 'react';
-import { Box, Button, Typography, Card } from '@mui/material';
-import { RotateRight, DirectionsRun, Home } from '@mui/icons-material';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Box, Typography, Card } from '@mui/material';
+import { Flag, MotionPhotosAuto } from '@mui/icons-material';
+import { motion, AnimatePresence } from 'framer-motion';
+
+const MotionCard = motion.create(Card);
+const MotionBox = motion.create(Box);
+
+// ── Deterministic RNG ──
+const createRNG = (seedStr) => {
+  let hash = 0;
+  for (let i = 0; i < seedStr.length; i++) {
+    hash = ((hash << 5) - hash) + seedStr.charCodeAt(i);
+    hash |= 0;
+  }
+  let a = hash + 0x6D2B79F5;
+  return () => {
+    let t = a += 0x6D2B79F5;
+    t = Math.imul(t ^ t >>> 15, t | 1);
+    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+};
 
 const TILE_TYPES = [
   { id: 'straight-h', paths: [[1,0,1,2]] },
@@ -12,26 +32,29 @@ const TILE_TYPES = [
 ];
 
 const generateMotion = (difficulty) => {
-  const startRow = Math.floor(Math.random() * 4);
-  const endRow = Math.floor(Math.random() * 4);
+  const rng = () => Math.random();
   
-  const grid = Array(4).fill(null).map(() => Array(4).fill(null));
-  const solution = Array(4).fill(null).map(() => Array(4).fill(null));
+  let boardSize = 4;
+  if (difficulty === 'Medium') boardSize = 5;
+  if (difficulty === 'Hard') boardSize = 6;
+  
+  const startRow = Math.floor(rng() * boardSize);
+  const endRow = Math.floor(rng() * boardSize);
+  
+  const grid = Array(boardSize).fill(null).map(() => Array(boardSize).fill(null));
+  const solution = Array(boardSize).fill(null).map(() => Array(boardSize).fill(null));
   const visited = new Set();
   const path = [];
   
-  // DFS with random direction priority to find path
   const dfs = (row, col, fromDir) => {
-    if (row < 0 || row >= 4 || col < 0 || col >= 4) return false;
+    if (row < 0 || row >= boardSize || col < 0 || col >= boardSize) return false;
     if (visited.has(`${row},${col}`)) return false;
     
     visited.add(`${row},${col}`);
     path.push({ row, col, fromDir });
     
-    // Reached end
-    if (col === 3 && row === endRow) return true;
+    if (col === boardSize - 1 && row === endRow) return true;
     
-    // Randomize direction order for each cell
     const directions = [
       { dr: -1, dc: 0, dir: 'top', entry: 'bottom' },
       { dr: 0, dc: -1, dir: 'left', entry: 'right' },
@@ -39,35 +62,27 @@ const generateMotion = (difficulty) => {
       { dr: 0, dc: 1, dir: 'right', entry: 'left' }
     ];
     
-    // Shuffle directions randomly
     for (let i = directions.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
+      const j = Math.floor(rng() * (i + 1));
       [directions[i], directions[j]] = [directions[j], directions[i]];
     }
     
     for (const { dr, dc, dir, entry } of directions) {
       const newRow = row + dr;
       const newCol = col + dc;
-      
-      // Don't go back
       if (dir === fromDir) continue;
-      
       if (dfs(newRow, newCol, entry)) return true;
     }
     
-    // Backtrack
     path.pop();
     visited.delete(`${row},${col}`);
     return false;
   };
   
-  // Find path from start
   dfs(startRow, 0, 'left');
   
-  // Place tiles on path
   for (let i = 0; i < path.length; i++) {
     const curr = path[i];
-    const prev = i > 0 ? path[i - 1] : null;
     const next = i < path.length - 1 ? path[i + 1] : null;
     
     let fromSide = curr.fromDir;
@@ -79,19 +94,16 @@ const generateMotion = (difficulty) => {
       else if (next.col < curr.col) toSide = 'left';
       else if (next.col > curr.col) toSide = 'right';
     } else {
-      toSide = 'right'; // Exit at end
+      toSide = 'right'; // Exit output
     }
     
-    // Determine tile type and rotation
     let tileType, rotation = 0;
-    
     if ((fromSide === 'left' && toSide === 'right') || (fromSide === 'right' && toSide === 'left')) {
       tileType = 'straight-h';
     } else if ((fromSide === 'top' && toSide === 'bottom') || (fromSide === 'bottom' && toSide === 'top')) {
       tileType = 'straight-v';
     } else {
       tileType = 'l-top-right';
-      // Calculate rotation for L-shape
       if (fromSide === 'left' && toSide === 'top') rotation = 3;
       else if (fromSide === 'top' && toSide === 'right') rotation = 0;
       else if (fromSide === 'right' && toSide === 'bottom') rotation = 1;
@@ -101,31 +113,29 @@ const generateMotion = (difficulty) => {
       else if (fromSide === 'right' && toSide === 'top') rotation = 0;
       else if (fromSide === 'top' && toSide === 'left') rotation = 3;
     }
-    
     grid[curr.row][curr.col] = { type: tileType, rotation };
     solution[curr.row][curr.col] = { type: tileType, rotation };
   }
   
-  // Randomize rotations for puzzle and fill empty tiles
-  for (let i = 0; i < 4; i++) {
-    for (let j = 0; j < 4; j++) {
+  for (let i = 0; i < boardSize; i++) {
+    for (let j = 0; j < boardSize; j++) {
       if (grid[i][j]) {
-        grid[i][j].rotation = Math.floor(Math.random() * 4);
+        grid[i][j].rotation = Math.floor(rng() * 4);
       } else {
-        // Add random tile to empty cells
-        const tileType = TILE_TYPES[Math.floor(Math.random() * TILE_TYPES.length)];
-        grid[i][j] = { type: tileType.id, rotation: Math.floor(Math.random() * 4) };
+        const typeIndex = Math.floor(rng() * TILE_TYPES.length);
+        const tileType = TILE_TYPES[typeIndex];
+        grid[i][j] = { type: tileType.id, rotation: Math.floor(rng() * 4) };
       }
     }
   }
   
-  return { grid, startRow, endRow, solution };
+  return { grid, startRow, endRow, solution, boardSize };
 };
 
 const drawTile = (ctx, type, rotation, size) => {
   ctx.clearRect(0, 0, size, size);
   
-  ctx.fillStyle = '#f8f9fa';
+  ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, size, size);
   
   ctx.save();
@@ -133,41 +143,62 @@ const drawTile = (ctx, type, rotation, size) => {
   ctx.rotate((rotation * Math.PI) / 2);
   ctx.translate(-size/2, -size/2);
   
-  ctx.strokeStyle = '#2563eb';
-  ctx.lineWidth = size / 30;
+  ctx.strokeStyle = '#6366f1';
+  ctx.lineWidth = size / 5;
   ctx.lineCap = 'round';
-  ctx.shadowColor = 'rgba(37, 99, 235, 0.3)';
-  ctx.shadowBlur = 4;
+  ctx.lineJoin = 'round';
   
+  const mid = size / 2;
+  
+  ctx.beginPath();
   if (type.startsWith('straight-h')) {
-    ctx.beginPath();
-    ctx.moveTo(0, size/2);
-    ctx.lineTo(size, size/2);
-    ctx.stroke();
+    ctx.moveTo(0, mid);
+    ctx.lineTo(size, mid);
   } else if (type.startsWith('straight-v')) {
-    ctx.beginPath();
-    ctx.moveTo(size/2, 0);
-    ctx.lineTo(size/2, size);
-    ctx.stroke();
+    ctx.moveTo(mid, 0);
+    ctx.lineTo(mid, size);
   } else if (type.startsWith('l-')) {
-    ctx.beginPath();
-    ctx.moveTo(size/2, 0);
-    ctx.lineTo(size/2, size/2);
-    ctx.lineTo(size, size/2);
-    ctx.stroke();
+    ctx.moveTo(mid, 0);
+    ctx.quadraticCurveTo(mid, mid, size, mid);
   }
+  ctx.stroke();
   
+  ctx.fillStyle = '#4f46e5';
+  ctx.beginPath();
+  if (type.startsWith('straight-h') || type.startsWith('straight-v')) {
+    ctx.arc(mid, mid, size / 10, 0, Math.PI * 2);
+  } else {
+    ctx.arc(mid + (size * 0.08), mid - (size * 0.08), size / 10, 0, Math.PI * 2);
+  }
+  ctx.fill();
+
   ctx.restore();
 };
 
-const checkPath = (grid, startRow, endRow, returnPath = false) => {
+const getTileExits = (type, rotation) => {
+  let exits = [];
+  if (type === 'straight-h') exits = ['left', 'right'];
+  else if (type === 'straight-v') exits = ['top', 'bottom'];
+  else if (type.startsWith('l-')) exits = ['top', 'right'];
+  
+  for (let i = 0; i < rotation; i++) {
+    exits = exits.map(e => {
+      if (e === 'top') return 'right';
+      if (e === 'right') return 'bottom';
+      if (e === 'bottom') return 'left';
+      if (e === 'left') return 'top';
+      return e;
+    });
+  }
+  return exits;
+};
+
+const checkPath = (grid, startRow, endRow, boardSize, returnPath = false) => {
   const visited = new Set();
   const path = [];
-  const rows = grid.length;
-  const cols = grid[0].length;
   
   const dfs = (row, col, fromSide) => {
-    if (row < 0 || row >= rows || col < 0 || col >= cols) return false;
+    if (row < 0 || row >= boardSize || col < 0 || col >= boardSize) return false;
     
     const key = `${row},${col},${fromSide}`;
     if (visited.has(key)) return false;
@@ -180,12 +211,10 @@ const checkPath = (grid, startRow, endRow, returnPath = false) => {
       return false;
     }
     
-    if (col === cols - 1 && row === endRow) {
-      const exits = getTileExits(tile.type, tile.rotation);
+    const exits = getTileExits(tile.type, tile.rotation);
+    if (col === boardSize - 1 && row === endRow) {
       if (exits.includes('right')) return true;
     }
-    
-    const exits = getTileExits(tile.type, tile.rotation);
     
     if (!exits.includes(fromSide)) {
       path.pop();
@@ -201,8 +230,7 @@ const checkPath = (grid, startRow, endRow, returnPath = false) => {
       else if (exit === 'left') { nextCol--; nextEntry = 'right'; }
       else if (exit === 'right') { nextCol++; nextEntry = 'left'; }
       
-      if (nextCol === cols && nextRow === endRow) return true;
-      
+      if (nextCol === boardSize && nextRow === endRow) return true;
       if (dfs(nextRow, nextCol, nextEntry)) return true;
     }
     
@@ -214,205 +242,97 @@ const checkPath = (grid, startRow, endRow, returnPath = false) => {
   return returnPath ? (result ? path : []) : result;
 };
 
-const getTileExits = (type, rotation) => {
-  let exits = [];
+const MotionChallengeGame = ({ level, difficulty, onComplete }) => {
+  const diff = difficulty || level?.difficulty || 'Easy';
+  const targetScore = level?.pointsForLevel || 10;
   
-  if (type === 'straight-h') {
-    exits = ['left', 'right'];
-  } else if (type === 'straight-v') {
-    exits = ['top', 'bottom'];
-  } else if (type.startsWith('l-')) {
-    exits = ['top', 'right'];
-  }
-  
-  // Rotate exits based on rotation count
-  for (let i = 0; i < rotation; i++) {
-    exits = exits.map(e => {
-      if (e === 'top') return 'right';
-      if (e === 'right') return 'bottom';
-      if (e === 'bottom') return 'left';
-      if (e === 'left') return 'top';
-    });
-  }
-  
-  return exits;
-};
-
-const MotionChallengeGame = ({ difficulty = 'Easy', onComplete }) => {
-  const totalQuestions = 20;
-  const [currentQuestion, setCurrentQuestion] = useState(0);
   const [motion, setMotion] = useState(null);
-  const [score, setScore] = useState(0);
-  const [gameOver, setGameOver] = useState(false);
   const [canvasRefs, setCanvasRefs] = useState({});
-  const [selectedTile, setSelectedTile] = useState(null);
-  const [feedback, setFeedback] = useState('');
-  const [showHint, setShowHint] = useState(false);
+  const [rotateCount, setRotateCount] = useState(0);
+  const [feedback, setFeedback] = useState(null);
+  
   const [highlightPath, setHighlightPath] = useState([]);
   const [animationProgress, setAnimationProgress] = useState(0);
   const [userPosition, setUserPosition] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    startNewQuestion();
-  }, [currentQuestion]);
+    setCanvasRefs({});
+    setMotion(generateMotion(diff));
+    setFeedback(null);
+    setHighlightPath([]);
+    setAnimationProgress(0);
+    setUserPosition(null);
+    setIsSubmitting(false);
+    setRotateCount(0);
+  }, [diff, level]);
 
   useEffect(() => {
     if (motion) {
       Object.entries(canvasRefs).forEach(([idx, ref]) => {
         if (ref) {
-          const row = Math.floor(idx / 4);
-          const col = idx % 4;
+          const row = Math.floor(idx / motion.boardSize);
+          const col = idx % motion.boardSize;
           const tile = motion.grid[row]?.[col];
           if (!tile) return;
           const ctx = ref.getContext('2d');
           
-          drawTile(ctx, tile.type, tile.rotation, 80);
+          const size = ref.width;
+          drawTile(ctx, tile.type, tile.rotation, size);
           
-          // Animate path if available
           if (highlightPath.length > 0 && animationProgress > 0) {
             const pathIndex = highlightPath.findIndex(([r, c]) => r === row && c === col);
             if (pathIndex !== -1 && pathIndex < animationProgress) {
-              ctx.strokeStyle = '#10b981';
-              ctx.lineWidth = 8;
+              ctx.strokeStyle = '#10b981'; 
+              ctx.lineWidth = size / 4;
               ctx.lineCap = 'round';
-              ctx.shadowColor = 'rgba(16, 185, 129, 0.5)';
-              ctx.shadowBlur = 10;
+              ctx.lineJoin = 'round';
               
               const exits = getTileExits(tile.type, tile.rotation);
-              const size = 80;
-              
               ctx.save();
               ctx.beginPath();
               
               if (tile.type === 'straight-h') {
-                if (tile.rotation % 2 === 0) {
-                  ctx.moveTo(0, size/2);
-                  ctx.lineTo(size, size/2);
-                } else {
-                  ctx.moveTo(size/2, 0);
-                  ctx.lineTo(size/2, size);
-                }
+                if (tile.rotation % 2 === 0) { ctx.moveTo(0, size/2); ctx.lineTo(size, size/2); }
+                else { ctx.moveTo(size/2, 0); ctx.lineTo(size/2, size); }
               } else if (tile.type === 'straight-v') {
-                if (tile.rotation % 2 === 0) {
-                  ctx.moveTo(size/2, 0);
-                  ctx.lineTo(size/2, size);
-                } else {
-                  ctx.moveTo(0, size/2);
-                  ctx.lineTo(size, size/2);
-                }
+                if (tile.rotation % 2 === 0) { ctx.moveTo(size/2, 0); ctx.lineTo(size/2, size); }
+                else { ctx.moveTo(0, size/2); ctx.lineTo(size, size/2); }
               } else if (tile.type.startsWith('l-')) {
                 ctx.translate(size/2, size/2);
                 ctx.rotate((tile.rotation * Math.PI) / 2);
                 ctx.moveTo(0, -size/2);
-                ctx.lineTo(0, 0);
-                ctx.lineTo(size/2, 0);
+                ctx.quadraticCurveTo(0, 0, size/2, 0);
               }
               
               ctx.stroke();
               ctx.restore();
             }
           }
-          
-          if (showHint) {
-            const ctx = ref.getContext('2d');
-            ctx.strokeStyle = '#fbbf24';
-            ctx.lineWidth = 8;
-            ctx.globalAlpha = 0.7;
-            ctx.lineCap = 'round';
-            
-            if (tile.type.startsWith('straight-h')) {
-              const angle = tile.rotation * Math.PI / 2;
-              ctx.save();
-              ctx.translate(50, 50);
-              ctx.rotate(angle);
-              ctx.beginPath();
-              ctx.moveTo(-50, 0);
-              ctx.lineTo(50, 0);
-              ctx.stroke();
-              ctx.restore();
-            } else if (tile.type.startsWith('straight-v')) {
-              const angle = tile.rotation * Math.PI / 2;
-              ctx.save();
-              ctx.translate(50, 50);
-              ctx.rotate(angle);
-              ctx.beginPath();
-              ctx.moveTo(0, -50);
-              ctx.lineTo(0, 50);
-              ctx.stroke();
-              ctx.restore();
-            } else if (tile.type.startsWith('l-')) {
-              const angle = tile.rotation * Math.PI / 2;
-              ctx.save();
-              ctx.translate(50, 50);
-              ctx.rotate(angle);
-              ctx.beginPath();
-              ctx.moveTo(0, -50);
-              ctx.lineTo(0, 0);
-              ctx.lineTo(50, 0);
-              ctx.stroke();
-              ctx.restore();
-            }
-            
-            ctx.globalAlpha = 1;
-          }
         }
       });
     }
-  }, [motion, canvasRefs, showHint, highlightPath, animationProgress]);
+  }, [motion, canvasRefs, highlightPath, animationProgress]);
 
-  const startNewQuestion = () => {
-    const newMotion = generateMotion(difficulty);
-    setMotion(newMotion);
-    setSelectedTile(null);
-    setFeedback('');
-    setHighlightPath([]);
-  };
-
-  const rotateTile = () => {
-    if (selectedTile === null) return;
-    const [row, col] = selectedTile;
+  const handleTileClick = (row, col) => {
+    if (isSubmitting) return;
     if (!motion.grid[row][col]) return;
     const newGrid = motion.grid.map(r => r.map(c => c ? {...c} : null));
     newGrid[row][col].rotation = (newGrid[row][col].rotation + 1) % 4;
-    setMotion({...motion, grid: newGrid});
-  };
+    setFeedback(null);
+    setRotateCount(prev => prev + 1);
+    const updatedMotion = {...motion, grid: newGrid};
+    setMotion(updatedMotion);
 
-  const handleHint = () => {
-    setShowHint(true);
-    
-    // Auto-rotate tiles to solution
-    const newGrid = motion.grid.map((row, i) => 
-      row.map((tile, j) => ({
-        ...tile,
-        rotation: motion.solution[i][j].rotation
-      }))
-    );
-    setMotion({...motion, grid: newGrid});
-    
-    setTimeout(() => {
-      setShowHint(false);
-      if (currentQuestion < totalQuestions - 1) {
-        setCurrentQuestion(currentQuestion + 1);
-      } else {
-        setGameOver(true);
-        if (onComplete) onComplete(score);
-      }
-    }, 4000);
-  };
-
-  const handleSubmit = () => {
-    const pathResult = checkPath(motion.grid, motion.startRow, motion.endRow, true);
-    
+    // Auto-check path after each rotation
+    const pathResult = checkPath(newGrid, motion.startRow, motion.endRow, motion.boardSize, true);
     if (pathResult && pathResult.length > 0) {
-      setScore(score + 1);
-      setFeedback('✓ Path Connected!');
       setHighlightPath(pathResult);
       setAnimationProgress(0);
-      
-      // Animate path
+      setIsSubmitting(true);
+
       let progress = 0;
-      const animationDuration = 2000; // 2 seconds total
-      const stepDelay = animationDuration / pathResult.length;
+      const stepDelay = 1200 / pathResult.length;
       const interval = setInterval(() => {
         progress++;
         setAnimationProgress(progress);
@@ -420,93 +340,94 @@ const MotionChallengeGame = ({ difficulty = 'Easy', onComplete }) => {
         if (progress >= pathResult.length) {
           clearInterval(interval);
           setTimeout(() => {
-            setHighlightPath([]);
-            setAnimationProgress(0);
-            setUserPosition(null);
-            if (currentQuestion < totalQuestions - 1) {
-              setCurrentQuestion(currentQuestion + 1);
-            } else {
-              setGameOver(true);
-              if (onComplete) onComplete(score + 1);
-            }
-          }, 500);
+            if (onComplete) onComplete(targetScore);
+          }, 800);
         }
       }, stepDelay);
-    } else {
-      setFeedback('✗ No valid path. Keep rotating!');
-      setHighlightPath([]);
-      setAnimationProgress(0);
-      setUserPosition(null);
     }
   };
-
-  if (gameOver) {
-    return (
-      <Box sx={{ textAlign: 'center', p: 4 }}>
-        <Typography variant="h4" sx={{ mb: 2 }}>Game Complete!</Typography>
-        <Typography variant="h5" sx={{ mb: 3 }}>Score: {score}/{totalQuestions}</Typography>
-        <Typography variant="h6" sx={{ mb: 2 }}>Accuracy: {((score / totalQuestions) * 100).toFixed(1)}%</Typography>
-        <Button variant="contained" onClick={() => window.location.reload()}>Play Again</Button>
-      </Box>
-    );
-  }
 
   if (!motion) return null;
 
   return (
-    <Box sx={{ maxWidth: '100%', mx: 'auto', p: 3, pt: 0 }}>
-      <Card sx={{ p: 4, pt: 0, textAlign: 'center' }}>
-        <Typography variant="h6" sx={{ mb: 1, mt: 0, color: 'text.secondary' }}>
-          Click a tile to select, then rotate it to create a path from START to END
+    <Box sx={{ width: '100%', mx: 'auto', p: { xs: 1, sm: 2 } }}>
+      <MotionCard 
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        sx={{ 
+          p: { xs: 2.5, md: 4 }, 
+          borderRadius: '24px', 
+          boxShadow: '0 10px 40px rgba(99, 102, 241, 0.08)',
+          border: '1px solid rgba(226, 232, 240, 0.8)',
+          textAlign: 'center',
+          overflow: 'hidden'
+        }}
+      >
+        <Typography variant="body1" sx={{ color: '#64748b', mb: 3, fontWeight: 500 }}>
+          🔌 Click tiles to rotate them and connect the path from <b style={{ color: '#3b82f6' }}>Source</b> to <b style={{ color: '#10b981' }}>Exit</b>
         </Typography>
-        
-        <Box sx={{ display: 'inline-block', position: 'relative', mb: 3, mt: 0, p: 2, bgcolor: '#f1f5f9', borderRadius: 2 }}>
-          <Box sx={{ position: 'absolute', left: -50, top: motion.startRow * 80 + 40, transform: 'translateY(-50%)', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#10b981', color: 'white', width: 40, height: 40, borderRadius: '50%', boxShadow: 2 }}>
-            <DirectionsRun sx={{ fontSize: 24 }} />
-          </Box>
-          <Box sx={{ position: 'absolute', right: -50, top: motion.endRow * 80 + 40, transform: 'translateY(-50%)', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#ef4444', color: 'white', width: 40, height: 40, borderRadius: '50%', boxShadow: 2 }}>
-            <Home sx={{ fontSize: 24 }} />
-          </Box>
-          
-          {userPosition && (
-            <Box sx={{ 
-              position: 'absolute', 
-              left: userPosition[1] * 80 + 40, 
-              top: userPosition[0] * 80 + 40, 
-              transform: 'translate(-50%, -50%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              bgcolor: '#3b82f6',
-              color: 'white',
-              width: 30,
-              height: 30,
-              borderRadius: '50%',
-              boxShadow: 3,
-              transition: 'all 0.3s ease',
-              zIndex: 10
-            }}>
-              <DirectionsRun sx={{ fontSize: 20 }} />
-            </Box>
-          )}
-          
-          {Array.from({ length: 4 }).map((_, blockRow) => (
-            <Box key={blockRow} sx={{ display: 'flex', gap: 1 }}>
-              {Array.from({ length: 4 }).map((_, blockCol) => {
-                const idx = blockRow * 4 + blockCol;
-                const tile = motion.grid[blockRow][blockCol];
-                return (
-                  <Box key={blockCol} sx={{ border: '2px solid #cbd5e1', borderRadius: 1, bgcolor: 'white' }}>
+
+        <Box sx={{ 
+          position: 'relative', 
+          mx: 'auto', 
+          p: { xs: 1, sm: 2 }, 
+          bgcolor: '#f8fafc', 
+          borderRadius: '20px',
+          border: '2px dashed #e2e8f0',
+          mb: 4,
+          maxWidth: motion.boardSize === 6 ? 880 : motion.boardSize === 5 ? 760 : 620
+        }}>
+          <Box sx={{ 
+            display: 'grid', 
+            gridTemplateColumns: `50px repeat(${motion.boardSize}, 1fr) 50px`, 
+            gap: { xs: 0.5, sm: 1 },
+            alignItems: 'center'
+          }}>
+            {Array.from({ length: motion.boardSize }).map((_, blockRow) => (
+              <React.Fragment key={blockRow}>
+                {/* Start marker column */}
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                  {blockRow === motion.startRow && (
+                    <MotionBox 
+                      animate={{ scale: [1, 1.15, 1] }} 
+                      transition={{ repeat: Infinity, duration: 2 }}
+                      sx={{ 
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                        bgcolor: '#3b82f6', color: 'white', 
+                        width: { xs: 34, sm: 44 }, height: { xs: 34, sm: 44 }, 
+                        borderRadius: '50%', boxShadow: '0 4px 15px rgba(59, 130, 246, 0.4)'
+                      }}
+                    >
+                      <MotionPhotosAuto sx={{ fontSize: { xs: 18, sm: 22 } }} />
+                    </MotionBox>
+                  )}
+                </Box>
+
+                {/* Tile columns */}
+                {Array.from({ length: motion.boardSize }).map((_, blockCol) => {
+                  const idx = blockRow * motion.boardSize + blockCol;
+                  
+                  return (
                     <Box
-                      onClick={() => setSelectedTile([blockRow, blockCol])}
+                      key={idx}
+                      onClick={() => handleTileClick(blockRow, blockCol)}
                       sx={{
-                        border: selectedTile && selectedTile[0] === blockRow && selectedTile[1] === blockCol ? '4px solid #10b981' : '2px solid #e2e8f0',
-                        borderRadius: 2,
-                        cursor: 'pointer',
-                        transition: 'all 0.2s',
+                        width: '100%',
+                        aspectRatio: '1',
+                        border: '2px solid #cbd5e1',
+                        borderRadius: '14px',
+                        bgcolor: '#fff',
+                        cursor: isSubmitting ? 'default' : 'pointer',
+                        transition: 'all 0.15s ease',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        overflow: 'hidden',
                         '&:hover': {
-                          borderColor: '#10b981',
-                          transform: 'scale(1.05)'
+                          borderColor: isSubmitting ? undefined : '#6366f1',
+                          boxShadow: isSubmitting ? undefined : '0 6px 18px rgba(99, 102, 241, 0.18)',
+                          transform: isSubmitting ? undefined : 'scale(1.06)'
+                        },
+                        '&:active': {
+                          transform: isSubmitting ? undefined : 'scale(0.95)'
                         }
                       }}
                     >
@@ -516,63 +437,36 @@ const MotionChallengeGame = ({ difficulty = 'Easy', onComplete }) => {
                             setCanvasRefs(prev => ({...prev, [idx]: ref}));
                           }
                         }}
-                        width={80}
-                        height={80}
-                        style={{ display: 'block', borderRadius: '6px' }}
+                        width={120}
+                        height={120}
+                        style={{ width: '100%', height: '100%', display: 'block', pointerEvents: 'none' }}
                       />
                     </Box>
-                  </Box>
-                );
-              })}
-            </Box>
-          ))}
-        </Box>
+                  );
+                })}
 
-        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', mb: 2 }}>
-          <Button
-            variant="outlined"
-            startIcon={<RotateRight />}
-            onClick={rotateTile}
-            disabled={selectedTile === null}
-            sx={{ 
-              px: 3, 
-              py: 1.5,
-              borderColor: '#10b981',
-              color: '#10b981',
-              '&:hover': {
-                borderColor: '#059669',
-                bgcolor: '#10b98114'
-              },
-              '&:disabled': {
-                borderColor: '#d1d5db',
-                color: '#9ca3af'
-              }
-            }}
-          >
-            Rotate Selected
-          </Button>
-          <Button
-            variant="contained"
-            onClick={handleSubmit}
-            sx={{ 
-              px: 4, 
-              py: 1.5,
-              bgcolor: '#2563eb',
-              '&:hover': {
-                bgcolor: '#1d4ed8'
-              }
-            }}
-          >
-            Check Path
-          </Button>
+                {/* End marker column */}
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                  {blockRow === motion.endRow && (
+                    <MotionBox 
+                      animate={{ scale: [1, 1.15, 1] }} 
+                      transition={{ repeat: Infinity, duration: 2, delay: 1 }}
+                      sx={{ 
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                        bgcolor: '#10b981', color: 'white', 
+                        width: { xs: 34, sm: 44 }, height: { xs: 34, sm: 44 }, 
+                        borderRadius: '50%', boxShadow: '0 4px 15px rgba(16, 185, 129, 0.4)'
+                      }}
+                    >
+                      <Flag sx={{ fontSize: { xs: 18, sm: 22 } }} />
+                    </MotionBox>
+                  )}
+                </Box>
+              </React.Fragment>
+            ))}
+          </Box>
         </Box>
-
-        {feedback && (
-          <Typography variant="h6" sx={{ color: feedback.includes('✓') ? 'success.main' : 'error.main', fontWeight: 600 }}>
-            {feedback}
-          </Typography>
-        )}
-      </Card>
+      </MotionCard>
     </Box>
   );
 };

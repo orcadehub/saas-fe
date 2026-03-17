@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Box, Typography, Button } from '@mui/material';
+import { Box, Typography, Button, Card } from '@mui/material';
 import { DirectionsWalk, KeyboardArrowUp, KeyboardArrowDown, KeyboardArrowLeft, KeyboardArrowRight, Home, Block } from '@mui/icons-material';
+import { motion, AnimatePresence } from 'framer-motion';
+
+const MotionCard = motion.create(Card);
+const MotionBox = motion.create(Box);
 
 const generateMaze = (rows, cols) => {
   const grid = Array(rows).fill(null).map(() => Array(cols).fill(1));
@@ -76,30 +80,32 @@ const generateMaze = (rows, cols) => {
   return { grid, start: [startRow, 0], end: [endRow, cols - 1] };
 };
 
-const MazeGame = ({ level, onComplete, showPath = false, onNoPathCheck, disabled = false, themeColor = '#6a0dad' }) => {
-  const levelData = JSON.parse(level.correctAnswer);
-  const mazeData = useMemo(() => generateMaze(levelData.rows, levelData.cols), [level.levelNumber, levelData.rows, levelData.cols]);
+const MazeGame = ({ level, themeColor = '#6366f1', onComplete }) => {
+  const levelData = level?.correctAnswer ? JSON.parse(level.correctAnswer) : { rows: 8, cols: 8 };
+  const targetScore = level?.pointsForLevel || 10;
+  
+  // Re-generate maze on mount or level change
+  const mazeData = useMemo(() => generateMaze(levelData.rows, levelData.cols), [level?.levelNumber, levelData.rows, levelData.cols]);
+  
   const [playerPos, setPlayerPos] = useState([mazeData.start[0], mazeData.start[1]]);
-  const [completed, setCompleted] = useState(false);
   const [direction, setDirection] = useState('down');
   const [hitWall, setHitWall] = useState(false);
   const [hitWallPos, setHitWallPos] = useState(null);
   const [solutionPath, setSolutionPath] = useState([]);
+  const [feedback, setFeedback] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Reset state on new maze
   useEffect(() => {
     setPlayerPos([mazeData.start[0], mazeData.start[1]]);
-    setCompleted(false);
     setHitWall(false);
     setHitWallPos(null);
-  }, [level.levelNumber, mazeData.start[0], mazeData.start[1]]);
+    setSolutionPath([]);
+    setFeedback(null);
+    setIsSubmitting(false);
+  }, [mazeData]);
 
-  const checkWin = useCallback((pos) => {
-    if (pos[0] === mazeData.end[0] && pos[1] === mazeData.end[1]) {
-      setCompleted(true);
-      onComplete(true);
-    }
-  }, [mazeData.end, onComplete]);
-
+  // Pathfinding algorithm to check if maze is solvable (BFS)
   const findPath = useCallback(() => {
     const queue = [[...mazeData.start, [mazeData.start]]];
     const visited = new Set([`${mazeData.start[0]},${mazeData.start[1]}`]);
@@ -128,61 +134,34 @@ const MazeGame = ({ level, onComplete, showPath = false, onNoPathCheck, disabled
     return [];
   }, [mazeData]);
 
-  const hasPath = useMemo(() => {
-    const pathExists = findPath().length > 0;
-    console.log('Maze hasPath:', pathExists);
-    return pathExists;
-  }, [findPath]);
+  const hasPath = useMemo(() => findPath().length > 0, [findPath]);
 
-  useEffect(() => {
-    if (onNoPathCheck) {
-      // Use setTimeout to ensure this runs after all synchronous updates
-      const timer = setTimeout(() => {
-        onNoPathCheck(hasPath);
-      }, 0);
-      return () => clearTimeout(timer);
+  // Handle Win Condition
+  const checkWin = useCallback((pos) => {
+    if (pos[0] === mazeData.end[0] && pos[1] === mazeData.end[1]) {
+      setIsSubmitting(true);
+      setFeedback({ type: 'success', msg: 'You reached the end! 🎉' });
+      setTimeout(() => {
+        if (onComplete) onComplete(targetScore);
+      }, 1500);
     }
-  }, [hasPath]);
+  }, [mazeData.end, onComplete, targetScore]);
 
-  const handleNoPath = () => {
-    setCompleted(true);
-    if (hasPath) {
-      setSolutionPath(findPath());
-    }
-    onComplete(!hasPath);
-  };
-
-  useEffect(() => {
-    if (showPath) {
-      const path = findPath();
-      setSolutionPath(path);
-    } else {
-      setSolutionPath([]);
-    }
-  }, [showPath, findPath]);
-
+  // Keyboard navigation
   useEffect(() => {
     const handleKeyPress = (e) => {
-      if (completed || disabled) return;
+      if (isSubmitting || feedback) return;
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+        e.preventDefault(); // Prevent page scroll
+      } else return;
       
       const [row, col] = playerPos;
-      let newRow = row;
-      let newCol = col;
-      let newDirection = direction;
+      let newRow = row, newCol = col, newDirection = direction;
 
-      if (e.key === 'ArrowUp') {
-        newRow = Math.max(0, row - 1);
-        newDirection = 'up';
-      } else if (e.key === 'ArrowDown') {
-        newRow = Math.min(mazeData.grid.length - 1, row + 1);
-        newDirection = 'down';
-      } else if (e.key === 'ArrowLeft') {
-        newCol = Math.max(0, col - 1);
-        newDirection = 'left';
-      } else if (e.key === 'ArrowRight') {
-        newCol = Math.min(mazeData.grid[0].length - 1, col + 1);
-        newDirection = 'right';
-      } else return;
+      if (e.key === 'ArrowUp') { newRow = Math.max(0, row - 1); newDirection = 'up'; }
+      if (e.key === 'ArrowDown') { newRow = Math.min(mazeData.grid.length - 1, row + 1); newDirection = 'down'; }
+      if (e.key === 'ArrowLeft') { newCol = Math.max(0, col - 1); newDirection = 'left'; }
+      if (e.key === 'ArrowRight') { newCol = Math.min(mazeData.grid[0].length - 1, col + 1); newDirection = 'right'; }
 
       if (mazeData.grid[newRow][newCol] === 0) {
         const newPos = [newRow, newCol];
@@ -191,6 +170,7 @@ const MazeGame = ({ level, onComplete, showPath = false, onNoPathCheck, disabled
         checkWin(newPos);
       } else {
         setHitWall(true);
+        setHitWallPos([newRow, newCol]);
         setTimeout(() => {
           setPlayerPos([mazeData.start[0], mazeData.start[1]]);
           setHitWall(false);
@@ -201,94 +181,168 @@ const MazeGame = ({ level, onComplete, showPath = false, onNoPathCheck, disabled
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [playerPos, completed, mazeData, checkWin, direction, disabled]);
+  }, [playerPos, isSubmitting, feedback, mazeData, checkWin, direction]);
 
-  const cellSize = Math.min(Math.floor(600 / mazeData.grid.length), Math.floor(600 / mazeData.grid[0].length));
+  const handleNoPath = () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
+    if (!hasPath) {
+      setFeedback({ type: 'success', msg: 'Correct! There is no possible path. 👏' });
+      setTimeout(() => {
+        if (onComplete) onComplete(targetScore);
+      }, 2000);
+    } else {
+      setFeedback({ type: 'error', msg: 'Incorrect! A path exists. Look at the highlighted route.' });
+      setSolutionPath(findPath());
+      setTimeout(() => {
+        if (onComplete) onComplete(0);
+      }, 3000);
+    }
+  };
+
+  const cellSize = Math.min(
+    Math.floor(400 / mazeData.grid.length), 
+    Math.floor(400 / mazeData.grid[0].length)
+  );
 
   return (
-    <Box sx={{ mb: 3, display: 'flex', gap: 3, alignItems: 'flex-start' }}>
-      <Box sx={{ flex: 1 }}>
-        {completed && (
-          <Typography sx={{ mt: 2, color: '#10b981', fontWeight: 700, fontSize: '1.25rem' }}>
-            ✅ Maze Completed!
-          </Typography>
-        )}
-      </Box>
-      <Box sx={{ flex: 1 }}>
-        <Typography sx={{ mb: 2, color: themeColor, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-          Use arrow keys to navigate:
-          <KeyboardArrowUp sx={{ fontSize: 24, bgcolor: `${themeColor}14`, borderRadius: 1, p: 0.5 }} />
-          <KeyboardArrowDown sx={{ fontSize: 24, bgcolor: `${themeColor}14`, borderRadius: 1, p: 0.5 }} />
-          <KeyboardArrowLeft sx={{ fontSize: 24, bgcolor: `${themeColor}14`, borderRadius: 1, p: 0.5 }} />
-          <KeyboardArrowRight sx={{ fontSize: 24, bgcolor: `${themeColor}14`, borderRadius: 1, p: 0.5 }} />
+    <Box sx={{ width: '100%', mx: 'auto', p: { xs: 1, sm: 2 } }}>
+      <MotionCard
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        sx={{
+          p: { xs: 2, md: 4 },
+          borderRadius: '24px',
+          boxShadow: '0 10px 40px rgba(99, 102, 241, 0.08)',
+          border: '1px solid rgba(226, 232, 240, 0.8)',
+          textAlign: 'center',
+          overflow: 'hidden'
+        }}
+      >
+        <Typography variant="body1" sx={{ color: '#64748b', mb: 1, fontWeight: 500 }}>
+          Navigate the maze from the start (yellow) to the exit (green).
         </Typography>
-        <Box sx={{ 
-        display: 'inline-block', 
-        display: 'inline-block', 
-        border: `3px solid ${themeColor}`, 
-        borderRadius: 2,
-        p: 1,
-        bgcolor: `${themeColor}0D`,
-        maxWidth: '100%',
-        overflowX: 'auto'
-      }}>
-        {mazeData.grid.map((row, rowIdx) => (
-          <Box key={rowIdx} sx={{ display: 'flex' }}>
-            {row.map((cell, colIdx) => {
-              const isPlayer = playerPos[0] === rowIdx && playerPos[1] === colIdx;
-              const isStart = mazeData.start[0] === rowIdx && mazeData.start[1] === colIdx;
-              const isEnd = mazeData.end[0] === rowIdx && mazeData.end[1] === colIdx;
-              const isHitWall = hitWallPos && hitWallPos[0] === rowIdx && hitWallPos[1] === colIdx;
-              const isPath = solutionPath.some(p => p[0] === rowIdx && p[1] === colIdx);
-              
-              const isWall = cell === 1;
-              
-              return (
-                <Box
-                  key={colIdx}
-                  sx={{
-                    width: cellSize,
-                    height: cellSize,
-                    bgcolor: isEnd ? '#10b981' : isStart ? '#fef3c7' : isPath ? '#fbbf24' : 'white',
-                    border: '1px solid #e5e7eb',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: cellSize * 0.6,
-                    transition: 'all 0.2s'
-                  }}
-                >
-                  {isEnd && !isPlayer && (
-                    <Home sx={{ fontSize: cellSize * 0.7, color: 'white' }} />
-                  )}
-                  {isPlayer && (
-                    <DirectionsWalk 
-                      sx={{ 
-                        fontSize: cellSize * 0.8,
-                        color: hitWall ? '#ef4444' : themeColor,
-                        animation: hitWall ? 'shake 0.5s' : 'walk 0.6s steps(2) infinite'
-                      }} 
-                    />
-                  )}
-                </Box>
-              );
-            })}
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 1, mb: 3 }}>
+          <Typography variant="body2" sx={{ color: '#94a3b8', fontWeight: 600 }}>Use Arrow Keys:</Typography>
+          <Box sx={{ display: 'flex', gap: 0.5 }}>
+            <Box sx={{ px: 0.5, py: 0.2, bgcolor: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '4px', borderBottomWidth: '2px' }}><KeyboardArrowUp sx={{ fontSize: 16 }} /></Box>
+            <Box sx={{ px: 0.5, py: 0.2, bgcolor: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '4px', borderBottomWidth: '2px' }}><KeyboardArrowDown sx={{ fontSize: 16 }} /></Box>
+            <Box sx={{ px: 0.5, py: 0.2, bgcolor: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '4px', borderBottomWidth: '2px' }}><KeyboardArrowLeft sx={{ fontSize: 16 }} /></Box>
+            <Box sx={{ px: 0.5, py: 0.2, bgcolor: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '4px', borderBottomWidth: '2px' }}><KeyboardArrowRight sx={{ fontSize: 16 }} /></Box>
           </Box>
-        ))}
-      </Box>
-      </Box>
-      <style>{`
-        @keyframes walk {
-          0%, 100% { transform: translateY(0) scale(1); }
-          25% { transform: translateY(-2px) scale(1.05); }
-          75% { transform: translateY(-2px) scale(0.95); }
-        }
-        @keyframes shake {
-          0%, 100% { transform: translateX(0); }
-          10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-          20%, 40%, 60%, 80% { transform: translateX(5px); }
-        }
-      `}</style>
+        </Box>
+
+        {/* Maze Grid */}
+        <Box sx={{ 
+          display: 'inline-block', 
+          p: 1.5,
+          bgcolor: '#f8fafc',
+          borderRadius: '20px',
+          border: '2px dashed #e2e8f0',
+          mb: 4
+        }}>
+          <Box sx={{ 
+            border: `3px solid ${themeColor}`, 
+            borderRadius: '12px',
+            overflow: 'hidden',
+            bgcolor: '#1e293b' // Dark background for the maze
+          }}>
+            {mazeData.grid.map((row, rowIdx) => (
+              <Box key={rowIdx} sx={{ display: 'flex' }}>
+                {row.map((cell, colIdx) => {
+                  const isPlayer = playerPos[0] === rowIdx && playerPos[1] === colIdx;
+                  const isStart = mazeData.start[0] === rowIdx && mazeData.start[1] === colIdx;
+                  const isEnd = mazeData.end[0] === rowIdx && mazeData.end[1] === colIdx;
+                  const isPathHint = solutionPath.some(p => p[0] === rowIdx && p[1] === colIdx);
+                  const isWall = cell === 1;
+                  
+                  return (
+                    <Box
+                      key={colIdx}
+                      sx={{
+                        width: cellSize,
+                        height: cellSize,
+                        bgcolor: isWall ? '#334155' : isEnd ? '#10b981' : isStart ? '#fef3c7' : isPathHint ? '#fde047' : '#f8fafc',
+                        border: '1px solid',
+                        borderColor: isWall ? '#1e293b' : '#e2e8f0',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'background-color 0.2s'
+                      }}
+                    >
+                      {isEnd && !isPlayer && (
+                        <MotionBox
+                          animate={{ scale: [1, 1.15, 1], opacity: [0.8, 1, 0.8] }}
+                          transition={{ repeat: Infinity, duration: 1.5 }}
+                        >
+                          <Home sx={{ fontSize: cellSize * 0.7, color: 'white', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }} />
+                        </MotionBox>
+                      )}
+                      {isPlayer && (
+                        <MotionBox
+                          animate={hitWall ? { x: [-4, 4, -4, 4, 0] } : { y: [-2, 2, -2] }}
+                          transition={{ duration: hitWall ? 0.3 : 0.8, repeat: hitWall ? 0 : Infinity }}
+                        >
+                          <DirectionsWalk 
+                            sx={{ 
+                              fontSize: cellSize * 0.8,
+                              color: hitWall ? '#ef4444' : themeColor,
+                              filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))'
+                            }} 
+                          />
+                        </MotionBox>
+                      )}
+                    </Box>
+                  );
+                })}
+              </Box>
+            ))}
+          </Box>
+        </Box>
+
+        {/* No Path Logic Block */}
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          {!feedback && (
+            <Button
+              variant="outlined"
+              onClick={handleNoPath}
+              disabled={isSubmitting}
+              startIcon={<Block />}
+              sx={{
+                px: 3, py: 1, borderRadius: '12px', color: '#ef4444', borderColor: '#ef4444',
+                fontWeight: 600, textTransform: 'none', fontSize: '1rem',
+                '&:hover': { bgcolor: '#fef2f2', borderColor: '#ef4444' }
+              }}
+            >
+              No Path Possible
+            </Button>
+          )}
+
+          {/* Feedback */}
+          <AnimatePresence>
+            {feedback && (
+              <MotionBox
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0 }}
+                sx={{
+                  mt: 2, p: 2, borderRadius: '14px', fontWeight: 700, fontSize: '1.05rem',
+                  display: 'inline-block',
+                  bgcolor: feedback.type === 'success' ? '#f0fdf4' : '#fef2f2',
+                  color: feedback.type === 'success' ? '#16a34a' : '#dc2626',
+                  border: '1px solid',
+                  borderColor: feedback.type === 'success' ? '#bbf7d0' : '#fecaca',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
+                }}
+              >
+                {feedback.msg}
+              </MotionBox>
+            )}
+          </AnimatePresence>
+        </Box>
+      </MotionCard>
     </Box>
   );
 };

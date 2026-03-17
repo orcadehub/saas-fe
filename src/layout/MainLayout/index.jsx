@@ -47,8 +47,19 @@ export default function MainLayout() {
   return (
     <Box sx={{ display: 'flex' }}>
       {/* header */}
-      <AppBar enableColorOnDark position="fixed" color="inherit" elevation={0} sx={{ bgcolor: 'background.default' }}>
-        <Toolbar sx={{ p: 2 }}>
+      <AppBar 
+        enableColorOnDark 
+        position="fixed" 
+        color="inherit" 
+        elevation={0} 
+        sx={{ 
+          bgcolor: 'rgba(255, 255, 255, 0.7)',
+          backdropFilter: 'blur(12px)',
+          borderBottom: '1px solid rgba(226, 232, 240, 0.8)',
+          zIndex: (theme) => theme.zIndex.drawer + 1
+        }}
+      >
+        <Toolbar sx={{ p: 2, minHeight: '80px !important' }}>
           <Header />
         </Toolbar>
       </AppBar>
@@ -58,7 +69,13 @@ export default function MainLayout() {
 
       {/* main content */}
       <MainContentStyled {...{ borderRadius, open: drawerOpen }}>
-        <Box sx={{ ...{ px: { xs: 0 } }, minHeight: 'calc(100vh - 128px)', display: 'flex', flexDirection: 'column' }}>
+        <Box sx={{ 
+          ...{ px: { xs: 0 } }, 
+          minHeight: 'calc(100vh - 128px)', 
+          display: 'flex', 
+          flexDirection: 'column',
+          bgcolor: '#fbfcfe'
+        }}>
           {/* breadcrumb */}
           <Breadcrumbs />
           <Outlet />

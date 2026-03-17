@@ -78,46 +78,49 @@ export default function NavItem({ item, level, isParents = false, setSelectedID 
         disableRipple={!drawerOpen}
         sx={{
           zIndex: 1201,
-          borderRadius: `${borderRadius}px`,
+          borderRadius: '12px',
           mb: 0.5,
+          mx: 1,
+          width: 'calc(100% - 16px)',
+          py: 1,
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           ...(drawerOpen && level !== 1 && { ml: `${level * 18}px` }),
           ...(!drawerOpen && { pl: 1.25 }),
-          ...((!drawerOpen || level !== 1) && {
-            py: level === 1 ? 0 : 1,
-            '&:hover': { bgcolor: 'transparent' },
-            '&.Mui-selected': {
-              '&:hover': { bgcolor: 'transparent' },
-              bgcolor: 'transparent'
-            }
-          })
+          '&:hover': {
+            bgcolor: 'rgba(99, 102, 241, 0.04)'
+          },
+          '&.Mui-selected': {
+            bgcolor: 'rgba(99, 102, 241, 0.08)',
+            color: '#6366f1',
+            '&:hover': { bgcolor: 'rgba(99, 102, 241, 0.12)' }
+          }
         }}
         selected={isSelected}
         onClick={() => itemHandler()}
       >
         <Tooltip title={!drawerOpen && level === 1 ? item.title : ''} placement="right">
-          <ButtonBase aria-label="theme-icon" sx={{ borderRadius: `${borderRadius}px` }} disableRipple={drawerOpen}>
-            <ListItemIcon
-              sx={{
-                minWidth: level === 1 ? 36 : 18,
-                color: isSelected ? 'secondary.main' : 'text.primary',
-                ...(!drawerOpen &&
-                  level === 1 && {
-                    borderRadius: `${borderRadius}px`,
-                    width: 46,
-                    height: 46,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    '&:hover': { bgcolor: 'secondary.light' },
-                    ...(isSelected && {
-                      bgcolor: 'secondary.light',
-                      '&:hover': { bgcolor: 'secondary.light' }
-                    })
+          <ListItemIcon
+            sx={{
+              minWidth: level === 1 ? 36 : 18,
+              color: isSelected ? '#6366f1' : '#64748b',
+              transition: 'color 0.3s',
+              ...(!drawerOpen &&
+                level === 1 && {
+                  borderRadius: '12px',
+                  width: 44,
+                  height: 44,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  '&:hover': { bgcolor: 'rgba(99, 102, 241, 0.08)' },
+                  ...(isSelected && {
+                    bgcolor: 'rgba(99, 102, 241, 0.08)',
+                    '&:hover': { bgcolor: 'rgba(99, 102, 241, 0.12)' }
                   })
-              }}
-            >
-              {itemIcon}
-            </ListItemIcon>
-          </ButtonBase>
+                })
+            }}
+          >
+            {itemIcon}
+          </ListItemIcon>
         </Tooltip>
 
         {(drawerOpen || (!drawerOpen && level !== 1)) && (
@@ -127,12 +130,13 @@ export default function NavItem({ item, level, isParents = false, setSelectedID 
                 <Typography
                   ref={ref}
                   noWrap
-                  variant={isSelected ? 'h5' : 'body1'}
+                  variant={isSelected ? 'subtitle1' : 'body2'}
                   sx={{
+                    fontWeight: isSelected ? 800 : 600,
+                    fontSize: '0.875rem',
+                    color: 'inherit',
                     overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    width: 102,
-                    color: 'inherit'
+                    textOverflow: 'ellipsis'
                   }}
                 >
                   {item.title}
@@ -145,11 +149,12 @@ export default function NavItem({ item, level, isParents = false, setSelectedID 
                     gutterBottom
                     sx={{
                       display: 'block',
-                      fontSize: '0.6875rem',
-                      fontWeight: 500,
-                      color: 'text.secondary',
-                      textTransform: 'capitalize',
-                      lineHeight: 1.66
+                      fontSize: '0.65rem',
+                      fontWeight: 600,
+                      color: '#94a3b8',
+                      textTransform: 'none',
+                      lineHeight: 1.5,
+                      mt: 0.5
                     }}
                   >
                     {item.caption}

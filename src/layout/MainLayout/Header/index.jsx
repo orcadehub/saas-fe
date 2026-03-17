@@ -25,27 +25,31 @@ export default function Header() {
   return (
     <>
       {/* logo & toggler button */}
-      <Box sx={{ width: downMD ? 'auto' : 228, display: 'flex' }}>
+      <Box sx={{ width: downMD ? 'auto' : 260, display: 'flex' }}>
         <Box component="span" sx={{ display: { xs: 'none', md: 'block' }, flexGrow: 1 }}>
           <LogoSection />
         </Box>
         <Avatar
           variant="rounded"
           sx={{
-            ...theme.typography.commonAvatar,
-            ...theme.typography.mediumAvatar,
-            overflow: 'hidden',
-            transition: 'all .2s ease-in-out',
-            color: theme.vars.palette.secondary.dark,
-            background: theme.vars.palette.secondary.light,
+            width: 44,
+            height: 44,
+            borderRadius: '12px',
+            cursor: 'pointer',
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            bgcolor: 'rgba(99, 102, 241, 0.08)',
+            color: '#6366f1',
+            border: '1px solid rgba(99, 102, 241, 0.1)',
             '&:hover': {
-              color: theme.vars.palette.secondary.light,
-              background: theme.vars.palette.secondary.dark
+              bgcolor: '#6366f1',
+              color: '#fff',
+              transform: 'scale(1.05)',
+              boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)'
             }
           }}
           onClick={() => handlerDrawerOpen(!drawerOpen)}
         >
-          {drawerOpen ? <IconChevronLeft stroke={1.5} size="20px" /> : <IconChevronRight stroke={1.5} size="20px" />}
+          {drawerOpen ? <IconChevronLeft stroke={2} size="22px" /> : <IconChevronRight stroke={2} size="22px" />}
         </Avatar>
       </Box>
 

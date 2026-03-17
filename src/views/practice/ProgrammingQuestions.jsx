@@ -65,11 +65,11 @@ export default function ProgrammingQuestions() {
         <Typography color="text.primary">{topic}</Typography>
       </Breadcrumbs>
 
-      <Typography variant="h3" sx={{ mb: 1 }}>
+      <Typography variant="h2" sx={{ mb: 1, fontWeight: 900, color: '#1e293b', fontSize: '2.25rem', letterSpacing: '-0.02em' }}>
         {topic}
       </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        Practice programming questions
+      <Typography variant="body1" sx={{ mb: 4, color: '#64748b', fontWeight: 500, fontSize: '1.1rem' }}>
+        Master {topic} with these practice problems
       </Typography>
 
       {loading ? (
@@ -106,9 +106,9 @@ export default function ProgrammingQuestions() {
               onClick={() => navigate(`/practice/programming/${topic}/${question._id}`)}
             >
               <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                  <IconCode size={24} color="#1976d2" />
-                  <Typography variant="h4" sx={{ flexGrow: 1 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+                  <IconCode size={28} color="#6366f1" />
+                  <Typography variant="h4" sx={{ flexGrow: 1, fontWeight: 800, color: '#1e293b' }}>
                     {question.title}
                   </Typography>
                 </Box>
@@ -121,14 +121,24 @@ export default function ProgrammingQuestions() {
                   <Chip
                     label={question.difficulty}
                     size="small"
-                    color={getDifficultyColor(question.difficulty)}
+                    sx={{
+                      fontWeight: 800,
+                      borderRadius: '6px',
+                      bgcolor: question.difficulty?.toLowerCase() === 'easy' ? 'rgba(34, 197, 94, 0.1)' : 
+                               question.difficulty?.toLowerCase() === 'medium' ? 'rgba(245, 158, 11, 0.1)' : 
+                               'rgba(239, 68, 68, 0.1)',
+                      color: question.difficulty?.toLowerCase() === 'easy' ? '#16a34a' : 
+                             question.difficulty?.toLowerCase() === 'medium' ? '#d97706' : 
+                             '#dc2626'
+                    }}
                   />
-                  {question.tags?.map((tag, idx) => (
+                  {question.tags?.slice(0, 2).map((tag, idx) => (
                     <Chip
                       key={idx}
                       label={tag}
                       size="small"
                       variant="outlined"
+                      sx={{ fontWeight: 700, borderRadius: '6px', borderColor: 'rgba(99, 102, 241, 0.1)', color: '#6366f1' }}
                     />
                   ))}
                 </Box>

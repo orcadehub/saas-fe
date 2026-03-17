@@ -206,9 +206,9 @@ if (loading) {
             onClick={() => navigate(`/practice/assessment/${question._id}`)}
           >
             <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                <IconCode size={24} color="#1976d2" />
-                <Typography variant="h4" sx={{ flexGrow: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+                <IconCode size={28} color="#6366f1" />
+                <Typography variant="h4" sx={{ flexGrow: 1, fontWeight: 800, color: '#1e293b' }}>
                   {question.title}
                 </Typography>
               </Box>
@@ -221,7 +221,16 @@ if (loading) {
                 <Chip
                   label={question.difficulty}
                   size="small"
-                  color={getDifficultyColor(question.difficulty)}
+                  sx={{
+                    fontWeight: 800,
+                    borderRadius: '6px',
+                    bgcolor: question.difficulty?.toLowerCase() === 'easy' ? 'rgba(34, 197, 94, 0.1)' : 
+                             question.difficulty?.toLowerCase() === 'medium' ? 'rgba(245, 158, 11, 0.1)' : 
+                             'rgba(239, 68, 68, 0.1)',
+                    color: question.difficulty?.toLowerCase() === 'easy' ? '#16a34a' : 
+                           question.difficulty?.toLowerCase() === 'medium' ? '#d97706' : 
+                           '#dc2626'
+                  }}
                 />
                 {question.tags?.slice(0, 2).map((tag, idx) => (
                   <Chip
@@ -229,6 +238,7 @@ if (loading) {
                     label={tag}
                     size="small"
                     variant="outlined"
+                    sx={{ fontWeight: 700, borderRadius: '6px', borderColor: 'rgba(99, 102, 241, 0.1)', color: '#6366f1' }}
                   />
                 ))}
               </Box>

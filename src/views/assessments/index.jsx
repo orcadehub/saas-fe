@@ -1,10 +1,37 @@
-import { Typography, Grid, Card, CardContent, Button, Chip, Box, Tabs, Tab, CircularProgress, Skeleton } from '@mui/material';
+import { Typography, Grid, Card, CardContent, Button, Chip, Box, Tabs, Tab, CircularProgress, Skeleton, Stack } from '@mui/material';
 import { Assessment, AccessTime, CheckCircle } from '@mui/icons-material';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MainCard from 'ui-component/cards/MainCard';
 import useConfig from 'hooks/useConfig';
 import { useAssessments } from 'contexts/AssessmentsContext';
+
+// Custom constants for premium theme
+const whiteGlassSx = {
+  p: 4, borderRadius: '24px', 
+  background: 'rgba(255, 255, 255, 0.8)', 
+  backdropFilter: 'blur(20px)',
+  border: '1px solid rgba(226, 232, 240, 0.8)',
+  boxShadow: '0 20px 50px rgba(15, 23, 42, 0.06)'
+};
+
+const LightBackground = () => (
+  <Box sx={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0, overflow: 'hidden', pointerEvents: 'none' }}>
+    <Box sx={{ position: 'absolute', inset: 0, bgcolor: '#fbfcfe' }} />
+    <Box sx={{
+      position: 'absolute', top: '-10%', right: '-5%',
+      width: '60vw', height: '60vw',
+      background: 'radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, transparent 70%)',
+      borderRadius: '50%', filter: 'blur(80px)',
+    }} />
+    <Box sx={{
+      position: 'absolute', bottom: '-15%', left: '-10%',
+      width: '50vw', height: '50vw',
+      background: 'radial-gradient(circle, rgba(139, 92, 246, 0.05) 0%, transparent 70%)',
+      borderRadius: '50%', filter: 'blur(100px)',
+    }} />
+  </Box>
+);
 
 export default function Assessments() {
   const navigate = useNavigate();
@@ -48,7 +75,7 @@ export default function Assessments() {
         md: 'repeat(3, 1fr)',
         lg: 'repeat(4, 1fr)'
       },
-      gap: { xs: 2, sm: 2.5, md: 3 },
+      gap: { xs: 2.5, sm: 3 },
       width: '100%'
     }}>
       {assessmentList.map((assessment) => {
@@ -61,85 +88,87 @@ export default function Assessments() {
         
         return (
         <Card key={assessment._id} sx={{ 
-          display: 'flex',
-          flexDirection: 'column',
-          borderRadius: 4,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-          border: '1px solid #e5e7eb',
-          transition: 'all 0.3s ease',
-          '&:hover': {
-            transform: 'translateY(-4px)',
-            boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
-            borderColor: 'primary.main'
-          }
+            borderRadius: '24px', 
+            bgcolor: '#fff', 
+            border: '1px solid #f1f5f9',
+            boxShadow: '0 4px 20px rgba(15, 23, 42, 0.03)',
+            display: 'flex',
+            flexDirection: 'column',
+            transition: 'all 0.3s ease',
+            height: '100%',
+            '&:hover': { 
+              transform: 'translateY(-5px)', 
+              boxShadow: '0 20px 40px rgba(99, 102, 241, 0.08)',
+              borderColor: 'rgba(99, 102, 241, 0.1)'
+            } 
         }}>
-          <CardContent sx={{ flexGrow: 1, p: { xs: 2, sm: 2.5, md: 3 }, display: 'flex', flexDirection: 'column' }}>
-            <Typography variant="h5" sx={{ fontWeight: 700, mb: 2.5, lineHeight: 1.3, color: '#1e293b', flexShrink: 0, fontSize: { xs: '1rem', sm: '1.1rem', md: '1.25rem' } }}>
+          <CardContent sx={{ flexGrow: 1, p: { xs: 2.5, sm: 3 }, display: 'flex', flexDirection: 'column' }}>
+            <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+               <Box sx={{ 
+                  width: 44, height: 44, borderRadius: '12px', 
+                  bgcolor: 'rgba(99, 102, 241, 0.08)', color: '#6366f1',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center'
+               }}>
+                  <Assessment />
+               </Box>
+               <Chip 
+                  label={tabType === 'available' ? 'Live' : tabType === 'completed' ? 'Done' : 'Past'}
+                  size="small"
+                  sx={{ 
+                    fontWeight: 800, fontSize: '0.65rem', textTransform: 'uppercase',
+                    bgcolor: tabType === 'available' ? 'rgba(34, 197, 94, 0.08)' : 'rgba(100, 116, 139, 0.08)',
+                    color: tabType === 'available' ? '#22c55e' : '#64748b',
+                    borderRadius: '8px'
+                  }}
+               />
+            </Box>
+
+            <Typography variant="h4" sx={{ fontWeight: 800, mb: 2, color: '#1e293b', lineHeight: 1.3, height: '3.4em', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
               {assessment.title}
             </Typography>
             
-            <Box display="flex" flexWrap="wrap" gap={1} mb={2.5} sx={{ flexShrink: 0 }}>
+            <Box display="flex" flexWrap="wrap" gap={1} mb={2.5}>
               <Chip 
-                icon={<AccessTime sx={{ fontSize: 16 }} />}
-                label={`${assessment.duration} min`}
+                label={`${assessment.duration}m`}
                 size="small"
-                sx={{ 
-                  fontWeight: 600,
-                  backgroundColor: '#eff6ff',
-                  color: '#1e40af',
-                  border: 'none'
-                }}
+                sx={{ fontWeight: 700, bgcolor: '#eff6ff', color: '#3b82f6', borderRadius: '8px' }}
               />
               <Chip 
-                label={`${(assessment.codingQuestionCount || assessment.questionCounts?.programming + assessment.questionCounts?.frontend + assessment.questionCounts?.mongodb || 0)} coding`}
+                label={`${assessment.codingQuestionCount || 0} coding`}
                 size="small"
-                sx={{ 
-                  fontWeight: 600,
-                  backgroundColor: '#f0fdf4',
-                  color: '#166534',
-                  border: 'none'
-                }}
+                sx={{ fontWeight: 700, bgcolor: '#f0fdf4', color: '#10b981', borderRadius: '8px' }}
               />
-              <Chip 
-                label={`${(assessment.quizQuestionCount || assessment.questionCounts?.quiz || 0)} quiz`}
-                size="small"
-                sx={{ 
-                  fontWeight: 600,
-                  backgroundColor: '#fef3c7',
-                  color: '#92400e',
-                  border: 'none'
-                }}
-              />
+              {assessment.quizQuestionCount > 0 && (
+                <Chip 
+                  label={`${assessment.quizQuestionCount} quiz`}
+                  size="small"
+                  sx={{ fontWeight: 700, bgcolor: '#fff7ed', color: '#ea580c', borderRadius: '8px' }}
+                />
+              )}
             </Box>
-
-            <Box mb={3} sx={{ 
-              backgroundColor: '#f8fafc',
-              borderRadius: `${borderRadius}px`,
-              p: { xs: 1.5, sm: 2 },
-              flexShrink: 0
+            <Box sx={{ 
+              p: 2, bgcolor: '#f8fafc', borderRadius: '16px', mb: 3,
+              border: '1px solid #f1f5f9'
             }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                <Typography variant="caption" sx={{ fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                  Start Date
-                </Typography>
-                <Typography variant="caption" sx={{ fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                  Start Time
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Typography variant="body2" sx={{ fontWeight: 700, color: '#1e293b' }}>
-                  {new Date(assessment.startTime).toLocaleDateString('en-GB')}
-                </Typography>
-                <Typography variant="body2" sx={{ fontWeight: 700, color: '#1e293b' }}>
-                  {new Date(assessment.startTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}
-                </Typography>
-              </Box>
+                <Stack spacing={1}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography variant="caption" sx={{ fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', fontSize: '0.65rem' }}>Start Schedule</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography variant="body2" sx={{ fontWeight: 700, color: '#1e293b' }}>
+                      {new Date(assessment.startTime).toLocaleDateString('en-GB')}
+                    </Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 700, color: '#6366f1', bgcolor: 'rgba(99, 102, 241, 0.08)', px: 1, py: 0.2, borderRadius: '6px' }}>
+                      {new Date(assessment.startTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                    </Typography>
+                  </Box>
+                </Stack>
             </Box>
             
             <Button 
               variant="contained" 
               fullWidth
-              size="large"
+              disableElevation
               disabled={tabType === 'completed' && !canViewResults}
               onClick={() => {
                 if (tabType === 'available') {
@@ -147,7 +176,6 @@ export default function Assessments() {
                 } else if (tabType === 'completed') {
                   navigate(`/assessments/${assessment._id}/results`);
                 } else if (tabType === 'expired') {
-                  // Route based on assessment type
                   if (assessment.type === 'frontend') {
                     navigate(`/assessments/${assessment._id}/practice-frontend`);
                   } else if (assessment.type === 'mongodb') {
@@ -160,27 +188,23 @@ export default function Assessments() {
               sx={{ 
                 mt: 'auto',
                 py: 1.5,
-                fontWeight: 700,
-                borderRadius: `${borderRadius}px`,
+                fontWeight: 800,
+                borderRadius: '12px',
                 textTransform: 'none',
-                fontSize: '1rem',
-                backgroundColor: 'secondary.light',
-                color: 'secondary.main',
-                boxShadow: 'none',
-                flexShrink: 0,
+                bgcolor: tabType === 'available' ? '#6366f1' : '#f1f5f9',
+                color: tabType === 'available' ? '#fff' : '#475569',
                 '&:hover': {
-                  backgroundColor: 'secondary.light',
-                  boxShadow: 'none'
+                  bgcolor: tabType === 'available' ? '#4f46e5' : '#e2e8f0',
                 }
               }}
             >
-              {tabType === 'available' ? 'Start Assessment' : 
+              {tabType === 'available' ? 'Resume/Start' : 
                tabType === 'completed' ? (canViewResults ? 'View Results' : (
-                 <Box>
-                   <Typography>Results Locked</Typography>
-                   <Typography variant="caption">{minutes}m {seconds}s</Typography>
+                 <Box sx={{ textAlign: 'center' }}>
+                   <Typography variant="body2" fontWeight={800} sx={{ lineHeight: 1 }}>Results Locked</Typography>
+                   <Typography variant="caption" sx={{ fontSize: '0.65rem' }}>Available in {minutes}m {seconds}s</Typography>
                  </Box>
-               )) : 'Practice'}
+               )) : 'Practice Mode'}
             </Button>
           </CardContent>
         </Card>
@@ -196,233 +220,87 @@ export default function Assessments() {
     }
   }, [tabValue]);
 
-  if (loading && assessments.length === 0) {
-    return (
-      <MainCard>
-        <Box sx={{ mb: 4 }}>
+  return (
+    <Box sx={{ 
+      minHeight: '100vh', 
+      p: { xs: 2, sm: 3, md: 4.5 }, 
+      bgcolor: '#fbfcfe',
+      position: 'relative',
+      overflow: 'hidden'
+    }}>
+      <LightBackground />
+      
+      <Box sx={{ position: 'relative', zIndex: 10 }}>
+        <Box sx={{ 
+          ...whiteGlassSx,
+          p: 1.5,
+          borderRadius: '20px',
+          mb: 4,
+          display: 'inline-flex',
+          width: 'auto'
+        }}>
           <Tabs 
             value={tabValue} 
             onChange={(e, newValue) => setTabValue(newValue)}
             sx={{
+              minHeight: 48,
               '& .MuiTabs-indicator': {
-                height: 4,
-                borderRadius: '4px 4px 0 0',
-                bgcolor: 'secondary.main'
+                display: 'none'
               },
               '& .MuiTab-root': {
                 textTransform: 'none',
-                fontWeight: 600,
-                fontSize: '0.9rem',
-                minHeight: 56,
-                color: '#94a3b8',
-                transition: 'all 0.2s ease',
-                '&:hover': {
-                  color: 'secondary.main',
-                  bgcolor: 'secondary.lighter'
-                },
+                fontWeight: 800,
+                fontSize: '0.875rem',
+                minHeight: 48,
+                borderRadius: '12px',
+                px: 3,
+                color: '#64748b',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                 '&.Mui-selected': {
-                  color: 'secondary.main',
-                  fontWeight: 700
+                  color: '#6366f1',
+                  bgcolor: 'rgba(99, 102, 241, 0.08)',
+                },
+                '&:hover:not(.Mui-selected)': {
+                  bgcolor: 'rgba(0, 0, 0, 0.02)',
                 }
               }
             }}
           >
-            <Tab 
-              label={
-                <Box display="flex" alignItems="center" gap={1.5}>
-                  <CheckCircle sx={{ fontSize: 18 }} />
-                  <Typography fontWeight="inherit" fontSize="inherit">Available</Typography>
-                  <Chip 
-                    label={0} 
-                    size="small" 
-                    sx={{
-                      bgcolor: tabValue === 0 ? 'secondary.main' : 'secondary.light',
-                      color: tabValue === 0 ? '#ffffff' : 'secondary.main',
-                      fontWeight: 700,
-                      fontSize: '0.75rem',
-                      height: 24,
-                      minWidth: 32
-                    }}
-                  />
-                </Box>
-              }
-            />
-            <Tab 
-              label={
-                <Box display="flex" alignItems="center" gap={1.5}>
-                  <Assessment sx={{ fontSize: 18 }} />
-                  <Typography fontWeight="inherit" fontSize="inherit">Completed</Typography>
-                  <Chip 
-                    label={0} 
-                    size="small" 
-                    sx={{
-                      bgcolor: tabValue === 1 ? 'secondary.main' : 'secondary.light',
-                      color: tabValue === 1 ? '#ffffff' : 'secondary.main',
-                      fontWeight: 700,
-                      fontSize: '0.75rem',
-                      height: 24,
-                      minWidth: 32
-                    }}
-                  />
-                </Box>
-              }
-            />
-            <Tab 
-              label={
-                <Box display="flex" alignItems="center" gap={1.5}>
-                  <AccessTime sx={{ fontSize: 18 }} />
-                  <Typography fontWeight="inherit" fontSize="inherit">Expired</Typography>
-                  <Chip 
-                    label={0} 
-                    size="small" 
-                    sx={{
-                      bgcolor: tabValue === 2 ? 'secondary.main' : 'secondary.light',
-                      color: tabValue === 2 ? '#ffffff' : 'secondary.main',
-                      fontWeight: 700,
-                      fontSize: '0.75rem',
-                      height: 24,
-                      minWidth: 32
-                    }}
-                  />
-                </Box>
-              }
-            />
+            <Tab label={`Available (${availableAssessments.length})`} />
+            <Tab label={`Completed (${completedAssessments.length})`} />
+            <Tab label={`Expired (${expiredAssessments.length})`} />
           </Tabs>
         </Box>
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 3 }}>
-          {Array.from({ length: 8 }).map((_, idx) => (
-            <Card key={idx} sx={{ borderRadius: 4 }}>
-              <CardContent sx={{ p: 3 }}>
-                <Skeleton variant="text" height={32} sx={{ mb: 2 }} />
-                <Box display="flex" gap={1} mb={2}>
-                  <Skeleton variant="rectangular" width={80} height={24} sx={{ borderRadius: 2 }} />
-                  <Skeleton variant="rectangular" width={80} height={24} sx={{ borderRadius: 2 }} />
-                </Box>
-                <Skeleton variant="rectangular" height={80} sx={{ mb: 2, borderRadius: 2 }} />
-                <Skeleton variant="rectangular" height={48} sx={{ borderRadius: 2 }} />
-              </CardContent>
-            </Card>
-          ))}
-        </Box>
-      </MainCard>
-    );
-  }
 
-  return (
-    <MainCard>
-      <Box sx={{ mb: 4 }}>
-        <Tabs 
-          value={tabValue} 
-          onChange={(e, newValue) => setTabValue(newValue)}
-          sx={{
-            '& .MuiTabs-indicator': {
-              height: 4,
-              borderRadius: '4px 4px 0 0',
-              bgcolor: 'secondary.main'
-            },
-            '& .MuiTab-root': {
-              textTransform: 'none',
-              fontWeight: 600,
-              fontSize: '0.9rem',
-              minHeight: 56,
-              color: '#94a3b8',
-              transition: 'all 0.2s ease',
-              '&:hover': {
-                color: 'secondary.main',
-                bgcolor: 'secondary.lighter'
-              },
-              '&.Mui-selected': {
-                color: 'secondary.main',
-                fontWeight: 700
-              }
-            }
-          }}
-        >
-          <Tab 
-            label={
-              <Box display="flex" alignItems="center" gap={1.5}>
-                <CheckCircle sx={{ fontSize: 18 }} />
-                <Typography fontWeight="inherit" fontSize="inherit">Available</Typography>
-                <Chip 
-                  label={availableAssessments.length} 
-                  size="small" 
-                  sx={{
-                    bgcolor: tabValue === 0 ? 'secondary.main' : 'secondary.light',
-                    color: tabValue === 0 ? '#ffffff' : 'secondary.main',
-                    fontWeight: 700,
-                    fontSize: '0.75rem',
-                    height: 24,
-                    minWidth: 32
-                  }}
-                />
-              </Box>
-            }
-          />
-          <Tab 
-            label={
-              <Box display="flex" alignItems="center" gap={1.5}>
-                <Assessment sx={{ fontSize: 18 }} />
-                <Typography fontWeight="inherit" fontSize="inherit">Completed</Typography>
-                <Chip 
-                  label={completedAssessments.length} 
-                  size="small" 
-                  sx={{
-                    bgcolor: tabValue === 1 ? 'secondary.main' : 'secondary.light',
-                    color: tabValue === 1 ? '#ffffff' : 'secondary.main',
-                    fontWeight: 700,
-                    fontSize: '0.75rem',
-                    height: 24,
-                    minWidth: 32
-                  }}
-                />
-              </Box>
-            }
-          />
-          <Tab 
-            label={
-              <Box display="flex" alignItems="center" gap={1.5}>
-                <AccessTime sx={{ fontSize: 18 }} />
-                <Typography fontWeight="inherit" fontSize="inherit">Expired</Typography>
-                <Chip 
-                  label={expiredAssessments.length} 
-                  size="small" 
-                  sx={{
-                    bgcolor: tabValue === 2 ? 'secondary.main' : 'secondary.light',
-                    color: tabValue === 2 ? '#ffffff' : 'secondary.main',
-                    fontWeight: 700,
-                    fontSize: '0.75rem',
-                    height: 24,
-                    minWidth: 32
-                  }}
-                />
-              </Box>
-            }
-          />
-        </Tabs>
-      </Box>
-      <Box sx={{ width: '100%' }}>
-        {tabValue === 0 && (
-          availableAssessments.length > 0 ? renderAssessmentCards(availableAssessments, 'available') : (
+        <Box sx={{ width: '100%' }}>
+          {loading && assessments.length === 0 ? (
             <Box sx={{ textAlign: 'center', py: 8 }}>
-              <Typography variant="h6" color="text.secondary">No available assessments</Typography>
+               <CircularProgress sx={{ color: '#6366f1' }} />
             </Box>
-          )
-        )}
+          ) : (
+            <>
+              {tabValue === 0 && (availableAssessments.length > 0 ? renderAssessmentCards(availableAssessments, 'available') : (
+                <Box sx={{ ...whiteGlassSx, textAlign: 'center', py: 8 }}>
+                  <Typography variant="h4" sx={{ fontWeight: 800, color: '#1e293b' }}>No live assessments found</Typography>
+                  <Typography variant="body1" sx={{ color: '#64748b', mt: 1 }}>Check back later for scheduled tasks</Typography>
+                </Box>
+              ))}
+              {tabValue === 1 && (completedAssessments.length > 0 ? renderAssessmentCards(completedAssessments, 'completed') : (
+                <Box sx={{ ...whiteGlassSx, textAlign: 'center', py: 8 }}>
+                  <Typography variant="h4" sx={{ fontWeight: 800, color: '#1e293b' }}>No completed exams</Typography>
+                  <Typography variant="body1" sx={{ color: '#64748b', mt: 1 }}>Your submitted assessments will appear here</Typography>
+                </Box>
+              ))}
+              {tabValue === 2 && (expiredAssessments.length > 0 ? renderAssessmentCards(expiredAssessments, 'expired') : (
+                <Box sx={{ ...whiteGlassSx, textAlign: 'center', py: 8 }}>
+                  <Typography variant="h4" sx={{ fontWeight: 800, color: '#1e293b' }}>Empty history</Typography>
+                  <Typography variant="body1" sx={{ color: '#64748b', mt: 1 }}>No previous assessment records</Typography>
+                </Box>
+              ))}
+            </>
+          )}
+        </Box>
       </Box>
-      {tabValue === 1 && (
-        completedAssessments.length > 0 ? renderAssessmentCards(completedAssessments, 'completed') : (
-          <Box sx={{ textAlign: 'center', py: 8 }}>
-            <Typography variant="h6" color="text.secondary">No completed assessments</Typography>
-          </Box>
-        )
-      )}
-      {tabValue === 2 && (
-        expiredAssessments.length > 0 ? renderAssessmentCards(expiredAssessments, 'expired') : (
-          <Box sx={{ textAlign: 'center', py: 8 }}>
-            <Typography variant="h6" color="text.secondary">No expired assessments</Typography>
-          </Box>
-        )
-      )}
-    </MainCard>
+    </Box>
   );
 }

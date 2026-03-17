@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Box, Typography, Button, CircularProgress, Tabs, Tab, Card, CardContent, IconButton } from '@mui/material';
+import { Box, Typography, Button, CircularProgress, Tabs, Tab, Card, CardContent, IconButton, Chip } from '@mui/material';
 import { PlayArrow, Add, Remove } from '@mui/icons-material';
 import Editor from '@monaco-editor/react';
 import axios from 'axios';
@@ -144,12 +144,40 @@ export default function MongoDBPlaygroundEditor({ question, attemptId, onTestCom
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', bgcolor: '#ffffff' }}>
       {/* Tabs */}
-      <Box sx={{ borderBottom: '1px solid #e0e0e0' }}>
-        <Tabs value={currentTab} onChange={(e, v) => setCurrentTab(v)}>
-          <Tab label="Shell" />
-          <Tab label="Dataset" />
+      <Box sx={{ 
+        bgcolor: '#f8fafc',
+        borderBottom: '1px solid #f1f5f9',
+        px: 2,
+        py: 0.5,
+      }}>
+        <Tabs 
+          value={currentTab} 
+          onChange={(e, v) => setCurrentTab(v)}
+          sx={{
+            minHeight: 48,
+            '& .MuiTabs-indicator': { bgcolor: '#6366f1', height: 3, borderRadius: '3px 3px 0 0' },
+            '& .MuiTab-root': { 
+              textTransform: 'none', 
+              fontWeight: 800, 
+              fontSize: '0.85rem', 
+              color: '#64748b',
+              minHeight: 48,
+              transition: 'all 0.2s',
+              '&.Mui-selected': {
+                color: '#0f172a'
+              },
+              '&:hover:not(.Mui-selected)': {
+                color: '#334155',
+                bgcolor: 'rgba(99, 102, 241, 0.04)',
+                borderRadius: '8px 8px 0 0'
+              }
+            }
+          }}
+        >
+          <Tab label="Shell Environment" />
+          <Tab label="Data Schema" />
           <Tab label="Expected Output" />
-          <Tab label="Your Output" />
+          <Tab label="Runtime Output" />
         </Tabs>
       </Box>
 
@@ -159,41 +187,60 @@ export default function MongoDBPlaygroundEditor({ question, attemptId, onTestCom
             <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
               {/* Header */}
               <Box sx={{ 
-                p: 2, 
-                borderBottom: '1px solid #e0e0e0', 
+                p: 1.5, 
+                borderBottom: '1px solid rgba(226, 232, 240, 0.8)', 
                 display: 'flex', 
                 alignItems: 'center', 
+                justifyContent: 'space-between',
                 gap: 2,
-                bgcolor: '#ffffff'
+                bgcolor: '#fcfdfe',
+                overflowX: 'auto',
+                minHeight: '64px',
+                pb: 0.5,
+                '&::-webkit-scrollbar': { height: '6px' },
+                '&::-webkit-scrollbar-track': { bgcolor: 'transparent' },
+                '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(99, 102, 241, 0.2)', borderRadius: '10px' },
+                '&:hover::-webkit-scrollbar-thumb': { bgcolor: 'rgba(99, 102, 241, 0.4)' }
               }}>
-                <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 600 }}>
-                  MongoDB Shell
-                </Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <IconButton size="small" onClick={() => setFontSize(prev => Math.max(12, prev - 2))}>
-                    <Remove fontSize="small" />
-                  </IconButton>
-                  <Typography variant="body2" sx={{ minWidth: '30px', textAlign: 'center' }}>
-                    {fontSize}
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    MongoDB Shell
                   </Typography>
-                  <IconButton size="small" onClick={() => setFontSize(prev => Math.min(32, prev + 2))}>
-                    <Add fontSize="small" />
-                  </IconButton>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, bgcolor: 'rgba(0,0,0,0.03)', px: 1, borderRadius: '8px' }}>
+                    <IconButton size="small" onClick={() => setFontSize(prev => Math.max(12, prev - 2))} sx={{ color: '#64748b' }}>
+                      <Remove fontSize="small" />
+                    </IconButton>
+                    <Typography variant="body2" sx={{ minWidth: '24px', textAlign: 'center', fontWeight: 800, color: '#1e293b' }}>
+                      {fontSize}
+                    </Typography>
+                    <IconButton size="small" onClick={() => setFontSize(prev => Math.min(32, prev + 2))} sx={{ color: '#64748b' }}>
+                      <Add fontSize="small" />
+                    </IconButton>
+                  </Box>
                 </Box>
                 <Button
                   variant="contained"
+                  size="small"
                   startIcon={isRunning ? <CircularProgress size={16} sx={{ color: 'white' }} /> : <PlayArrow />}
                   onClick={handleRunQuery}
                   disabled={isRunning}
-                  sx={{ bgcolor: 'secondary.main', '&:hover': { bgcolor: 'secondary.dark' } }}
+                  sx={{ 
+                    borderRadius: '10px', 
+                    fontWeight: 800, 
+                    textTransform: 'none',
+                    bgcolor: '#6366f1',
+                    flexShrink: 0,
+                    boxShadow: '0 4px 12px rgba(99, 102, 241, 0.2)',
+                    '&:hover': { bgcolor: '#4f46e5', boxShadow: '0 6px 16px rgba(99, 102, 241, 0.3)' }
+                  }}
                 >
-                  {isRunning ? 'Running...' : 'Run Query'}
+                  {isRunning ? 'Running...' : 'Execute Query'}
                 </Button>
               </Box>
 
               {/* Query Editor */}
-              <Box sx={{ flexGrow: 1, p: 3 }}>
-                <Box sx={{ height: '100%', border: '1px solid #e0e0e0', borderRadius: 1, overflow: 'hidden' }}>
+              <Box sx={{ flexGrow: 1, p: 0, overflow: 'hidden' }}>
+                <Box sx={{ height: '100%', overflow: 'hidden' }}>
                   <Editor
                     height="100%"
                     language="javascript"
@@ -205,7 +252,9 @@ export default function MongoDBPlaygroundEditor({ question, attemptId, onTestCom
                       fontSize: fontSize,
                       minimap: { enabled: false },
                       scrollBeyondLastLine: false,
-                      wordWrap: 'on'
+                      wordWrap: 'on',
+                      padding: { top: 20 },
+                      fontFamily: "'JetBrains Mono', 'Fira Code', monospace"
                     }}
                   />
                 </Box>
@@ -214,17 +263,23 @@ export default function MongoDBPlaygroundEditor({ question, attemptId, onTestCom
           )}
 
           {currentTab === 1 && (
-            <Box sx={{ p: 3 }}>
-              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-                Collection: {question?.collectionName}
+            <Box sx={{ p: 4 }}>
+              <Typography variant="h4" sx={{ mb: 1, fontWeight: 800, color: '#1e293b' }}>
+                Collection Structure
               </Typography>
-              <Card sx={{ bgcolor: '#e3f2fd', mb: 2 }}>
-                <CardContent>
-                  <Typography variant="body1" sx={{ fontFamily: 'monospace', fontWeight: 600 }}>
-                    db.{question?.collectionName}.find()
-                  </Typography>
-                  <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary' }}>
-                    Use this query in the Shell tab to view the complete dataset
+              <Typography variant="body1" sx={{ color: '#64748b', mb: 3 }}>
+                Currently interacting with collection: <Typography component="span" sx={{ fontWeight: 800, color: '#6366f1' }}>{question?.collectionName}</Typography>
+              </Typography>
+              
+              <Card sx={{ borderRadius: '20px', border: '1px solid rgba(226, 232, 240, 0.8)', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', bgcolor: '#fff' }}>
+                <CardContent sx={{ p: 3 }}>
+                  <Box sx={{ p: 2, bgcolor: '#f8fafc', borderRadius: '12px', border: '1px solid #f1f5f9', mb: 2 }}>
+                    <Typography variant="body1" sx={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: '#1e293b' }}>
+                      db.{question?.collectionName}.find()
+                    </Typography>
+                  </Box>
+                  <Typography variant="body2" sx={{ color: '#64748b', fontWeight: 600, lineHeight: 1.6 }}>
+                    Tip: Use the find() command in the Shell tab to explore every document in this collection.
                   </Typography>
                 </CardContent>
               </Card>
@@ -232,55 +287,80 @@ export default function MongoDBPlaygroundEditor({ question, attemptId, onTestCom
           )}
 
           {currentTab === 2 && (
-            <Box sx={{ p: 3 }}>
+            <Box sx={{ p: 4 }}>
+              <Typography variant="h4" sx={{ mb: 3, fontWeight: 800, color: '#1e293b' }}>Target Payload</Typography>
               {expectedOutput ? (
-                <Card sx={{ bgcolor: result ? (arraysEqual(result, expectedOutput) ? '#e8f5e9' : '#ffebee') : 'transparent' }}>
-                  <CardContent>
-                    <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>Expected Output</Typography>
+                <Card sx={{ borderRadius: '20px', border: '1px solid rgba(226, 232, 240, 0.8)', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', bgcolor: '#fff' }}>
+                  <CardContent sx={{ p: 3 }}>
                     <pre style={{ 
-                      backgroundColor: '#f5f5f5', 
-                      padding: '16px', 
-                      borderRadius: '4px',
+                      backgroundColor: '#1e293b', 
+                      color: '#e2e8f0',
+                      padding: '24px', 
+                      borderRadius: '12px',
                       overflow: 'auto',
                       fontSize: '14px',
+                      fontFamily: "'JetBrains Mono', monospace",
                       margin: 0,
-                      maxHeight: '500px'
+                      maxHeight: '500px',
+                      border: '1px solid rgba(255,255,255,0.1)'
                     }}>
                       {JSON.stringify(expectedOutput, null, 2)}
                     </pre>
                   </CardContent>
                 </Card>
               ) : (
-                <Typography sx={{ color: 'text.secondary', textAlign: 'center', mt: 4 }}>
-                  Loading expected output...
-                </Typography>
+                <Box sx={{ py: 8, textAlign: 'center' }}>
+                  <CircularProgress size={24} sx={{ color: '#6366f1', mb: 2 }} />
+                  <Typography sx={{ color: '#64748b', fontWeight: 600 }}>Syncing expected output...</Typography>
+                </Box>
               )}
             </Box>
           )}
 
           {currentTab === 3 && (
-            <Box sx={{ p: 3 }}>
+            <Box sx={{ p: 4 }}>
+              <Typography variant="h4" sx={{ mb: 3, fontWeight: 800, color: '#1e293b' }}>Execution Terminal</Typography>
               {error && (
-                <Card sx={{ bgcolor: '#ffebee', mb: 2 }}>
-                  <CardContent>
-                    <Typography variant="h6" sx={{ color: 'error.main', mb: 1 }}>Error</Typography>
-                    <Typography sx={{ fontFamily: 'monospace', fontSize: '14px' }}>{error}</Typography>
+                <Card sx={{ borderRadius: '16px', border: '1px solid rgba(239, 68, 68, 0.2)', bgcolor: 'rgba(239, 68, 68, 0.02)', mb: 3 }}>
+                  <CardContent sx={{ p: 3 }}>
+                    <Typography variant="subtitle2" sx={{ color: '#ef4444', fontWeight: 800, textTransform: 'uppercase', mb: 1 }}>Query Error</Typography>
+                    <Typography sx={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '14px', color: '#1e293b' }}>{error}</Typography>
                   </CardContent>
                 </Card>
               )}
               
               {result && (
-                <Card sx={{ bgcolor: arraysEqual(result, expectedOutput) ? '#e8f5e9' : '#ffebee' }}>
-                  <CardContent>
-                    <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>Query Result</Typography>
+                <Card sx={{ 
+                    borderRadius: '20px', 
+                    border: '1px solid', 
+                    borderColor: arraysEqual(result, expectedOutput) ? 'rgba(34, 197, 94, 0.2)' : 'rgba(226, 232, 240, 0.8)',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.03)', 
+                    bgcolor: '#fff' 
+                }}>
+                  <CardContent sx={{ p: 3 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                        <Typography variant="h6" sx={{ fontWeight: 800, color: '#1e293b' }}>Result Snapshot</Typography>
+                        <Chip 
+                            label={arraysEqual(result, expectedOutput) ? 'Match Successful' : 'Mismatch Detected'} 
+                            size="small"
+                            sx={{ 
+                                fontWeight: 800, 
+                                bgcolor: arraysEqual(result, expectedOutput) ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                                color: arraysEqual(result, expectedOutput) ? '#22c55e' : '#ef4444'
+                            }}
+                        />
+                    </Box>
                     <pre style={{ 
-                      backgroundColor: '#f5f5f5', 
-                      padding: '16px', 
-                      borderRadius: '4px',
+                      backgroundColor: '#1e293b', 
+                      color: '#e2e8f0',
+                      padding: '24px', 
+                      borderRadius: '12px',
                       overflow: 'auto',
                       fontSize: '14px',
+                      fontFamily: "'JetBrains Mono', monospace",
                       margin: 0,
-                      maxHeight: '500px'
+                      maxHeight: '500px',
+                      border: '1px solid rgba(255,255,255,0.1)'
                     }}>
                       {JSON.stringify(result, null, 2)}
                     </pre>
@@ -289,9 +369,9 @@ export default function MongoDBPlaygroundEditor({ question, attemptId, onTestCom
               )}
               
               {!result && !error && (
-                <Typography sx={{ color: 'text.secondary', textAlign: 'center', mt: 4 }}>
-                  Run your query to see results
-                </Typography>
+                <Box sx={{ py: 12, textAlign: 'center' }}>
+                  <Typography sx={{ color: '#94a3b8', fontWeight: 600 }}>Execute your query in the Shell tab to see results here.</Typography>
+                </Box>
               )}
             </Box>
           )}

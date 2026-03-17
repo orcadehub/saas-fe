@@ -14,27 +14,39 @@ import tenantConfig from 'config/tenantConfig';
 
 export default function LogoSection() {
   const [config, setConfig] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    tenantConfig.load().then(setConfig).catch(console.error);
+    tenantConfig.load()
+      .then((res) => {
+        setConfig(res);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        setLoading(false);
+      });
   }, []);
 
   return (
     <Link component={RouterLink} to={DASHBOARD_PATH} aria-label="theme-logo">
-      {config?.logoUrl ? (
+      {loading ? (
+        <Logo width="50" />
+      ) : config?.logoUrl ? (
         <Box 
           component="img"
           src={config.logoUrl}
           alt="Logo"
           sx={{ 
-            height: 40, 
+            height: 44, 
             maxWidth: 150, 
-            objectFit: 'contain'
+            objectFit: 'contain',
+            borderRadius: '12px'
           }}
           onError={(e) => { e.target.style.display = 'none' }}
         />
       ) : (
-        <Logo />
+        <Logo width="100" />
       )}
     </Link>
   );

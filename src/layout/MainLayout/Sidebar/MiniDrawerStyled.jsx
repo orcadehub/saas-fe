@@ -8,9 +8,9 @@ import { drawerWidth } from 'store/constant';
 function openedMixin(theme) {
   return {
     width: drawerWidth,
-    borderRight: 'none',
+    borderRight: '1px solid rgba(226, 232, 240, 0.8)',
     zIndex: 1099,
-    background: theme.vars.palette.background.default,
+    background: '#fff',
     overflowX: 'hidden',
     boxShadow: 'none',
     transition: theme.transitions.create('width', {
@@ -22,9 +22,9 @@ function openedMixin(theme) {
 
 function closedMixin(theme) {
   return {
-    borderRight: 'none',
+    borderRight: '1px solid rgba(226, 232, 240, 0.8)',
     zIndex: 1099,
-    background: theme.vars.palette.background.default,
+    background: '#fff',
     overflowX: 'hidden',
     width: 72,
     transition: theme.transitions.create('width', {

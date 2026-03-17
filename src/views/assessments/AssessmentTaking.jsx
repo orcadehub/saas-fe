@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Box, Typography, Button, CircularProgress, Modal, Radio, RadioGroup, FormControlLabel, IconButton, Tabs, Tab, Select, MenuItem, FormControl, InputLabel, Dialog, DialogTitle, DialogContent, DialogActions, Card, CardContent, Chip, Snackbar, Alert } from '@mui/material';
-import { ChevronLeft, ChevronRight, PlayArrow, CheckCircle, Close, Add, Remove, Edit } from '@mui/icons-material';
+import { Box, Typography, Button, CircularProgress, Modal, Radio, RadioGroup, FormControlLabel, IconButton, Tabs, Tab, Select, MenuItem, FormControl, InputLabel, Dialog, DialogTitle, DialogContent, DialogActions, Card, CardContent, Chip, Snackbar, Alert, Stack } from '@mui/material';
+import { ChevronLeft, ChevronRight, PlayArrow, CheckCircle, Close, Add, Remove, Edit, Warning, TimerOff, Lock, AccessTime, FullscreenExit, TabUnselected } from '@mui/icons-material';
 import Editor from '@monaco-editor/react';
 import Joyride, { STATUS } from 'react-joyride';
 import tenantConfig from 'config/tenantConfig';
@@ -52,8 +52,10 @@ export default function AssessmentTaking() {
   const [showTabSwitchWarning, setShowTabSwitchWarning] = useState(false);
   const [visitedQuestions, setVisitedQuestions] = useState(new Set([0]));
   const [savedQuestions, setSavedQuestions] = useState(new Set());
+  const [savingQuestions, setSavingQuestions] = useState(new Set());
   const [showFinalSubmitModal, setShowFinalSubmitModal] = useState(false);
   const [endTestInput, setEndTestInput] = useState('');
+  const [isTimeUp, setIsTimeUp] = useState(false);
   const [fullscreenExitCount, setFullscreenExitCount] = useState(0);
   const [isSubmittingAssessment, setIsSubmittingAssessment] = useState(false);
   const [showToast, setShowToast] = useState(false);
@@ -810,18 +812,31 @@ export default function AssessmentTaking() {
     }
   }, [assessment]);
 
+  // Force modal open & lock whenever timeRemaining drops to <=5
+  useEffect(() => {
+    if (timeRemaining <= 5 && timeRemaining > 0) {
+      setShowFinalSubmitModal(true);
+      setIsTimeUp(true);
+    }
+  }, [timeRemaining]);
+
   useEffect(() => {
     // Timer countdown
     if (timeRemaining > 0) {
       const timer = setInterval(() => {
         setTimeRemaining(prev => {
-          // Open submit modal at 5 seconds
-          if (prev === 5) {
+          const next = prev - 1;
+
+          // Open submit modal at 5 seconds and lock it
+          if (next <= 5 && next > 0) {
             setShowFinalSubmitModal(true);
+            setIsTimeUp(true);
           }
           
-          if (prev <= 1) {
+          if (next <= 0) {
             clearInterval(timer);
+            setShowFinalSubmitModal(true);
+            setIsTimeUp(true);
             // Auto-submit when time expires
             (async () => {
               const token = localStorage.getItem('studentToken');
@@ -844,7 +859,7 @@ export default function AssessmentTaking() {
             })();
             return 0;
           }
-          return prev - 1;
+          return next;
         });
       }, 1000);
       return () => clearInterval(timer);
@@ -873,7 +888,7 @@ export default function AssessmentTaking() {
   };
 
   const handleFinalSubmit = async () => {
-    if (endTestInput !== 'END' || isSubmittingAssessment) return;
+    if ((!isTimeUp && endTestInput !== 'END') || isSubmittingAssessment) return;
     
     setIsSubmittingAssessment(true);
     
@@ -1097,160 +1112,217 @@ export default function AssessmentTaking() {
             top: '50%',
             left: '50%',
             transform: 'translate(-50%, -50%)',
-            bgcolor: 'background.paper',
-            boxShadow: 24,
-            p: 8,
-            borderRadius: 3,
-            textAlign: 'center',
-            minWidth: 500
+            bgcolor: '#ffffff',
+            boxShadow: '0 0 60px rgba(239,68,68,0.12), 0 25px 50px -12px rgba(0,0,0,0.15)',
+            borderRadius: '24px',
+            overflow: 'hidden',
+            minWidth: 480,
+            maxWidth: 520,
+            border: '1px solid #fecaca'
           }}>
-            <Typography variant="h2" sx={{ fontWeight: 700, mb: 3, color: 'error.main', fontSize: '2.5rem' }}>
-              Fullscreen Required
-            </Typography>
-            <Typography variant="h5" sx={{ color: 'text.secondary', mb: 3, fontSize: '1.3rem' }}>
-              Assessment will auto-submit in:
-            </Typography>
-            
+            {/* Red accent bar */}
             <Box sx={{
-              width: 180,
-              height: 180,
-              borderRadius: '50%',
-              background: `conic-gradient(#f44336 ${((30 - fullscreenWarningTimer) / 30) * 360}deg, #e0e0e0 0deg)`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              mx: 'auto',
-              mb: 3
-            }}>
-              <Box sx={{ 
-                width: 150,
-                height: 150,
+              height: '4px',
+              background: 'linear-gradient(90deg, #ef4444, #f97316, #ef4444)',
+              backgroundSize: '200% 100%',
+              animation: 'fsShimmer 2s linear infinite',
+              '@keyframes fsShimmer': {
+                '0%': { backgroundPosition: '200% 0' },
+                '100%': { backgroundPosition: '-200% 0' }
+              }
+            }} />
+
+            <Box sx={{ p: 5, textAlign: 'center' }}>
+              {/* Icon */}
+              <Box sx={{
+                width: 64, height: 64, borderRadius: '18px',
+                background: 'linear-gradient(135deg, #fef2f2 0%, #fff7ed 100%)',
+                border: '1px solid #fecaca',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                mx: 'auto', mb: 3
+              }}>
+                <FullscreenExit sx={{ fontSize: 32, color: '#dc2626' }} />
+              </Box>
+
+              <Typography sx={{ fontWeight: 800, color: '#0f172a', fontSize: '1.5rem', letterSpacing: '-0.02em', mb: 1 }}>
+                Fullscreen Required
+              </Typography>
+              <Typography sx={{ color: '#64748b', fontWeight: 500, fontSize: '0.95rem', mb: 4 }}>
+                Assessment will auto-submit if you don't return to fullscreen
+              </Typography>
+
+              {/* Countdown ring */}
+              <Box sx={{
+                width: 140,
+                height: 140,
                 borderRadius: '50%',
-                bgcolor: 'background.paper',
+                background: `conic-gradient(#ef4444 ${((30 - fullscreenWarningTimer) / 30) * 360}deg, #fee2e2 0deg)`,
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center'
+                justifyContent: 'center',
+                mx: 'auto',
+                mb: 3,
+                boxShadow: '0 4px 20px rgba(239,68,68,0.15)'
               }}>
-                <Typography variant="h1" sx={{ 
-                  fontWeight: 900, 
-                  color: 'error.main',
-                  fontFamily: 'monospace',
-                  fontSize: '4rem'
+                <Box sx={{
+                  width: 112,
+                  height: 112,
+                  borderRadius: '50%',
+                  bgcolor: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexDirection: 'column'
                 }}>
-                  {fullscreenWarningTimer}
+                  <Typography sx={{
+                    fontWeight: 900,
+                    color: '#dc2626',
+                    fontFamily: 'JetBrains Mono, monospace',
+                    fontSize: '2.5rem',
+                    lineHeight: 1
+                  }}>
+                    {fullscreenWarningTimer}
+                  </Typography>
+                  <Typography sx={{ color: '#94a3b8', fontSize: '0.7rem', fontWeight: 600, mt: 0.5 }}>
+                    seconds
+                  </Typography>
+                </Box>
+              </Box>
+
+              {/* Exit count badge */}
+              <Box sx={{
+                display: 'inline-flex', alignItems: 'center', gap: 1,
+                px: 2.5, py: 1, borderRadius: '10px',
+                bgcolor: '#fef2f2', border: '1px solid #fecaca', mb: 4
+              }}>
+                <Warning sx={{ fontSize: 16, color: '#dc2626' }} />
+                <Typography sx={{ fontWeight: 700, color: '#991b1b', fontSize: '0.85rem' }}>
+                  Fullscreen exits: {fullscreenExitCount}
                 </Typography>
               </Box>
+
+              <Button
+                variant="contained"
+                size="large"
+                fullWidth
+                onClick={handleEnterFullscreen}
+                sx={{
+                  py: 1.8, fontSize: '1rem', fontWeight: 800, textTransform: 'none',
+                  borderRadius: '14px',
+                  background: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
+                  color: 'white',
+                  boxShadow: '0 8px 24px -4px rgba(220,38,38,0.35)',
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #b91c1c 0%, #991b1b 100%)',
+                    transform: 'translateY(-1px)',
+                    boxShadow: '0 12px 28px -4px rgba(220,38,38,0.45)'
+                  },
+                  transition: 'all 0.2s ease'
+                }}
+                startIcon={<FullscreenExit />}
+              >
+                Return to Fullscreen
+              </Button>
             </Box>
-            
-            <Typography variant="body1" sx={{ mb: 5, color: 'text.secondary' }}>
-              Fullscreen exits: <strong>{fullscreenExitCount}</strong>
-            </Typography>
-            
-            <Button 
-              variant="contained" 
-              color="error"
-              size="large"
-              fullWidth
-              onClick={handleEnterFullscreen}
-              sx={{ py: 2, fontSize: '1.2rem', fontWeight: 700 }}
-            >
-              Enter Fullscreen
-            </Button>
           </Box>
         </Modal>
 
-        <Dialog open={showTabSwitchWarning} disableEscapeKeyDown maxWidth="sm" fullWidth>
+        <Dialog
+          open={showTabSwitchWarning}
+          disableEscapeKeyDown
+          maxWidth="sm"
+          fullWidth
+          sx={{
+            '& .MuiBackdrop-root': {
+              background: 'rgba(15,23,42,0.25)',
+              backdropFilter: 'blur(6px)'
+            },
+            '& .MuiDialog-paper': {
+              borderRadius: '24px',
+              bgcolor: '#ffffff',
+              boxShadow: '0 0 60px rgba(245,158,11,0.1), 0 25px 50px -12px rgba(0,0,0,0.12)',
+              overflow: 'hidden',
+              border: '1px solid #fde68a'
+            }
+          }}
+        >
+          {/* Amber accent bar */}
           <Box sx={{
-            p: 6,
-            textAlign: 'center',
-            bgcolor: '#fff3cd',
-            borderTop: '4px solid #ff9800'
-          }}>
-            <Typography variant="h4" sx={{ fontWeight: 700, mb: 3, color: '#ff6f00' }}>
+            height: '4px',
+            background: 'linear-gradient(90deg, #f59e0b, #f97316, #f59e0b)',
+            backgroundSize: '200% 100%',
+            animation: 'tabShimmer 2s linear infinite',
+            '@keyframes tabShimmer': {
+              '0%': { backgroundPosition: '200% 0' },
+              '100%': { backgroundPosition: '-200% 0' }
+            }
+          }} />
+
+          <Box sx={{ p: 5, textAlign: 'center' }}>
+            {/* Icon */}
+            <Box sx={{
+              width: 64, height: 64, borderRadius: '18px',
+              background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)',
+              border: '1px solid #fde68a',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              mx: 'auto', mb: 3
+            }}>
+              <TabUnselected sx={{ fontSize: 32, color: '#d97706' }} />
+            </Box>
+
+            <Typography sx={{ fontWeight: 800, color: '#0f172a', fontSize: '1.5rem', letterSpacing: '-0.02em', mb: 1 }}>
               Tab Switch Detected!
             </Typography>
-            <Typography variant="h6" sx={{ color: '#856404', mb: 4 }}>
-              Warning: You switched tabs during the assessment
+            <Typography sx={{ color: '#64748b', fontWeight: 500, fontSize: '0.95rem', mb: 3 }}>
+              You switched away from the assessment tab
             </Typography>
-            <Typography variant="body1" sx={{ mb: 2, color: '#856404' }}>
-              Tab switches: <strong>{tabSwitchCount}</strong>
-              {assessment?.maxTabSwitches && assessment.maxTabSwitches !== -1 && (
-                <> / <strong>{assessment.maxTabSwitches}</strong> allowed</>
-              )}
-              {assessment?.maxTabSwitches === -1 && (
-                <> (Unlimited allowed)</>
-              )}
+
+            {/* Tab switch count badge */}
+            <Box sx={{
+              display: 'inline-flex', alignItems: 'center', gap: 1.5,
+              px: 3, py: 1.5, borderRadius: '12px',
+              bgcolor: '#fffbeb', border: '1px solid #fde68a', mb: 3
+            }}>
+              <Typography sx={{ fontWeight: 700, color: '#92400e', fontSize: '0.9rem' }}>
+                Tab switches: <strong>{tabSwitchCount}</strong>
+                {assessment?.maxTabSwitches && assessment.maxTabSwitches !== -1 && (
+                  <> / <strong>{assessment.maxTabSwitches}</strong> allowed</>
+                )}
+                {assessment?.maxTabSwitches === -1 && (
+                  <> (Unlimited allowed)</>
+                )}
+              </Typography>
+            </Box>
+
+            <Typography sx={{ color: '#64748b', fontSize: '0.85rem', fontWeight: 500, mb: 4, lineHeight: 1.6, px: 2 }}>
+              Please stay on this tab. Excessive tab switching may result in automatic assessment termination.
             </Typography>
-            <Typography variant="body2" sx={{ color: '#856404', mb: 4 }}>
-              Please stay on this tab. Excessive tab switching may result in assessment termination.
-            </Typography>
-            <Button 
-              variant="contained" 
-              color="warning"
+
+            <Button
+              variant="contained"
               size="large"
               fullWidth
               onClick={() => setShowTabSwitchWarning(false)}
-              sx={{ py: 2, fontSize: '1.1rem', fontWeight: 700 }}
+              sx={{
+                py: 1.8, fontSize: '1rem', fontWeight: 800, textTransform: 'none',
+                borderRadius: '14px',
+                background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                color: 'white',
+                boxShadow: '0 8px 24px -4px rgba(245,158,11,0.35)',
+                '&:hover': {
+                  background: 'linear-gradient(135deg, #d97706 0%, #b45309 100%)',
+                  transform: 'translateY(-1px)',
+                  boxShadow: '0 12px 28px -4px rgba(245,158,11,0.45)'
+                },
+                transition: 'all 0.2s ease'
+              }}
             >
               Continue Assessment
             </Button>
           </Box>
         </Dialog>
 
-        <Dialog open={showFinalSubmitModal} maxWidth="md" fullWidth>
-          <DialogTitle sx={{ bgcolor: '#f8f9fa', borderBottom: '1px solid #e0e0e0' }}>
-            <Typography variant="h5" sx={{ fontWeight: 600 }}>
-              Submit Assessment
-            </Typography>
-          </DialogTitle>
-          <DialogContent sx={{ p: 3 }}>
-            <Typography variant="body1" sx={{ mb: 4, color: 'text.secondary' }}>
-              Are you sure you want to submit this assessment?
-            </Typography>
-            <Box sx={{ mt: 4 }}>
-              <Typography variant="body1" sx={{ mb: 2, fontWeight: 600, color: 'error.main' }}>
-                Type "END" to confirm submission:
-              </Typography>
-              <Box
-                component="input"
-                value={endTestInput}
-                onChange={(e) => setEndTestInput(e.target.value.toUpperCase())}
-                placeholder="Type END here"
-                sx={{
-                  width: '100%',
-                  p: 2,
-                  border: '2px solid',
-                  borderColor: endTestInput === 'END' ? 'success.main' : '#e0e0e0',
-                  borderRadius: 1,
-                  fontSize: '1.1rem',
-                  fontWeight: 600,
-                  textAlign: 'center',
-                  outline: 'none',
-                  '&:focus': {
-                    borderColor: 'primary.main'
-                  }
-                }}
-              />
-            </Box>
-          </DialogContent>
-          <DialogActions sx={{ p: 3, borderTop: '1px solid #e0e0e0' }}>
-            <Button onClick={() => {
-              setShowFinalSubmitModal(false);
-              setEndTestInput('');
-            }} variant="outlined" disabled={isSubmittingAssessment}>
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleFinalSubmit}
-              variant="contained" 
-              color="error"
-              disabled={endTestInput !== 'END' || isSubmittingAssessment}
-              startIcon={isSubmittingAssessment ? <CircularProgress size={20} sx={{ color: 'white' }} /> : null}
-            >
-              {isSubmittingAssessment ? 'Submitting...' : 'Submit Assessment'}
-            </Button>
-          </DialogActions>
-        </Dialog>
+
       </>
     );
   }
@@ -1365,7 +1437,7 @@ export default function AssessmentTaking() {
             
             
             {/* Question Numbers */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
               {showLeftScroll && (
                 <IconButton 
                   size="small" 
@@ -1373,7 +1445,7 @@ export default function AssessmentTaking() {
                     const container = document.getElementById('question-buttons');
                     container.scrollBy({ left: -200, behavior: 'smooth' });
                   }}
-                  sx={{ bgcolor: 'secondary.light' }}
+                  sx={{ bgcolor: '#f8fafc', border: '1px solid #e2e8f0', color: '#6366f1' }}
                 >
                   <ChevronLeft />
                 </IconButton>
@@ -1382,9 +1454,10 @@ export default function AssessmentTaking() {
                 id="question-buttons"
                 sx={{ 
                   display: 'flex', 
-                  gap: 1, 
+                  gap: 1.25, 
                   overflow: 'auto',
                   flexGrow: 1,
+                  py: 0.5,
                   '&::-webkit-scrollbar': { display: 'none' },
                   scrollbarWidth: 'none',
                   scrollBehavior: 'smooth'
@@ -1401,62 +1474,54 @@ export default function AssessmentTaking() {
                       ? frontendCompletedQuestions.has(originalIndex)
                       : savedQuestions.has(originalIndex);
                     const isPartial = q.type === 'frontend' && !frontendCompletedQuestions.has(originalIndex) && (frontendQuestionPercentages[originalIndex] || 0) > 0;
+                    const isActive = originalIndex === currentQuestionIndex;
                     
+                    const isSaving = savingQuestions.has(originalIndex);
+
                     return (
                       <Button
                         key={originalIndex}
-                        variant={originalIndex === currentQuestionIndex ? 'contained' : 'outlined'}
+                        variant={isActive ? 'contained' : 'outlined'}
                         size="small"
                         onClick={() => {
                           setCurrentQuestionIndex(originalIndex);
                           setVisitedQuestions(prev => new Set([...prev, originalIndex]));
                         }}
                         sx={{
-                          minWidth: '48px',
-                          height: '48px',
-                          fontSize: '1.1rem',
-                          fontWeight: 600,
-                          ...(originalIndex === currentQuestionIndex && isCompleted && {
-                            bgcolor: '#4caf50',
+                          minWidth: '44px',
+                          height: '44px',
+                          borderRadius: '12px',
+                          fontSize: '1rem',
+                          fontWeight: 800,
+                          transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                          position: 'relative',
+                          
+                          ...(isActive ? {
+                            bgcolor: isCompleted ? '#10b981' : (isPartial || visitedQuestions.has(originalIndex)) ? '#f59e0b' : '#6366f1',
                             color: 'white',
-                            '&:hover': { bgcolor: '#45a049' }
-                          }),
-                          ...(originalIndex === currentQuestionIndex && !isCompleted && isPartial && {
-                            bgcolor: '#f59e0b',
-                            color: 'white',
-                            '&:hover': { bgcolor: '#d97706' }
-                          }),
-                          ...(originalIndex === currentQuestionIndex && !isCompleted && !isPartial && {
-                            bgcolor: 'secondary.main',
-                            color: 'white',
-                            '&:hover': { bgcolor: 'secondary.dark' }
-                          }),
-                          ...(originalIndex !== currentQuestionIndex && isCompleted && {
-                            bgcolor: '#4caf50',
-                            color: 'white',
-                            borderColor: '#4caf50',
-                            '&:hover': { bgcolor: '#45a049' }
-                          }),
-                          ...(originalIndex !== currentQuestionIndex && !isCompleted && isPartial && {
-                            bgcolor: '#f59e0b',
-                            color: 'white',
-                            borderColor: '#f59e0b',
-                            '&:hover': { bgcolor: '#d97706' }
-                          }),
-                          ...(originalIndex !== currentQuestionIndex && !isCompleted && !isPartial && visitedQuestions.has(originalIndex) && {
-                            bgcolor: '#ff9800',
-                            color: 'white',
-                            borderColor: '#ff9800',
-                            '&:hover': { bgcolor: '#f57c00' }
-                          }),
-                          ...(originalIndex !== currentQuestionIndex && !isCompleted && !isPartial && !visitedQuestions.has(originalIndex) && {
-                            borderColor: 'secondary.main',
-                            color: 'secondary.main',
-                            '&:hover': { borderColor: 'secondary.dark', bgcolor: 'secondary.light' }
+                            boxShadow: `0 8px 16px -4px ${isCompleted ? 'rgba(16, 185, 129, 0.4)' : (isPartial || visitedQuestions.has(originalIndex)) ? 'rgba(245, 158, 11, 0.4)' : 'rgba(99, 102, 241, 0.4)'}`,
+                            transform: 'translateY(-2px)',
+                            border: 'none',
+                            '&:hover': { 
+                                bgcolor: isCompleted ? '#059669' : (isPartial || visitedQuestions.has(originalIndex)) ? '#d97706' : '#4f46e5',
+                                boxShadow: `0 12px 20px -6px ${isCompleted ? 'rgba(16, 185, 129, 0.5)' : (isPartial || visitedQuestions.has(originalIndex)) ? 'rgba(245, 158, 11, 0.5)' : 'rgba(99, 102, 241, 0.5)'}`
+                            }
+                          } : {
+                            borderColor: isCompleted ? '#10b981' : (isPartial || visitedQuestions.has(originalIndex)) ? '#f59e0b' : '#e2e8f0',
+                            bgcolor: isCompleted ? '#f0fdf4' : (isPartial || visitedQuestions.has(originalIndex)) ? '#fffbeb' : 'white',
+                            color: isCompleted ? '#10b981' : (isPartial || visitedQuestions.has(originalIndex)) ? '#f59e0b' : '#64748b',
+                            '&:hover': {
+                              bgcolor: isCompleted ? '#dcfce7' : (isPartial || visitedQuestions.has(originalIndex)) ? '#fef3c7' : '#f8fafc',
+                              borderColor: (isPartial || visitedQuestions.has(originalIndex)) ? '#f59e0b' : '#6366f1'
+                            }
                           })
                         }}
                       >
-                        {filteredIndex + 1}
+                        {isSaving ? (
+                          <CircularProgress size={18} sx={{ color: isActive ? 'white' : '#6366f1' }} />
+                        ) : (
+                          filteredIndex + 1
+                        )}
                       </Button>
                     );
                   });
@@ -1469,7 +1534,7 @@ export default function AssessmentTaking() {
                     const container = document.getElementById('question-buttons');
                     container.scrollBy({ left: 200, behavior: 'smooth' });
                   }}
-                  sx={{ bgcolor: 'secondary.light' }}
+                  sx={{ bgcolor: '#f8fafc', border: '1px solid #e2e8f0', color: '#6366f1' }}
                 >
                   <ChevronRight />
                 </IconButton>
@@ -1477,206 +1542,260 @@ export default function AssessmentTaking() {
             </Box>
           </Box>
 
-          {/* Question Content */}
-          {questions[currentQuestionIndex]?.type !== 'mongodb' ? (
-            <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, maxWidth: '900px', mx: 'auto', '& *': { fontSize: { xs: '16px', sm: '18px', md: '20px' } } }}>
-            <Typography variant="h4" sx={{ fontWeight: 700, mb: 2, fontSize: { xs: '22px !important', sm: '25px !important', md: '28px !important' } }}>
-              {questions[currentQuestionIndex]?.title || 'Loading...'}
+          {/* Unified Question Content for all types (Programming, Frontend, MongoDB, Quiz) */}
+          <Box sx={{ p: { xs: 3, md: 5 }, maxWidth: '900px', mx: 'auto' }}>
+            {/* Header Section */}
+            <Typography variant="h2" sx={{ 
+              fontWeight: 900, mb: 1.5, color: '#0f172a', 
+              fontSize: { xs: '1.75rem', md: '2.5rem' }, 
+              letterSpacing: '-0.025em',
+              lineHeight: 1.2
+            }}>
+              {questions[currentQuestionIndex]?.title || 'System Initialization...'}
             </Typography>
             
-            {questions[currentQuestionIndex]?.type === 'frontend' && (
-              <>
-                <Box sx={{ mb: 4 }}>
-                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, fontSize: { xs: '18px !important', sm: '20px !important', md: '22px !important' } }}>Problem Statement</Typography>
-                  <Typography variant="body1" sx={{ lineHeight: 1.8, fontSize: { xs: '16px', sm: '18px', md: '20px' } }}>
-                    {questions[currentQuestionIndex]?.problemStatement}
-                  </Typography>
-                </Box>
-
-                <Box sx={{ mb: 4 }}>
-                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, fontSize: { xs: '18px !important', sm: '20px !important', md: '22px !important' } }}>Requirements</Typography>
-                  <Box component="ul" sx={{ pl: 3, m: 0 }}>
-                    {questions[currentQuestionIndex]?.requirements?.map((req, idx) => (
-                      <Typography key={idx} component="li" variant="body1" sx={{ mb: 1, fontSize: { xs: '16px', sm: '18px', md: '20px' } }}>
-                        {req}
-                      </Typography>
-                    ))}
-                  </Box>
-                </Box>
-
-                <Box sx={{ mb: 4 }}>
-                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, fontSize: { xs: '18px !important', sm: '20px !important', md: '22px !important' } }}>Acceptance Criteria</Typography>
-                  <Box component="ul" sx={{ pl: 3, m: 0 }}>
-                    {questions[currentQuestionIndex]?.acceptanceCriteria?.map((criteria, idx) => (
-                      <Typography key={idx} component="li" variant="body1" sx={{ mb: 1, lineHeight: 1.8, fontSize: { xs: '16px', sm: '18px', md: '20px' } }}>
-                        {criteria}
-                      </Typography>
-                    ))}
-                  </Box>
-                </Box>
-              </>
-            )}
-            
-            {/* Tags/Topics */}
-            {(questions[currentQuestionIndex]?.type === 'programming' || questions[currentQuestionIndex]?.type === 'mongodb') && questions[currentQuestionIndex]?.tags && questions[currentQuestionIndex].tags.length > 0 && (
-              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 4 }}>
+            {/* Metadata Tags */}
+            {questions[currentQuestionIndex]?.tags && questions[currentQuestionIndex].tags.length > 0 && (
+              <Box sx={{ display: 'flex', gap: 1.25, flexWrap: 'wrap', mb: 4.5 }}>
                 {questions[currentQuestionIndex].tags.map((tag, idx) => (
-                  <Box key={idx} sx={{ px: 2, py: 0.5, bgcolor: 'secondary.light', borderRadius: 1 }}>
-                    <Typography variant="caption" sx={{ fontWeight: 600, fontSize: { xs: '14px !important', sm: '15px !important', md: '16px !important' } }}>{tag}</Typography>
-                  </Box>
+                  <Chip 
+                    key={idx} 
+                    label={tag}
+                    size="small"
+                    sx={{ 
+                      fontWeight: 800, 
+                      bgcolor: '#f1f5f9', 
+                      color: '#475569',
+                      borderRadius: '8px',
+                      px: 0.5
+                    }}
+                  />
                 ))}
               </Box>
             )}
-            
-            {/* Quiz Question - Code Snippet */}
-            {questions[currentQuestionIndex]?.type === 'quiz' && questions[currentQuestionIndex]?.codeSnippet && (
-              <Box sx={{ 
-                mb: 4, 
-                p: 3, 
-                bgcolor: '#f1f5f9', 
-                borderRadius: 2, 
-                border: '1px solid #cbd5e1',
-                fontFamily: 'monospace'
-              }}>
-                <Typography variant="body1" component="pre" sx={{ 
-                  whiteSpace: 'pre-wrap',
-                  fontSize: { xs: '16px', sm: '18px', md: '20px' },
-                  lineHeight: 1.6,
-                  margin: 0
-                }}>
-                  {questions[currentQuestionIndex].codeSnippet.replace(/\\n/g, '\n').replace(/\\t/g, '\t')}
-                </Typography>
-              </Box>
-            )}
-            
-            {/* Programming Question - Description */}
-            {questions[currentQuestionIndex]?.type === 'programming' && questions[currentQuestionIndex]?.description && (
-              <Box sx={{ mb: 4 }}>
-                <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, fontSize: { xs: '18px !important', sm: '20px !important', md: '22px !important' } }}>Description</Typography>
-                <Typography variant="body1" sx={{ lineHeight: 1.8, fontSize: { xs: '16px', sm: '18px', md: '20px' } }}>
-                  {questions[currentQuestionIndex].description}
-                </Typography>
-              </Box>
-            )}
-            
-            {/* Constraints */}
-            {questions[currentQuestionIndex]?.type === 'programming' && questions[currentQuestionIndex]?.constraints && (
-              <Box sx={{ mb: 4 }}>
-                <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, fontSize: { xs: '18px !important', sm: '20px !important', md: '22px !important' } }}>Constraints</Typography>
-                <Box component="ul" sx={{ pl: 3, m: 0 }}>
-                  {(Array.isArray(questions[currentQuestionIndex].constraints) 
-                    ? questions[currentQuestionIndex].constraints 
-                    : [questions[currentQuestionIndex].constraints]
-                  ).map((constraint, idx) => (
-                    <Typography key={idx} component="li" variant="body1" sx={{ mb: 1, fontSize: { xs: '16px', sm: '18px', md: '20px' } }}>
-                      {constraint}
-                    </Typography>
-                  ))}
-                </Box>
-              </Box>
-            )}
-            
-            {/* Example */}
-            {questions[currentQuestionIndex]?.type === 'programming' && questions[currentQuestionIndex]?.example && (
-              <Box sx={{ mb: 4 }}>
-                <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, fontSize: { xs: '18px !important', sm: '20px !important', md: '22px !important' } }}>Example</Typography>
-                <Box sx={{ p: 2, bgcolor: '#f8f9fa', borderRadius: 1 }}>
-                  {questions[currentQuestionIndex].example.input && (
-                    <Typography variant="body2" sx={{ fontFamily: 'monospace', mb: 1, fontSize: { xs: '16px', sm: '18px', md: '20px' } }}>
-                      <strong>Input:</strong> {questions[currentQuestionIndex].example.input}
-                    </Typography>
-                  )}
-                  {questions[currentQuestionIndex].example.output && (
-                    <Typography variant="body2" sx={{ fontFamily: 'monospace', mb: 1, fontSize: { xs: '16px', sm: '18px', md: '20px' } }}>
-                      <strong>Output:</strong> {questions[currentQuestionIndex].example.output}
-                    </Typography>
-                  )}
-                  {questions[currentQuestionIndex].example.explanation && (
-                    <Typography variant="body2" sx={{ mt: 1, fontStyle: 'italic', fontSize: { xs: '16px', sm: '18px', md: '20px' } }}>
-                      <strong>Explanation:</strong> {questions[currentQuestionIndex].example.explanation}
-                    </Typography>
-                  )}
-                </Box>
-              </Box>
-            )}
-            
-            {/* Key Insights */}
-            {questions[currentQuestionIndex]?.type === 'programming' && questions[currentQuestionIndex]?.intuition?.keyInsights && assessment?.showKeyInsights && (
-              <Box sx={{ mb: 4 }}>
-                <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, fontSize: { xs: '18px !important', sm: '20px !important', md: '22px !important' } }}>Key Insights</Typography>
-                <Box component="ul" sx={{ pl: 3, m: 0 }}>
-                  {questions[currentQuestionIndex].intuition.keyInsights.map((insight, idx) => (
-                    <Typography key={idx} component="li" variant="body1" sx={{ mb: 1, lineHeight: 1.8, fontSize: { xs: '16px', sm: '18px', md: '20px' } }}>
-                      {insight}
-                    </Typography>
-                  ))}
-                </Box>
-              </Box>
-            )}
-            
-            {/* Algorithm Steps */}
-            {questions[currentQuestionIndex]?.type === 'programming' && questions[currentQuestionIndex]?.intuition?.algorithmSteps && assessment?.showAlgorithm && (
-              <Box sx={{ mb: 4 }}>
-                <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, fontSize: { xs: '18px !important', sm: '20px !important', md: '22px !important' } }}>Algorithm</Typography>
-                <Box component="ol" sx={{ pl: 3, m: 0 }}>
-                  {questions[currentQuestionIndex].intuition.algorithmSteps.map((step, idx) => (
-                    <Typography key={idx} component="li" variant="body1" sx={{ mb: 1, lineHeight: 1.8, fontSize: { xs: '16px', sm: '18px', md: '20px' } }}>
-                      {step}
-                    </Typography>
-                  ))}
-                </Box>
-              </Box>
-            )}
-            
-            {/* Complexity */}
-            {questions[currentQuestionIndex]?.type === 'programming' && (questions[currentQuestionIndex]?.intuition?.timeComplexity || questions[currentQuestionIndex]?.intuition?.spaceComplexity) && (
-              <Box sx={{ mb: 4 }}>
-                <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, fontSize: { xs: '18px !important', sm: '20px !important', md: '22px !important' } }}>Complexity</Typography>
-                <Box sx={{ p: 2, bgcolor: '#f8f9fa', borderRadius: 1 }}>
-                  {questions[currentQuestionIndex].intuition.timeComplexity && (
-                    <Typography variant="body1" sx={{ mb: 1, fontSize: { xs: '16px', sm: '18px', md: '20px' } }}>
-                      <strong>Time Complexity:</strong> {questions[currentQuestionIndex].intuition.timeComplexity}
-                    </Typography>
-                  )}
-                  {questions[currentQuestionIndex].intuition.spaceComplexity && (
-                    <Typography variant="body1" sx={{ fontSize: { xs: '16px', sm: '18px', md: '20px' } }}>
-                      <strong>Space Complexity:</strong> {questions[currentQuestionIndex].intuition.spaceComplexity}
-                    </Typography>
-                  )}
-                </Box>
-              </Box>
-            )}
-          </Box>
-          ) : (
-            <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, maxWidth: '900px', mx: 'auto', '& *': { fontSize: { xs: '16px', sm: '18px', md: '20px' } } }}>
-              <Typography variant="h4" sx={{ fontWeight: 700, mb: 2, fontSize: { xs: '22px !important', sm: '25px !important', md: '28px !important' } }}>
-                {questions[currentQuestionIndex]?.title || 'Loading...'}
-              </Typography>
+
+            {/* Content Sections - Stacked with consistent spacing */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
               
-              {questions[currentQuestionIndex]?.tags && questions[currentQuestionIndex].tags.length > 0 && (
-                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 4 }}>
-                  {questions[currentQuestionIndex].tags.map((tag, idx) => (
-                    <Box key={idx} sx={{ px: 2, py: 0.5, bgcolor: 'secondary.light', borderRadius: 1 }}>
-                      <Typography variant="caption" sx={{ fontWeight: 600, fontSize: { xs: '14px !important', sm: '15px !important', md: '16px !important' } }}>{tag}</Typography>
-                    </Box>
-                  ))}
+              {/* 1. Core Description / Problem Statement */}
+              {(questions[currentQuestionIndex]?.problemStatement || questions[currentQuestionIndex]?.description) && (
+                <Box>
+                  <Typography sx={{ 
+                    fontWeight: 900, color: '#6366f1', textTransform: 'uppercase', 
+                    fontSize: '0.75rem', letterSpacing: '0.1em', mb: 2.5,
+                    display: 'flex', alignItems: 'center', gap: 1.5
+                  }}>
+                    <Box sx={{ width: 4, height: 16, bgcolor: '#6366f1', borderRadius: 1 }} />
+                    Context & Requirements
+                  </Typography>
+                  <Box sx={{ 
+                    p: 4, borderRadius: '24px', bgcolor: '#f8fafc', 
+                    border: '1px solid #f1f5f9',
+                    '& p': { m: 0, lineHeight: 1.8, color: '#334155', fontWeight: 600, fontSize: '1.1rem' },
+                    '& div': { lineHeight: 1.8, color: '#334155', fontWeight: 600, fontSize: '1.1rem' }
+                  }}>
+                    <div dangerouslySetInnerHTML={{ __html: questions[currentQuestionIndex]?.problemStatement || questions[currentQuestionIndex]?.description }} />
+                  </Box>
                 </Box>
               )}
-              
-              <Typography variant="body1" sx={{ lineHeight: 1.8, fontSize: { xs: '16px', sm: '18px', md: '20px' } }}>
-                {questions[currentQuestionIndex]?.problemStatement}
-              </Typography>
+
+              {/* 2. Logic / Code Snippets (Mostly for Quiz) */}
+              {questions[currentQuestionIndex]?.codeSnippet && (
+                <Box>
+                  <Typography sx={{ 
+                    fontWeight: 900, color: '#6366f1', textTransform: 'uppercase', 
+                    fontSize: '0.75rem', letterSpacing: '0.1em', mb: 2.5,
+                    display: 'flex', alignItems: 'center', gap: 1.5
+                  }}>
+                    <Box sx={{ width: 4, height: 16, bgcolor: '#6366f1', borderRadius: 1 }} />
+                    Reference Snippet
+                  </Typography>
+                  <Box sx={{ 
+                    p: 3, bgcolor: '#1e293b', borderRadius: '24px', 
+                    border: '1px solid #0f172a', overflow: 'hidden'
+                  }}>
+                    <Typography component="pre" sx={{ 
+                      whiteSpace: 'pre-wrap', fontSize: '0.95rem', lineHeight: 1.7, margin: 0,
+                      color: '#f8fafc', fontFamily: "'JetBrains Mono', monospace", fontWeight: 500
+                    }}>
+                      {questions[currentQuestionIndex].codeSnippet.replace(/\\n/g, '\n').replace(/\\t/g, '\t')}
+                    </Typography>
+                  </Box>
+                </Box>
+              )}
+
+              {/* 3. Functional Specifications (Requirements) */}
+              {questions[currentQuestionIndex]?.requirements && (
+                <Box>
+                  <Typography sx={{ 
+                    fontWeight: 900, color: '#6366f1', textTransform: 'uppercase', 
+                    fontSize: '0.75rem', letterSpacing: '0.1em', mb: 2.5,
+                    display: 'flex', alignItems: 'center', gap: 1.5
+                  }}>
+                    <Box sx={{ width: 4, height: 16, bgcolor: '#6366f1', borderRadius: 1 }} />
+                    Functional Specifications
+                  </Typography>
+                  <Stack spacing={2} sx={{ pl: 2 }}>
+                    {(Array.isArray(questions[currentQuestionIndex].requirements) ? questions[currentQuestionIndex].requirements : [questions[currentQuestionIndex].requirements]).map((req, idx) => (
+                      <Box key={idx} sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+                        <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#6366f1', mt: 1.25, flexShrink: 0 }} />
+                        <Typography sx={{ color: '#475569', fontWeight: 600, fontSize: '1.05rem', lineHeight: 1.6 }}>{req}</Typography>
+                      </Box>
+                    ))}
+                  </Stack>
+                </Box>
+              )}
+
+              {/* 4. Acceptance Criteria (Specifically for Frontend/Design) */}
+              {questions[currentQuestionIndex]?.acceptanceCriteria && (
+                <Box>
+                  <Typography sx={{ 
+                    fontWeight: 900, color: '#10b981', textTransform: 'uppercase', 
+                    fontSize: '0.75rem', letterSpacing: '0.1em', mb: 2.5,
+                    display: 'flex', alignItems: 'center', gap: 1.5
+                  }}>
+                    <Box sx={{ width: 4, height: 16, bgcolor: '#10b981', borderRadius: 1 }} />
+                    Acceptance Criteria
+                  </Typography>
+                  <Stack spacing={2} sx={{ pl: 2 }}>
+                    {questions[currentQuestionIndex].acceptanceCriteria.map((criteria, idx) => (
+                      <Box key={idx} sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+                        <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#10b981', mt: 1.25, flexShrink: 0 }} />
+                        <Typography sx={{ color: '#475569', fontWeight: 600, fontSize: '1.05rem', lineHeight: 1.6 }}>{criteria}</Typography>
+                      </Box>
+                    ))}
+                  </Stack>
+                </Box>
+              )}
+
+              {/* 5. Technical Constraints */}
+              {questions[currentQuestionIndex]?.constraints && (
+                <Box>
+                  <Typography sx={{ 
+                    fontWeight: 900, color: '#f97316', textTransform: 'uppercase', 
+                    fontSize: '0.75rem', letterSpacing: '0.1em', mb: 2.5,
+                    display: 'flex', alignItems: 'center', gap: 1.5
+                  }}>
+                    <Box sx={{ width: 4, height: 16, bgcolor: '#f97316', borderRadius: 1 }} />
+                    Technical Constraints
+                  </Typography>
+                  <Box sx={{ p: 3, borderRadius: '20px', bgcolor: '#fff7ed', border: '1px solid #fed7aa' }}>
+                    <Stack spacing={1.5}>
+                      {(Array.isArray(questions[currentQuestionIndex].constraints) ? questions[currentQuestionIndex].constraints : [questions[currentQuestionIndex].constraints]).map((constraint, idx) => (
+                        <Box key={idx} sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                          <Box sx={{ width: 5, height: 5, borderRadius: '50%', bgcolor: '#f97316', flexShrink: 0 }} />
+                          <Typography sx={{ color: '#9a3412', fontWeight: 800, fontSize: '0.95rem', fontFamily: "'JetBrains Mono', monospace" }}>{constraint}</Typography>
+                        </Box>
+                      ))}
+                    </Stack>
+                  </Box>
+                </Box>
+              )}
+
+              {/* 6. Example Scenarios */}
+              {questions[currentQuestionIndex]?.example && (
+                <Box>
+                  <Typography sx={{ 
+                    fontWeight: 900, color: '#6366f1', textTransform: 'uppercase', 
+                    fontSize: '0.75rem', letterSpacing: '0.1em', mb: 2.5,
+                    display: 'flex', alignItems: 'center', gap: 1.5
+                  }}>
+                    <Box sx={{ width: 4, height: 16, bgcolor: '#6366f1', borderRadius: 1 }} />
+                    Example Scenario
+                  </Typography>
+                  <Box sx={{ 
+                    p: 3.5, borderRadius: '24px', bgcolor: '#fafafa', border: '1px solid #f1f1f1', 
+                    display: 'flex', flexDirection: 'column', gap: 2.5
+                  }}>
+                    {questions[currentQuestionIndex].example.input && (
+                      <Box>
+                        <Typography sx={{ fontSize: '0.7rem', fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', mb: 1 }}>Input</Typography>
+                        <Box sx={{ p: 2, bgcolor: '#ffffff', border: '1px solid #f1f5f9', borderRadius: '12px', fontFamily: "'JetBrains Mono', monospace", color: '#0f172a', fontWeight: 700 }}>
+                          {questions[currentQuestionIndex].example.input}
+                        </Box>
+                      </Box>
+                    )}
+                    {questions[currentQuestionIndex].example.output && (
+                      <Box>
+                        <Typography sx={{ fontSize: '0.7rem', fontWeight: 900, color: '#10b981', textTransform: 'uppercase', mb: 1 }}>Expected Output</Typography>
+                        <Box sx={{ p: 2, bgcolor: '#f0fdf4', border: '1px solid #dcfce7', borderRadius: '12px', fontFamily: "'JetBrains Mono', monospace", color: '#166534', fontWeight: 700 }}>
+                          {questions[currentQuestionIndex].example.output}
+                        </Box>
+                      </Box>
+                    )}
+                    {questions[currentQuestionIndex].example.explanation && (
+                      <Box>
+                        <Typography sx={{ fontSize: '0.7rem', fontWeight: 900, color: '#64748b', textTransform: 'uppercase', mb: 1 }}>Logic Breakdown</Typography>
+                        <Typography sx={{ color: '#475569', fontWeight: 600, lineHeight: 1.7, fontSize: '0.95rem' }}>{questions[currentQuestionIndex].example.explanation}</Typography>
+                      </Box>
+                    )}
+                  </Box>
+                </Box>
+              )}
+
+              {/* 7. Strategic Insights & Algorithm (Optional) */}
+              {(questions[currentQuestionIndex]?.intuition?.keyInsights && assessment?.showKeyInsights) && (
+                <Box>
+                  <Typography sx={{ 
+                    fontWeight: 900, color: '#8b5cf6', textTransform: 'uppercase', 
+                    fontSize: '0.75rem', letterSpacing: '0.1em', mb: 2.5,
+                    display: 'flex', alignItems: 'center', gap: 1.5
+                  }}>
+                    <Box sx={{ width: 4, height: 16, bgcolor: '#8b5cf6', borderRadius: 1 }} />
+                    Strategic Insights
+                  </Typography>
+                  <Stack spacing={1.5} sx={{ pl: 2 }}>
+                    {questions[currentQuestionIndex].intuition.keyInsights.map((insight, idx) => (
+                      <Box key={idx} sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+                        <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#8b5cf6', mt: 1.25, flexShrink: 0 }} />
+                        <Typography sx={{ color: '#4c1d95', fontWeight: 600, fontSize: '1.05rem', lineHeight: 1.6 }}>{insight}</Typography>
+                      </Box>
+                    ))}
+                  </Stack>
+                </Box>
+              )}
+
+              {/* 8. Efficiency Analysis (Time & Space) */}
+              {(questions[currentQuestionIndex]?.intuition?.timeComplexity || questions[currentQuestionIndex]?.intuition?.spaceComplexity) && (
+                <Box>
+                  <Typography sx={{ 
+                    fontWeight: 900, color: '#6366f1', textTransform: 'uppercase', 
+                    fontSize: '0.75rem', letterSpacing: '0.1em', mb: 2.5,
+                    display: 'flex', alignItems: 'center', gap: 1.5
+                  }}>
+                    <Box sx={{ width: 4, height: 16, bgcolor: '#6366f1', borderRadius: 1 }} />
+                    Efficiency Analysis
+                  </Typography>
+                  <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 3 }}>
+                    {questions[currentQuestionIndex].intuition.timeComplexity && (
+                      <Box sx={{ p: 3, borderRadius: '24px', bgcolor: '#f8fafc', border: '1px solid #f1f5f9' }}>
+                        <Typography sx={{ color: '#94a3b8', fontWeight: 800, fontSize: '0.65rem', textTransform: 'uppercase', mb: 1, letterSpacing: '0.1em' }}>Time Complexity</Typography>
+                        <Typography sx={{ fontWeight: 900, color: '#0f172a', fontSize: '1.25rem', fontFamily: "'JetBrains Mono', monospace" }}>{questions[currentQuestionIndex].intuition.timeComplexity}</Typography>
+                      </Box>
+                    )}
+                    {questions[currentQuestionIndex].intuition.spaceComplexity && (
+                      <Box sx={{ p: 3, borderRadius: '24px', bgcolor: '#f8fafc', border: '1px solid #f1f5f9' }}>
+                        <Typography sx={{ color: '#94a3b8', fontWeight: 800, fontSize: '0.65rem', textTransform: 'uppercase', mb: 1, letterSpacing: '0.1em' }}>Space Complexity</Typography>
+                        <Typography sx={{ fontWeight: 900, color: '#0f172a', fontSize: '1.25rem', fontFamily: "'JetBrains Mono', monospace" }}>{questions[currentQuestionIndex].intuition.spaceComplexity}</Typography>
+                      </Box>
+                    )}
+                  </Box>
+                </Box>
+              )}
             </Box>
-          )}
+          </Box>
         </Box>
 
         {/* Divider */}
         <Box 
           className="divider-drag"
           sx={{ 
-            bgcolor: '#6a0dad', 
+            width: '2px', // Thin but visible
+            bgcolor: '#e2e8f0', 
             cursor: 'col-resize',
-            '&:hover': { bgcolor: '#5a0d9d' }
+            transition: 'all 0.2s',
+            zIndex: 10,
+            '&:hover': { bgcolor: '#6366f1', width: '4px' }
           }}
           onMouseDown={() => setIsDragging(true)}
         />
@@ -1690,9 +1809,9 @@ export default function AssessmentTaking() {
           scrollbarWidth: 'none'
         }}>
           {questions[currentQuestionIndex]?.type === 'quiz' ? (
-            <Box className="quiz-options" sx={{ p: { xs: 2, sm: 3, md: 4 }, '& *': { fontSize: { xs: '16px', sm: '18px', md: '20px' } } }}>
-              <Typography variant="h5" sx={{ fontWeight: 700, mb: 4, fontSize: { xs: '20px !important', sm: '22px !important', md: '24px !important' } }}>
-                Select Your Answer
+            <Box className="quiz-options" sx={{ p: { xs: 3, md: 5 } }}>
+              <Typography variant="h3" sx={{ fontWeight: 900, mb: 4, color: '#0f172a', letterSpacing: '-0.02em' }}>
+                Select Response
               </Typography>
               
               <RadioGroup
@@ -1705,36 +1824,57 @@ export default function AssessmentTaking() {
                   }));
                 }}
               >
-                {(questions[currentQuestionIndex]?.options || []).map((option, index) => (
-                  <FormControlLabel
-                    key={option._id || index}
-                    value={option._id}
-                    control={<Radio />}
-                    label={
-                      <Typography variant="body1" sx={{ fontSize: { xs: '16px', sm: '18px', md: '20px' }, py: 1 }}>
-                        {option.text}
-                      </Typography>
-                    }
-                    sx={{
-                      mb: 2,
-                      p: 2,
-                      border: '2px solid',
-                      borderColor: answers[questions[currentQuestionIndex]?._id] === option._id ? 'secondary.main' : 'grey.300',
-                      borderRadius: 2,
-                      bgcolor: answers[questions[currentQuestionIndex]?._id] === option._id ? 'secondary.light' : 'transparent',
-                      transition: 'all 0.2s',
-                      '&:hover': {
-                        borderColor: 'secondary.main',
-                        bgcolor: 'secondary.light'
-                      }
-                    }}
-                  />
-                ))}
+                <Stack spacing={2.5}>
+                  {(questions[currentQuestionIndex]?.options || []).map((option, idx) => (
+                    <Box key={option._id || idx}>
+                      <FormControlLabel
+                        value={option._id}
+                        control={<Radio sx={{ display: 'none' }} />}
+                        label={
+                          <Card sx={{ 
+                            p: 3, 
+                            width: '100%',
+                            minWidth: { md: '500px' },
+                            borderRadius: '24px',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                            border: '1px solid',
+                            borderColor: answers[questions[currentQuestionIndex]?._id] === option._id ? '#6366f1' : '#f1f5f9',
+                            bgcolor: answers[questions[currentQuestionIndex]?._id] === option._id ? '#f5f7ff' : '#ffffff',
+                            boxShadow: answers[questions[currentQuestionIndex]?._id] === option._id ? '0 12px 24px -8px rgba(99, 102, 241, 0.2)' : 'none',
+                            '&:hover': {
+                              borderColor: '#6366f1',
+                              bgcolor: answers[questions[currentQuestionIndex]?._id] === option._id ? '#f5f7ff' : '#f8fafc',
+                              transform: 'translateX(8px)'
+                            }
+                          }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                              <Box sx={{ 
+                                width: 44, height: 44, borderRadius: '16px', 
+                                bgcolor: answers[questions[currentQuestionIndex]?._id] === option._id ? '#6366f1' : '#f1f5f9',
+                                color: answers[questions[currentQuestionIndex]?._id] === option._id ? 'white' : '#64748b',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                fontWeight: 900, fontSize: '1.2rem', flexShrink: 0
+                              }}>
+                                {String.fromCharCode(65 + idx)}
+                              </Box>
+                              <Typography sx={{ fontWeight: 700, color: answers[questions[currentQuestionIndex]?._id] === option._id ? '#1e293b' : '#475569', fontSize: '1.15rem' }}>
+                                {option.text}
+                              </Typography>
+                            </Box>
+                          </Card>
+                        }
+                        sx={{ m: 0, width: '100%' }}
+                      />
+                    </Box>
+                  ))}
+                </Stack>
               </RadioGroup>
               
-              <Box className="quiz-navigation-buttons" sx={{ mt: 4, display: 'flex', gap: 2, justifyContent: 'space-between' }}>
+              <Box className="quiz-navigation-buttons" sx={{ mt: 6, display: 'flex', justifyContent: 'space-between', gap: 3, pt: 4, borderTop: '1px solid #f1f5f9' }}>
                 <Button
                   variant="outlined"
+                  startIcon={<ChevronLeft />}
                   onClick={() => {
                     const currentType = questions[currentQuestionIndex]?.type;
                     const filteredQuestions = questions.filter(q => q.type === currentType);
@@ -1751,40 +1891,71 @@ export default function AssessmentTaking() {
                     const currentFilteredIndex = filteredQuestions.findIndex(q => q._id === questions[currentQuestionIndex]._id);
                     return currentFilteredIndex === 0;
                   })()}
-                  sx={{ width: { xs: '150px', sm: '180px', md: '200px' }, height: '48px', borderColor: 'secondary.main', color: 'secondary.main' }}
+                  sx={{ 
+                    px: 6, py: 2, borderRadius: '16px', fontWeight: 900, fontSize: '1rem',
+                    textTransform: 'none', borderColor: '#e2e8f0', color: '#475569',
+                    '&:hover': { bgcolor: '#f8fafc', borderColor: '#cbd5e1' }
+                  }}
                 >
                   Previous
                 </Button>
                 <Button
                   variant="contained"
+                  endIcon={<ChevronRight />}
                   onClick={() => {
-                    // Mark as saved immediately
-                    if (answers[questions[currentQuestionIndex]?._id]) {
-                      setSavedQuestions(prev => new Set([...prev, currentQuestionIndex]));
-                      
-                      // Save to backend asynchronously
-                      if (attemptId) {
-                        const token = localStorage.getItem('studentToken');
-                        const selectedOptionId = answers[questions[currentQuestionIndex]._id];
-                        const selectedOption = questions[currentQuestionIndex].options.find(opt => opt._id === selectedOptionId);
-                        const originalIndex = selectedOption?.originalIndex ?? 0;
-                        apiService.saveQuizAnswer(token, attemptId, questions[currentQuestionIndex]._id, originalIndex)
-                          .catch(error => console.error('Error saving quiz answer:', error));
+                    const currentIdx = currentQuestionIndex;
+                    const currentQuestionId = questions[currentIdx]?._id;
+
+                    const moveNext = () => {
+                      const currentType = questions[currentIdx]?.type;
+                      const filteredQuestions = questions.filter(q => q.type === currentType);
+                      const currentFilteredIndex = filteredQuestions.findIndex(q => q._id === currentQuestionId);
+                      if (currentFilteredIndex < filteredQuestions.length - 1) {
+                        const nextQuestion = filteredQuestions[currentFilteredIndex + 1];
+                        const nextIndex = questions.findIndex(q => q._id === nextQuestion._id);
+                        setCurrentQuestionIndex(nextIndex);
+                        setVisitedQuestions(prev => new Set([...prev, nextIndex]));
                       }
-                    }
-                    
-                    // Move to next question immediately
-                    const currentType = questions[currentQuestionIndex]?.type;
-                    const filteredQuestions = questions.filter(q => q.type === currentType);
-                    const currentFilteredIndex = filteredQuestions.findIndex(q => q._id === questions[currentQuestionIndex]._id);
-                    if (currentFilteredIndex < filteredQuestions.length - 1) {
-                      const nextQuestion = filteredQuestions[currentFilteredIndex + 1];
-                      const nextIndex = questions.findIndex(q => q._id === nextQuestion._id);
-                      setCurrentQuestionIndex(nextIndex);
-                      setVisitedQuestions(prev => new Set([...prev, nextIndex]));
+                    };
+
+                    // Always move to next question immediately
+                    moveNext();
+
+                    // Save in background
+                    if (answers[currentQuestionId] && attemptId) {
+                      setSavingQuestions(prev => new Set([...prev, currentIdx]));
+                      const token = localStorage.getItem('studentToken');
+                      const selectedOptionId = answers[currentQuestionId];
+                      const selectedOption = questions[currentIdx].options.find(opt => opt._id === selectedOptionId);
+                      const origOptionIndex = selectedOption?.originalIndex ?? 0;
+
+                      apiService.saveQuizAnswer(token, attemptId, currentQuestionId, origOptionIndex)
+                        .then(() => {
+                          setSavedQuestions(prev => new Set([...prev, currentIdx]));
+                        })
+                        .catch((error) => {
+                          console.error('Error saving quiz answer:', error);
+                          setToastSeverity('error');
+                          setToastMessage('Answer not saved. Please try again.');
+                          setShowToast(true);
+                        })
+                        .finally(() => {
+                          setSavingQuestions(prev => {
+                            const next = new Set(prev);
+                            next.delete(currentIdx);
+                            return next;
+                          });
+                        });
+                    } else if (answers[currentQuestionId]) {
+                      setSavedQuestions(prev => new Set([...prev, currentIdx]));
                     }
                   }}
-                  sx={{ width: { xs: '150px', sm: '180px', md: '200px' }, height: '48px', bgcolor: 'secondary.main', '&:hover': { bgcolor: 'secondary.dark' } }}
+                  sx={{ 
+                    px: 6, py: 2, borderRadius: '16px', fontWeight: 900, fontSize: '1rem',
+                    textTransform: 'none', bgcolor: '#6366f1',
+                    boxShadow: '0 8px 20px -6px rgba(99, 102, 241, 0.5)',
+                    '&:hover': { bgcolor: '#4f46e5', boxShadow: '0 12px 25px -8px rgba(99, 102, 241, 0.6)' }
+                  }}
                 >
                   Save & Next
                 </Button>
@@ -1833,154 +2004,194 @@ export default function AssessmentTaking() {
                 display: 'flex', 
                 flexDirection: 'column', 
                 borderBottom: '1px solid', 
-                borderColor: '#e0e0e0', 
+                borderColor: '#f1f5f9', 
                 bgcolor: '#ffffff',
                 overflow: 'hidden'
               }}>
                 {/* Editor Header */}
                 <Box sx={{ 
-                  p: 2, 
-                  borderBottom: '1px solid #e0e0e0', 
                   display: 'flex', 
                   alignItems: 'center', 
+                  justifyContent: 'space-between',
                   gap: 2, 
-                  bgcolor: '#ffffff',
-                  flexWrap: 'wrap'
+                  px: 2.5, 
+                  py: 1, 
+                  bgcolor: '#ffffff', 
+                  borderBottom: '1px solid #f1f5f9',
+                  overflowX: 'auto',
+                  minHeight: '68px',
+                  '&::-webkit-scrollbar': { height: '4px' },
+                  '&::-webkit-scrollbar-thumb': { bgcolor: '#e2e8f0', borderRadius: '4px' }
                 }}>
-                  <FormControl size="small" sx={{ minWidth: 120 }} className="language-selector">
-                    <InputLabel>Language</InputLabel>
-                    <Select
-                      value={language}
-                      label="Language"
-                      onChange={(e) => setLanguage(e.target.value)}
-                    >
-                      {(assessment?.allowedLanguages || ['python', 'cpp', 'java', 'c']).map((lang) => (
-                        <MenuItem key={lang} value={lang}>
-                          {lang === 'cpp' ? 'C++' : lang.charAt(0).toUpperCase() + lang.slice(1)}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                  
-                  <Button
-                    variant="outlined"
-                    className="last-code-button"
-                    onClick={async () => {
-                      if (attemptId && questions[currentQuestionIndex]?._id) {
-                        try {
-                          const token = localStorage.getItem('studentToken');
-                          const response = await apiService.getLastExecutedCode(token, attemptId);
-                          const lastExecutedCode = response.lastExecutedCode;
-                          const savedCode = lastExecutedCode?.[questions[currentQuestionIndex]._id]?.[language];
-                          
-                          if (savedCode) {
-                            setLastCodeData(savedCode);
-                            setShowLastCodeModal(true);
-                          } else {
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    {/* Language Selector */}
+                    <FormControl size="small" className="language-selector" sx={{ minWidth: 130 }}>
+                      <InputLabel sx={{ fontWeight: 700 }}>Language</InputLabel>
+                      <Select
+                        value={language}
+                        label="Language"
+                        onChange={(e) => setLanguage(e.target.value)}
+                        sx={{
+                          borderRadius: '12px',
+                          fontWeight: 800,
+                          fontSize: '0.85rem',
+                          '& .MuiOutlinedInput-notchedOutline': { borderColor: '#e2e8f0' },
+                          '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#cbd5e1' },
+                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#6366f1' }
+                        }}
+                      >
+                        {(assessment?.allowedLanguages || ['python', 'cpp', 'java', 'c']).map((lang) => (
+                          <MenuItem key={lang} value={lang}>
+                            {lang === 'cpp' ? 'C++' : lang.charAt(0).toUpperCase() + lang.slice(1)}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+
+                    {/* Font Size Control */}
+                    <Box sx={{ 
+                      display: 'flex', alignItems: 'center', gap: 0.5, 
+                      bgcolor: '#f8fafc', px: 1, py: 0.5, borderRadius: '12px',
+                      border: '1px solid #f1f5f9'
+                    }}>
+                      <IconButton size="small" onClick={() => setFontSize(prev => Math.max(12, prev - 2))} sx={{ color: '#64748b' }}>
+                        <Remove fontSize="small" />
+                      </IconButton>
+                      <Typography variant="body2" sx={{ minWidth: '32px', textAlign: 'center', fontWeight: 900, color: '#0f172a', fontFamily: 'JetBrains Mono' }}>
+                        {fontSize}px
+                      </Typography>
+                      <IconButton size="small" onClick={() => setFontSize(prev => Math.min(32, prev + 2))} sx={{ color: '#64748b' }}>
+                        <Add fontSize="small" />
+                      </IconButton>
+                    </Box>
+
+                    {/* Last Code Button */}
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      className="last-code-button"
+                      onClick={async () => {
+                        if (attemptId && questions[currentQuestionIndex]?._id) {
+                          try {
+                            const token = localStorage.getItem('studentToken');
+                            const response = await apiService.getLastExecutedCode(token, attemptId);
+                            const lastExecutedCode = response.lastExecutedCode;
+                            const savedCode = lastExecutedCode?.[questions[currentQuestionIndex]._id]?.[language];
+                            
+                            if (savedCode) {
+                              setLastCodeData(savedCode);
+                              setShowLastCodeModal(true);
+                            } else {
+                              setLastCodeData(null);
+                              setShowLastCodeModal(true);
+                            }
+                          } catch (error) {
+                            console.error('Error loading last executed code:', error);
                             setLastCodeData(null);
                             setShowLastCodeModal(true);
                           }
-                        } catch (error) {
-                          console.error('Error loading last executed code:', error);
-                          setLastCodeData(null);
-                          setShowLastCodeModal(true);
                         }
-                      }
-                    }}
-                    disabled={!language}
-                    sx={{
-                      borderColor: 'secondary.main',
-                      color: 'secondary.main',
-                      '&:hover': { borderColor: 'secondary.dark', bgcolor: 'secondary.light' }
-                    }}
-                  >
-                    Last Code
-                  </Button>
-                  
-                  <Box sx={{ flex: 1 }} />
-                  
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <IconButton size="small" onClick={() => setFontSize(prev => Math.max(12, prev - 2))}>
-                      <Remove fontSize="small" />
-                    </IconButton>
-                    <Typography variant="body2" sx={{ minWidth: '30px', textAlign: 'center' }}>
-                      {fontSize}
-                    </Typography>
-                    <IconButton size="small" onClick={() => setFontSize(prev => Math.min(32, prev + 2))}>
-                      <Add fontSize="small" />
-                    </IconButton>
+                      }}
+                      disabled={!language}
+                      sx={{
+                        textTransform: 'none',
+                        borderRadius: '12px',
+                        fontWeight: 800,
+                        px: 2,
+                        borderColor: '#e2e8f0',
+                        color: '#475569',
+                        '&:hover': { bgcolor: '#f8fafc', borderColor: '#cbd5e1' },
+                        '&.Mui-disabled': { borderColor: '#f1f5f9', color: '#cbd5e1' }
+                      }}
+                    >
+                      Recover Session
+                    </Button>
                   </Box>
-                  
-                  <Box sx={{ flex: 1 }} />
-                  
-                  <Button
-                    variant="outlined"
-                    startIcon={isRunning ? <CircularProgress size={16} /> : <PlayArrow />}
-                    onClick={handleRunCode}
-                    disabled={!code.trim() || isRunning}
-                    sx={{
-                      borderColor: 'secondary.main',
-                      color: 'secondary.main',
-                      '&:hover': { borderColor: 'secondary.dark', bgcolor: 'secondary.light' }
-                    }}
-                  >
-                    {isRunning ? 'Running...' : 'Run Code'}
-                  </Button>
-                  <Button
-                    variant="contained"
-                    onClick={handleSubmit}
-                    disabled={!code.trim() || isSubmitting}
-                    sx={{
-                      bgcolor: 'secondary.main',
-                      '&:hover': { bgcolor: 'secondary.dark' }
-                    }}
-                  >
-                    Submit
-                  </Button>
+
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    {/* Run Code Button */}
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      startIcon={isRunning ? <CircularProgress size={16} sx={{ color: '#6366f1' }} /> : <PlayArrow />}
+                      onClick={handleRunCode}
+                      disabled={!code.trim() || isRunning}
+                      sx={{
+                        textTransform: 'none',
+                        borderRadius: '12px',
+                        fontWeight: 800,
+                        px: 2.5,
+                        py: 0.8,
+                        borderColor: '#e2e8f0',
+                        color: '#475569',
+                        '&:hover': { bgcolor: '#f8fafc', borderColor: '#6366f1', color: '#6366f1' },
+                        '&.Mui-disabled': { borderColor: '#f1f5f9', color: '#cbd5e1' }
+                      }}
+                    >
+                      {isRunning ? 'Running...' : 'Run Code'}
+                    </Button>
+
+                    {/* Submit Button */}
+                    <Button
+                      variant="contained"
+                      size="small"
+                      startIcon={<PlayArrow />}
+                      onClick={handleSubmit}
+                      disabled={!code.trim() || isSubmitting}
+                      sx={{
+                        textTransform: 'none',
+                        borderRadius: '12px',
+                        fontWeight: 900,
+                        px: 3,
+                        py: 1,
+                        bgcolor: '#6366f1',
+                        boxShadow: '0 10px 15px -3px rgba(99, 102, 241, 0.3)',
+                        '&:hover': { bgcolor: '#4f46e5', boxShadow: '0 12px 20px -5px rgba(99, 102, 241, 0.4)' }
+                      }}
+                    >
+                      Submit Code
+                    </Button>
+                  </Box>
                 </Box>
                 
                 {/* Editor Area */}
-                <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, flexGrow: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden' }}>
+                <Box sx={{ flexGrow: 1, position: 'relative', overflow: 'hidden', bgcolor: '#1e1e1e' }}>
                   {language ? (
-                    <Box sx={{ 
-                      flexGrow: 1,
-                      minHeight: 0,
-                      border: '1px solid #e0e0e0',
-                      borderRadius: 1,
-                      overflow: 'hidden'
-                    }}>
-                      <Editor
-                        height="100%"
-                        language={getMonacoLanguage(language)}
-                        value={code}
-                        theme="vs-dark"
-                        onChange={(value) => setCode(value || '')}
-                        onMount={(editor) => { editorRef.current = editor; }}
-                        options={{
-                          fontSize: fontSize,
-                          minimap: { enabled: false },
-                          scrollBeyondLastLine: false,
-                          wordWrap: 'on',
-                          lineNumbers: 'on',
-                          folding: true,
-                          autoIndent: 'full',
-                          formatOnPaste: true,
-                          formatOnType: true
-                        }}
-                      />
-                    </Box>
+                    <Editor
+                      height="100%"
+                      language={getMonacoLanguage(language)}
+                      value={code}
+                      theme="vs-dark"
+                      onChange={(value) => setCode(value || '')}
+                      onMount={(editor) => { editorRef.current = editor; }}
+                      options={{
+                        fontSize: fontSize,
+                        minimap: { enabled: false },
+                        scrollBeyondLastLine: false,
+                        wordWrap: 'on',
+                        lineNumbers: 'on',
+                        folding: true,
+                        autoIndent: 'full',
+                        formatOnPaste: true,
+                        formatOnType: true,
+                        padding: { top: 24 },
+                        fontFamily: "'JetBrains Mono', monospace",
+                        fontLigatures: true,
+                        cursorSmoothCaretAnimation: 'on',
+                        smoothScrolling: true,
+                        lineHeight: 1.6
+                      }}
+                    />
                   ) : (
                     <Box sx={{ 
-                      flexGrow: 1,
-                      minHeight: 0,
-                      border: '2px dashed #e0e0e0',
-                      borderRadius: 1,
+                      height: '100%',
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center'
+                      justifyContent: 'center',
+                      bgcolor: '#f8fafc'
                     }}>
-                      <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                        Please select a programming language to start coding
+                      <Typography sx={{ color: '#94a3b8', fontWeight: 600, fontSize: '0.95rem' }}>
+                        Select a programming language to start coding
                       </Typography>
                     </Box>
                   )}
@@ -1990,13 +2201,14 @@ export default function AssessmentTaking() {
               {/* Resizable Divider */}
               <Box
                 sx={{
-                  height: '4px',
+                  height: '3px',
                   cursor: 'row-resize',
-                  bgcolor: 'secondary.main',
+                  bgcolor: '#e2e8f0',
                   position: 'relative',
                   zIndex: 200,
+                  transition: 'background 0.2s',
                   '&:hover': {
-                    bgcolor: 'secondary.dark'
+                    bgcolor: '#6366f1'
                   }
                 }}
                 onMouseDown={() => setIsCompilerDragging(true)}
@@ -2011,77 +2223,92 @@ export default function AssessmentTaking() {
                   
                   return (
                     <>
-                      <Box sx={{ borderBottom: '1px solid #e0e0e0', bgcolor: '#ffffff', flexShrink: 0 }}>
-                        <Tabs 
-                          value={currentTestCaseTab} 
-                          onChange={(e, newValue) => setCurrentTestCaseTab(newValue)}
-                          variant="scrollable"
-                          scrollButtons="auto"
-                          sx={{ 
-                            '& .MuiTabs-indicator': {
-                              height: 4,
-                              borderRadius: '4px 4px 0 0',
-                              bgcolor: 'secondary.main'
-                            },
-                            '& .MuiTab-root': {
-                              fontSize: { xs: '14px', sm: '16px', md: '18px' },
-                              fontWeight: 600,
-                              minHeight: { xs: 48, sm: 56, md: 64 },
-                              px: { xs: 2, sm: 3, md: 4 },
-                              py: { xs: 1, sm: 1.5, md: 2 }
-                            }
-                          }}
-                        >
-                          {allTestCases.map((tc, index) => {
-                            const result = testCaseResults[index];
-                            const isCustom = index >= publicTestCases.length;
-                            const isPassed = !isCustom && result && !result.loading && !result.error && 
-                              result.output?.trim() === (tc.expectedOutput || tc.output)?.toString().trim();
-                            const isFailed = !isCustom && result && !result.loading && (result.error || 
-                              result.output?.trim() !== (tc.expectedOutput || tc.output)?.toString().trim());
-                            
-                            return (
-                              <Tab 
-                                key={index} 
-                                label={
-                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                    {isCustom ? `Custom ${index - publicTestCases.length + 1}` : `Test Case ${index + 1}`}
-                                    {result?.loading && <CircularProgress size={16} />}
-                                  </Box>
-                                }
-                                sx={{
-                                  bgcolor: isPassed ? '#e8f5e9' : isFailed ? '#ffebee' : 'transparent',
-                                  '&.Mui-selected': {
-                                    bgcolor: isPassed ? '#c8e6c9' : isFailed ? '#ffcdd2' : 'transparent'
-                                  }
-                                }}
-                              />
-                            );
-                          })}
-                          {canAddMore && (
-                            <Tab 
-                              label={
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                  <Add sx={{ fontSize: 18 }} />
-                                  Custom
-                                </Box>
-                              }
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setShowAddCustomInput(true);
+                      <Box sx={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: 1.5, 
+                        px: 2,
+                        py: 1.25, 
+                        bgcolor: '#f8fafc', 
+                        borderBottom: '1px solid #f1f5f9', 
+                        overflowX: 'auto', 
+                        minHeight: '52px',
+                        flexShrink: 0,
+                        '&::-webkit-scrollbar': { height: '3px' },
+                        '&::-webkit-scrollbar-thumb': { bgcolor: '#e2e8f0' }
+                      }}>
+                        {allTestCases.map((tc, index) => {
+                          const result = testCaseResults[index];
+                          const isCustom = index >= publicTestCases.length;
+                          const isPassed = !isCustom && result && !result.loading && !result.error && 
+                            result.output?.trim() === (tc.expectedOutput || tc.output)?.toString().trim();
+                          const isFailed = !isCustom && result && !result.loading && (result.error || 
+                            result.output?.trim() !== (tc.expectedOutput || tc.output)?.toString().trim());
+                          const isActive = index === currentTestCaseTab;
+                          
+                          return (
+                            <Box
+                              key={index}
+                              onClick={() => setCurrentTestCaseTab(index)}
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1,
+                                px: 2,
+                                py: 0.75,
+                                bgcolor: isActive ? '#ffffff' : 'transparent',
+                                color: isActive ? '#0f172a' : '#64748b',
+                                cursor: 'pointer',
+                                borderRadius: '8px',
+                                border: '1px solid',
+                                borderColor: isActive 
+                                  ? (isPassed ? '#bbf7d0' : isFailed ? '#fecaca' : '#e2e8f0')
+                                  : 'transparent',
+                                boxShadow: isActive ? '0 2px 4px rgba(0,0,0,0.04)' : 'none',
+                                transition: 'all 0.15s ease',
+                                whiteSpace: 'nowrap',
+                                '&:hover': { bgcolor: isActive ? '#ffffff' : 'rgba(0,0,0,0.03)' }
                               }}
-                              sx={{ color: 'secondary.main' }}
-                            />
-                          )}
-                        </Tabs>
+                            >
+                              {isPassed && <CheckCircle sx={{ fontSize: 14, color: '#10b981' }} />}
+                              {isFailed && <Close sx={{ fontSize: 14, color: '#ef4444' }} />}
+                              <Typography variant="body2" sx={{ fontWeight: isActive ? 800 : 700, fontSize: '0.8rem', letterSpacing: '-0.01em' }}>
+                                {isCustom ? `Custom ${index - publicTestCases.length + 1}` : `Case ${index + 1}`}
+                              </Typography>
+                              {result?.loading && <CircularProgress size={14} sx={{ color: '#6366f1' }} />}
+                            </Box>
+                          );
+                        })}
+                        {canAddMore && (
+                          <Box
+                            onClick={() => setShowAddCustomInput(true)}
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 0.5,
+                              px: 2,
+                              py: 0.75,
+                              cursor: 'pointer',
+                              borderRadius: '8px',
+                              color: '#6366f1',
+                              fontWeight: 800,
+                              fontSize: '0.8rem',
+                              transition: 'all 0.15s ease',
+                              '&:hover': { bgcolor: '#f5f3ff' }
+                            }}
+                          >
+                            <Add sx={{ fontSize: 16 }} />
+                            <Typography variant="body2" sx={{ fontWeight: 800, fontSize: '0.8rem' }}>Custom</Typography>
+                          </Box>
+                        )}
                       </Box>
                       
-                      <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, flexGrow: 1, flexShrink: 1, overflowY: 'auto', pb: 8, bgcolor: '#ffffff', minHeight: 0, maxHeight: '100%', '&::-webkit-scrollbar': { width: '8px' }, '&::-webkit-scrollbar-thumb': { bgcolor: '#bdbdbd', borderRadius: '4px' } }}>
+                      <Box sx={{ p: 3, flexGrow: 1, flexShrink: 1, overflowY: 'auto', pb: 8, bgcolor: '#ffffff', minHeight: 0, maxHeight: '100%', '&::-webkit-scrollbar': { width: '6px' }, '&::-webkit-scrollbar-thumb': { bgcolor: '#e2e8f0', borderRadius: '4px' } }}>
                         {allTestCases.length > 0 && allTestCases[currentTestCaseTab] ? (
                           <>
                             <Box sx={{ mb: 3 }}>
                               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
-                                <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5, fontSize: { xs: '14px', sm: '15px', md: '16px' } }}>
+                                <Typography sx={{ fontWeight: 800, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.75rem' }}>
                                   Input
                                 </Typography>
                                 {currentTestCaseTab >= publicTestCases.length && (
@@ -2107,13 +2334,15 @@ export default function AssessmentTaking() {
                                 )}
                               </Box>
                               <Box sx={{ 
-                                bgcolor: '#f5f5f5',
-                                border: '1px solid #e0e0e0',
+                                bgcolor: '#f8fafc',
+                                border: '1px solid #f1f5f9',
                                 p: 2.5,
-                                borderRadius: 2,
-                                fontFamily: 'monospace',
+                                borderRadius: '12px',
+                                fontFamily: "'JetBrains Mono', monospace",
                                 whiteSpace: 'pre-wrap',
-                                fontSize: { xs: '14px', sm: '16px', md: '18px' }
+                                fontSize: '0.9rem',
+                                color: '#1e293b',
+                                lineHeight: 1.6
                               }}>
                                 {allTestCases[currentTestCaseTab].input}
                               </Box>
@@ -2121,27 +2350,29 @@ export default function AssessmentTaking() {
                             
                             {testCaseResults[currentTestCaseTab] && (
                               <Box sx={{ mb: 3 }}>
-                                <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1.5, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5, fontSize: { xs: '14px', sm: '15px', md: '16px' } }}>
+                                <Typography sx={{ fontWeight: 800, mb: 1.5, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.75rem' }}>
                                   Your Output
                                 </Typography>
                                 <Box sx={{ 
-                                  bgcolor: '#f5f5f5',
-                                  border: '2px solid',
-                                  borderColor: testCaseResults[currentTestCaseTab].error ? 'error.main' : (currentTestCaseTab >= publicTestCases.length ? '#e0e0e0' : 'success.main'),
+                                  bgcolor: testCaseResults[currentTestCaseTab].error ? '#fef2f2' : (currentTestCaseTab >= publicTestCases.length ? '#f8fafc' : '#f0fdf4'),
+                                  border: '1px solid',
+                                  borderColor: testCaseResults[currentTestCaseTab].error ? '#fecaca' : (currentTestCaseTab >= publicTestCases.length ? '#f1f5f9' : '#bbf7d0'),
                                   p: 2.5,
-                                  borderRadius: 2,
-                                  fontFamily: 'monospace',
-                                  fontSize: { xs: '14px', sm: '16px', md: '18px' },
+                                  borderRadius: '12px',
+                                  fontFamily: "'JetBrains Mono', monospace",
+                                  fontSize: '0.9rem',
+                                  color: '#1e293b',
                                   whiteSpace: 'pre',
                                   display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: testCaseResults[currentTestCaseTab].loading ? 'center' : 'flex-start',
-                                  minHeight: '60px'
+                                  minHeight: '60px',
+                                  lineHeight: 1.6
                                 }}>
                                   {testCaseResults[currentTestCaseTab].loading ? (
-                                    <CircularProgress size={24} />
+                                    <CircularProgress size={24} sx={{ color: '#6366f1' }} />
                                   ) : testCaseResults[currentTestCaseTab].error ? (
-                                    <Typography sx={{ color: 'error.main', whiteSpace: 'pre-wrap' }}>
+                                    <Typography sx={{ color: '#dc2626', whiteSpace: 'pre-wrap', fontFamily: "'JetBrains Mono', monospace", fontSize: '0.85rem' }}>
                                       {testCaseResults[currentTestCaseTab].error}
                                     </Typography>
                                   ) : (
@@ -2153,17 +2384,19 @@ export default function AssessmentTaking() {
                             
                             {currentTestCaseTab < publicTestCases.length && (
                               <Box sx={{ mb: 3 }}>
-                                <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1.5, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5, fontSize: { xs: '14px', sm: '15px', md: '16px' } }}>
+                                <Typography sx={{ fontWeight: 800, mb: 1.5, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.75rem' }}>
                                   Expected Output
                                 </Typography>
                                 <Box sx={{ 
-                                  bgcolor: '#f5f5f5',
-                                  border: '1px solid #e0e0e0',
+                                  bgcolor: '#f8fafc',
+                                  border: '1px solid #f1f5f9',
                                   p: 2.5,
-                                  borderRadius: 2,
-                                  fontFamily: 'monospace',
-                                  fontSize: { xs: '14px', sm: '16px', md: '18px' },
-                                  whiteSpace: 'pre'
+                                  borderRadius: '12px',
+                                  fontFamily: "'JetBrains Mono', monospace",
+                                  fontSize: '0.9rem',
+                                  color: '#1e293b',
+                                  whiteSpace: 'pre',
+                                  lineHeight: 1.6
                                 }}>
                                   {typeof (allTestCases[currentTestCaseTab].expectedOutput || allTestCases[currentTestCaseTab].output) === 'object' 
                                     ? JSON.stringify(allTestCases[currentTestCaseTab].expectedOutput || allTestCases[currentTestCaseTab].output, null, 2)
@@ -2174,15 +2407,16 @@ export default function AssessmentTaking() {
                             
                             {allTestCases[currentTestCaseTab].explanation && (
                               <Box sx={{ mb: 3 }}>
-                                <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1.5, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5, fontSize: { xs: '14px', sm: '15px', md: '16px' } }}>
+                                <Typography sx={{ fontWeight: 800, mb: 1.5, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.75rem' }}>
                                   Explanation
                                 </Typography>
                                 <Box sx={{ 
-                                  bgcolor: '#f5f5f5',
-                                  border: '1px solid #e0e0e0',
+                                  bgcolor: '#f8fafc',
+                                  border: '1px solid #f1f5f9',
                                   p: 2.5,
-                                  borderRadius: 2,
-                                  fontSize: { xs: '14px', sm: '16px', md: '18px' },
+                                  borderRadius: '12px',
+                                  fontSize: '0.9rem',
+                                  color: '#1e293b',
                                   lineHeight: 1.6
                                 }}>
                                   {allTestCases[currentTestCaseTab].explanation}
@@ -2191,7 +2425,7 @@ export default function AssessmentTaking() {
                             )}
                           </>
                         ) : (
-                          <Typography variant="body2" sx={{ color: 'text.secondary', textAlign: 'center', mt: 4 }}>
+                          <Typography sx={{ color: '#94a3b8', textAlign: 'center', mt: 4, fontWeight: 600, fontSize: '0.9rem' }}>
                             No public test cases available
                           </Typography>
                         )}
@@ -2246,101 +2480,211 @@ export default function AssessmentTaking() {
           top: '50%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
-          bgcolor: 'background.paper',
-          boxShadow: 24,
-          p: 8,
-          borderRadius: 3,
-          textAlign: 'center',
-          minWidth: 500
+          bgcolor: '#ffffff',
+          boxShadow: '0 0 60px rgba(239,68,68,0.12), 0 25px 50px -12px rgba(0,0,0,0.15)',
+          borderRadius: '24px',
+          overflow: 'hidden',
+          minWidth: 480,
+          maxWidth: 520,
+          border: '1px solid #fecaca'
         }}>
-          <Typography variant="h2" sx={{ fontWeight: 700, mb: 3, color: 'error.main', fontSize: '2.5rem' }}>
-            Fullscreen Required
-          </Typography>
-          <Typography variant="h5" sx={{ color: 'text.secondary', mb: 3, fontSize: '1.3rem' }}>
-            Assessment will auto-submit in:
-          </Typography>
-          
+          {/* Red accent bar */}
           <Box sx={{
-            width: 180,
-            height: 180,
-            borderRadius: '50%',
-            background: `conic-gradient(#f44336 ${((30 - fullscreenWarningTimer) / 30) * 360}deg, #e0e0e0 0deg)`,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            mx: 'auto',
-            mb: 3
-          }}>
-            <Box sx={{ 
-              width: 150,
-              height: 150,
+            height: '4px',
+            background: 'linear-gradient(90deg, #ef4444, #f97316, #ef4444)',
+            backgroundSize: '200% 100%',
+            animation: 'fsShimmer2 2s linear infinite',
+            '@keyframes fsShimmer2': {
+              '0%': { backgroundPosition: '200% 0' },
+              '100%': { backgroundPosition: '-200% 0' }
+            }
+          }} />
+
+          <Box sx={{ p: 5, textAlign: 'center' }}>
+            {/* Icon */}
+            <Box sx={{
+              width: 64, height: 64, borderRadius: '18px',
+              background: 'linear-gradient(135deg, #fef2f2 0%, #fff7ed 100%)',
+              border: '1px solid #fecaca',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              mx: 'auto', mb: 3
+            }}>
+              <FullscreenExit sx={{ fontSize: 32, color: '#dc2626' }} />
+            </Box>
+
+            <Typography sx={{ fontWeight: 800, color: '#0f172a', fontSize: '1.5rem', letterSpacing: '-0.02em', mb: 1 }}>
+              Fullscreen Required
+            </Typography>
+            <Typography sx={{ color: '#64748b', fontWeight: 500, fontSize: '0.95rem', mb: 4 }}>
+              Assessment will auto-submit if you don't return to fullscreen
+            </Typography>
+
+            {/* Countdown ring */}
+            <Box sx={{
+              width: 140,
+              height: 140,
               borderRadius: '50%',
-              bgcolor: 'background.paper',
+              background: `conic-gradient(#ef4444 ${((30 - fullscreenWarningTimer) / 30) * 360}deg, #fee2e2 0deg)`,
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center'
+              justifyContent: 'center',
+              mx: 'auto',
+              mb: 3,
+              boxShadow: '0 4px 20px rgba(239,68,68,0.15)'
             }}>
-              <Typography variant="h1" sx={{ 
-                fontWeight: 900, 
-                color: 'error.main',
-                fontFamily: 'monospace',
-                fontSize: '4rem'
+              <Box sx={{
+                width: 112,
+                height: 112,
+                borderRadius: '50%',
+                bgcolor: '#ffffff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexDirection: 'column'
               }}>
-                {fullscreenWarningTimer}
+                <Typography sx={{
+                  fontWeight: 900,
+                  color: '#dc2626',
+                  fontFamily: 'JetBrains Mono, monospace',
+                  fontSize: '2.5rem',
+                  lineHeight: 1
+                }}>
+                  {fullscreenWarningTimer}
+                </Typography>
+                <Typography sx={{ color: '#94a3b8', fontSize: '0.7rem', fontWeight: 600, mt: 0.5 }}>
+                  seconds
+                </Typography>
+              </Box>
+            </Box>
+
+            {/* Exit count badge */}
+            <Box sx={{
+              display: 'inline-flex', alignItems: 'center', gap: 1,
+              px: 2.5, py: 1, borderRadius: '10px',
+              bgcolor: '#fef2f2', border: '1px solid #fecaca', mb: 4
+            }}>
+              <Warning sx={{ fontSize: 16, color: '#dc2626' }} />
+              <Typography sx={{ fontWeight: 700, color: '#991b1b', fontSize: '0.85rem' }}>
+                Fullscreen exits: {fullscreenExitCount}
               </Typography>
             </Box>
+
+            <Button
+              variant="contained"
+              size="large"
+              fullWidth
+              onClick={handleEnterFullscreen}
+              sx={{
+                py: 1.8, fontSize: '1rem', fontWeight: 800, textTransform: 'none',
+                borderRadius: '14px',
+                background: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
+                color: 'white',
+                boxShadow: '0 8px 24px -4px rgba(220,38,38,0.35)',
+                '&:hover': {
+                  background: 'linear-gradient(135deg, #b91c1c 0%, #991b1b 100%)',
+                  transform: 'translateY(-1px)',
+                  boxShadow: '0 12px 28px -4px rgba(220,38,38,0.45)'
+                },
+                transition: 'all 0.2s ease'
+              }}
+              startIcon={<FullscreenExit />}
+            >
+              Return to Fullscreen
+            </Button>
           </Box>
-          
-          <Typography variant="body1" sx={{ mb: 5, color: 'text.secondary' }}>
-            Fullscreen exits: <strong>{fullscreenExitCount}</strong>
-          </Typography>
-          
-          <Button 
-            variant="contained" 
-            color="error"
-            size="large"
-            fullWidth
-            onClick={handleEnterFullscreen}
-            sx={{ py: 2, fontSize: '1.2rem', fontWeight: 700 }}
-          >
-            Enter Fullscreen
-          </Button>
         </Box>
       </Modal>
 
       {/* Tab Switch Warning Modal */}
-      <Dialog open={showTabSwitchWarning} disableEscapeKeyDown maxWidth="sm" fullWidth>
+      <Dialog
+        open={showTabSwitchWarning}
+        disableEscapeKeyDown
+        maxWidth="sm"
+        fullWidth
+        sx={{
+          '& .MuiBackdrop-root': {
+            background: 'rgba(15,23,42,0.25)',
+            backdropFilter: 'blur(6px)'
+          },
+          '& .MuiDialog-paper': {
+            borderRadius: '24px',
+            bgcolor: '#ffffff',
+            boxShadow: '0 0 60px rgba(245,158,11,0.1), 0 25px 50px -12px rgba(0,0,0,0.12)',
+            overflow: 'hidden',
+            border: '1px solid #fde68a'
+          }
+        }}
+      >
+        {/* Amber accent bar */}
         <Box sx={{
-          p: 6,
-          textAlign: 'center',
-          bgcolor: '#fff3cd',
-          borderTop: '4px solid #ff9800'
-        }}>
-          <Typography variant="h4" sx={{ fontWeight: 700, mb: 3, color: '#ff6f00' }}>
+          height: '4px',
+          background: 'linear-gradient(90deg, #f59e0b, #f97316, #f59e0b)',
+          backgroundSize: '200% 100%',
+          animation: 'tabShimmer2 2s linear infinite',
+          '@keyframes tabShimmer2': {
+            '0%': { backgroundPosition: '200% 0' },
+            '100%': { backgroundPosition: '-200% 0' }
+          }
+        }} />
+
+        <Box sx={{ p: 5, textAlign: 'center' }}>
+          {/* Icon */}
+          <Box sx={{
+            width: 64, height: 64, borderRadius: '18px',
+            background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)',
+            border: '1px solid #fde68a',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            mx: 'auto', mb: 3
+          }}>
+            <TabUnselected sx={{ fontSize: 32, color: '#d97706' }} />
+          </Box>
+
+          <Typography sx={{ fontWeight: 800, color: '#0f172a', fontSize: '1.5rem', letterSpacing: '-0.02em', mb: 1 }}>
             Tab Switch Detected!
           </Typography>
-          <Typography variant="h6" sx={{ color: '#856404', mb: 4 }}>
-            Warning: You switched tabs during the assessment
+          <Typography sx={{ color: '#64748b', fontWeight: 500, fontSize: '0.95rem', mb: 3 }}>
+            You switched away from the assessment tab
           </Typography>
-          <Typography variant="body1" sx={{ mb: 2, color: '#856404' }}>
-            Tab switches: <strong>{tabSwitchCount}</strong>
-            {assessment?.maxTabSwitches && assessment.maxTabSwitches !== -1 && (
-              <> / <strong>{assessment.maxTabSwitches}</strong> allowed</>
-            )}
-            {assessment?.maxTabSwitches === -1 && (
-              <> (Unlimited allowed)</>
-            )}
+
+          {/* Tab switch count badge */}
+          <Box sx={{
+            display: 'inline-flex', alignItems: 'center', gap: 1.5,
+            px: 3, py: 1.5, borderRadius: '12px',
+            bgcolor: '#fffbeb', border: '1px solid #fde68a', mb: 3
+          }}>
+            <Typography sx={{ fontWeight: 700, color: '#92400e', fontSize: '0.9rem' }}>
+              Tab switches: <strong>{tabSwitchCount}</strong>
+              {assessment?.maxTabSwitches && assessment.maxTabSwitches !== -1 && (
+                <> / <strong>{assessment.maxTabSwitches}</strong> allowed</>
+              )}
+              {assessment?.maxTabSwitches === -1 && (
+                <> (Unlimited allowed)</>
+              )}
+            </Typography>
+          </Box>
+
+          <Typography sx={{ color: '#64748b', fontSize: '0.85rem', fontWeight: 500, mb: 4, lineHeight: 1.6, px: 2 }}>
+            Please stay on this tab. Excessive tab switching may result in automatic assessment termination.
           </Typography>
-          <Typography variant="body2" sx={{ color: '#856404', mb: 4 }}>
-            Please stay on this tab. Excessive tab switching may result in assessment termination.
-          </Typography>
-          <Button 
-            variant="contained" 
-            color="warning"
+
+          <Button
+            variant="contained"
             size="large"
             fullWidth
             onClick={() => setShowTabSwitchWarning(false)}
-            sx={{ py: 2, fontSize: '1.1rem', fontWeight: 700 }}
+            sx={{
+              py: 1.8, fontSize: '1rem', fontWeight: 800, textTransform: 'none',
+              borderRadius: '14px',
+              background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+              color: 'white',
+              boxShadow: '0 8px 24px -4px rgba(245,158,11,0.35)',
+              '&:hover': {
+                background: 'linear-gradient(135deg, #d97706 0%, #b45309 100%)',
+                transform: 'translateY(-1px)',
+                boxShadow: '0 12px 28px -4px rgba(245,158,11,0.45)'
+              },
+              transition: 'all 0.2s ease'
+            }}
           >
             Continue Assessment
           </Button>
@@ -2348,313 +2692,495 @@ export default function AssessmentTaking() {
       </Dialog>
 
       {/* Submit Results Modal */}
-      <Dialog open={showSubmitModal} maxWidth="lg" fullWidth disableEscapeKeyDown={isSubmitting}>
-        <DialogTitle sx={{ bgcolor: '#f8f9fa', borderBottom: '1px solid #e0e0e0' }}>
-          <Typography variant="h5" sx={{ fontWeight: 600 }}>
-            Test Case Execution Results
-          </Typography>
-        </DialogTitle>
-        <DialogContent sx={{ p: 3 }}>
-          <Typography variant="body1" sx={{ mb: 3, color: 'text.secondary' }}>
-            {isSubmitting ? 'Executing test cases...' : 'All test cases executed'}
-          </Typography>
-          
-          <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))' }}>
-            {submitResults.map((result) => (
-              <Card key={result.index} sx={{ 
-                border: '1px solid',
-                borderColor: result.passed === true ? 'success.main' : 
-                           result.passed === false ? 'error.main' : '#e0e0e0'
-              }}>
-                <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                      <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                        Test Case {result.index}
-                      </Typography>
-                      <Chip 
-                        label={result.type} 
-                        size="small" 
-                        sx={{ 
-                          bgcolor: result.type === 'Public' ? '#e3f2fd' : '#f3e5f5',
-                          color: result.type === 'Public' ? '#1976d2' : '#9c27b0'
-                        }} 
-                      />
-                    </Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      {result.passed === true && (
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'success.main' }}>
-                          <CheckCircle />
-                          <Typography variant="body2" sx={{ fontWeight: 600 }}>PASSED</Typography>
-                        </Box>
-                      )}
-                      {result.passed === false && (
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'error.main' }}>
-                          <Close />
-                          <Typography variant="body2" sx={{ fontWeight: 600 }}>FAILED</Typography>
-                        </Box>
-                      )}
-                      {result.passed === null && result.status === 'Running' && (
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <CircularProgress size={20} />
-                          <Typography variant="body2" sx={{ fontWeight: 600 }}>Running</Typography>
-                        </Box>
-                      )}
-                      {result.passed === null && result.status === 'Pending' && (
-                        <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.secondary' }}>Pending</Typography>
-                      )}
-                    </Box>
-                  </Box>
-                </CardContent>
-              </Card>
-            ))}
+      <Dialog 
+        open={showSubmitModal} 
+        onClose={!isSubmitting ? () => setShowSubmitModal(false) : undefined}
+        maxWidth="md" 
+        fullWidth 
+        disableEscapeKeyDown={isSubmitting}
+        PaperProps={{ sx: { borderRadius: '32px', border: '1px solid #f1f5f9', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.15)' } }}
+      >
+        <DialogTitle sx={{ p: 4, pb: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Typography sx={{ fontWeight: 900, color: '#0f172a', letterSpacing: '-0.02em', fontSize: '1.75rem' }}>
+              Execution Summary
+            </Typography>
+            {!isSubmitting && (
+              <IconButton onClick={() => setShowSubmitModal(false)} sx={{ color: '#94a3b8' }}>
+                <Close />
+              </IconButton>
+            )}
           </Box>
-        </DialogContent>
-        <DialogActions sx={{ p: 3, borderTop: '1px solid #e0e0e0' }}>
-          {!isSubmitting && (
-            <Button onClick={() => setShowSubmitModal(false)} variant="outlined">
-              Close
-            </Button>
+        </DialogTitle>
+
+        <DialogContent sx={{ p: 4, bgcolor: '#ffffff' }}>
+          {isSubmitting ? (
+            <Box sx={{ textAlign: 'center', py: 10 }}>
+              <CircularProgress size={48} sx={{ color: '#6366f1', mb: 3 }} />
+              <Typography sx={{ color: '#64748b', fontWeight: 600, fontSize: '1.1rem' }}>Executing test cases...</Typography>
+            </Box>
+          ) : (
+            <Box>
+              {/* Summary Cards */}
+              <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 3, mb: 5 }}>
+                <Box sx={{ p: 3, borderRadius: '24px', bgcolor: '#f8fafc', border: '1px solid #f1f5f9' }}>
+                  <Typography sx={{ color: '#94a3b8', fontWeight: 800, textTransform: 'uppercase', fontSize: '0.7rem', letterSpacing: '0.1em', mb: 1 }}>Test Results</Typography>
+                  <Typography sx={{ fontWeight: 900, color: '#0f172a', fontSize: '2rem' }}>
+                    {submitResults.filter(r => r.passed === true).length}{' '}
+                    <Typography component="span" sx={{ fontSize: '1rem', color: '#64748b', fontWeight: 700 }}>out of</Typography>{' '}
+                    {submitResults.length}
+                  </Typography>
+                  <Typography sx={{ color: '#64748b', fontWeight: 600, fontSize: '0.85rem', mt: 0.5 }}>Test Cases Passed</Typography>
+                </Box>
+
+                {(() => {
+                  const passRate = submitResults.length > 0 ? Math.round((submitResults.filter(r => r.passed === true).length / submitResults.length) * 100) : 0;
+                  return (
+                    <Box sx={{ p: 3, borderRadius: '24px', bgcolor: passRate >= 70 ? '#f0fdf4' : '#fef2f2', border: '1px solid', borderColor: passRate >= 70 ? '#dcfce7' : '#fee2e2' }}>
+                      <Typography sx={{ color: passRate >= 70 ? '#22c55e' : '#ef4444', fontWeight: 800, textTransform: 'uppercase', fontSize: '0.7rem', letterSpacing: '0.1em', mb: 1 }}>Pass Rate</Typography>
+                      <Typography sx={{ fontWeight: 900, color: passRate >= 70 ? '#14532d' : '#991b1b', fontSize: '2rem' }}>
+                        {passRate}%
+                      </Typography>
+                      <Box sx={{ width: '100%', height: 6, bgcolor: 'rgba(255,255,255,0.5)', borderRadius: 3, mt: 1.5, overflow: 'hidden' }}>
+                        <Box sx={{ width: `${passRate}%`, height: '100%', bgcolor: passRate >= 70 ? '#22c55e' : '#ef4444', transition: 'width 0.5s ease' }} />
+                      </Box>
+                    </Box>
+                  );
+                })()}
+              </Box>
+
+              {/* Test Case List */}
+              <Typography sx={{ fontWeight: 800, color: '#0f172a', mb: 2.5, fontSize: '1.15rem' }}>Test Case Diagnostics</Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                {submitResults.map((result) => (
+                  <Box key={result.index} sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 2.5, 
+                    p: 2.5, 
+                    bgcolor: '#f8fafc',
+                    borderRadius: '20px',
+                    border: '1px solid #f1f5f9',
+                    transition: 'all 0.2s',
+                    '&:hover': { transform: 'translateX(8px)', borderColor: '#cbd5e1' }
+                  }}>
+                    <Box sx={{ 
+                      width: 40, height: 40, borderRadius: '14px', flexShrink: 0,
+                      bgcolor: result.passed === true ? '#dcfce7' : result.passed === false ? '#fee2e2' : '#f1f5f9',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    }}>
+                      {result.passed === true && <CheckCircle sx={{ color: '#22c55e', fontSize: 20 }} />}
+                      {result.passed === false && <Close sx={{ color: '#ef4444', fontSize: 20 }} />}
+                      {result.passed === null && result.status === 'Running' && <CircularProgress size={18} sx={{ color: '#6366f1' }} />}
+                      {result.passed === null && result.status === 'Pending' && <AccessTime sx={{ color: '#94a3b8', fontSize: 20 }} />}
+                    </Box>
+                    <Box sx={{ flex: 1 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                        <Typography sx={{ fontWeight: 800, color: '#1e293b', fontSize: '0.95rem' }}>Test Case {result.index}</Typography>
+                        <Box sx={{
+                          px: 1.5, py: 0.25, borderRadius: '8px', fontSize: '0.7rem', fontWeight: 800,
+                          bgcolor: result.type === 'Public' ? '#eef2ff' : '#faf5ff',
+                          color: result.type === 'Public' ? '#6366f1' : '#8b5cf6',
+                          letterSpacing: '0.05em'
+                        }}>
+                          {result.type}
+                        </Box>
+                      </Box>
+                      <Typography sx={{ color: '#64748b', fontWeight: 600, fontSize: '0.8rem', mt: 0.25 }}>
+                        {result.passed === true ? 'Scenario verified successfully' : result.passed === false ? 'Output mismatch detected' : result.status}
+                      </Typography>
+                    </Box>
+                    <Typography sx={{ 
+                      fontWeight: 800, fontSize: '0.8rem',
+                      color: result.passed === true ? '#10b981' : result.passed === false ? '#ef4444' : '#94a3b8'
+                    }}>
+                      {result.passed === true ? 'PASSED' : result.passed === false ? 'FAILED' : result.status?.toUpperCase()}
+                    </Typography>
+                  </Box>
+                ))}
+              </Box>
+            </Box>
           )}
-        </DialogActions>
+        </DialogContent>
+        {!isSubmitting && (
+          <DialogActions sx={{ p: 4, pt: 2 }}>
+            <Button 
+              onClick={() => setShowSubmitModal(false)} 
+              variant="contained"
+              fullWidth
+              sx={{ 
+                borderRadius: '16px', 
+                py: 2, 
+                fontWeight: 900,
+                fontSize: '1rem',
+                textTransform: 'none',
+                bgcolor: '#0f172a',
+                '&:hover': { bgcolor: '#1e293b' } 
+              }}
+            >
+              Return to Editor
+            </Button>
+          </DialogActions>
+        )}
       </Dialog>
 
-      {/* Final Submit Modal */}
-      <Dialog open={showFinalSubmitModal} maxWidth="md" fullWidth disableEscapeKeyDown>
-        <DialogTitle sx={{ bgcolor: '#f8f9fa', borderBottom: '1px solid #e0e0e0' }}>
-          <Typography variant="h5" sx={{ fontWeight: 600 }}>
-            Assessment Summary
-          </Typography>
-        </DialogTitle>
-        <DialogContent sx={{ p: 3 }}>
-          <Typography variant="body1" sx={{ mb: 3, color: 'text.secondary' }}>
-            Review your progress before submitting:
-          </Typography>
+      {/* Final Submit Modal — Light Theme */}
+      <Dialog
+        open={showFinalSubmitModal}
+        onClose={isTimeUp ? undefined : () => { setShowFinalSubmitModal(false); setEndTestInput(''); }}
+        disableEscapeKeyDown={isTimeUp}
+        maxWidth="md"
+        fullWidth
+        sx={{
+          '& .MuiBackdrop-root': {
+            background: isTimeUp
+              ? 'rgba(127,29,29,0.35)'
+              : 'rgba(15,23,42,0.25)',
+            backdropFilter: 'blur(8px)'
+          },
+          '& .MuiDialog-paper': {
+            borderRadius: '24px',
+            bgcolor: '#ffffff',
+            boxShadow: isTimeUp
+              ? '0 0 60px rgba(239,68,68,0.15), 0 25px 50px -12px rgba(0,0,0,0.15)'
+              : '0 0 60px rgba(99,102,241,0.1), 0 25px 50px -12px rgba(0,0,0,0.12)',
+            overflow: 'hidden',
+            border: isTimeUp ? '1px solid #fecaca' : '1px solid #e2e8f0',
+            animation: isTimeUp ? 'subtlePulse 2s ease-in-out infinite' : 'none'
+          },
+          '@keyframes subtlePulse': {
+            '0%, 100%': { boxShadow: '0 0 60px rgba(239,68,68,0.15), 0 25px 50px -12px rgba(0,0,0,0.15)' },
+            '50%': { boxShadow: '0 0 80px rgba(239,68,68,0.25), 0 25px 50px -12px rgba(0,0,0,0.15)' }
+          },
+          '@keyframes countdownPulse': {
+            '0%, 100%': { transform: 'scale(1)' },
+            '50%': { transform: 'scale(1.08)' }
+          },
+          '@keyframes spin': {
+            '0%': { transform: 'rotate(0deg)' },
+            '100%': { transform: 'rotate(360deg)' }
+          }
+        }}
+      >
+        {/* Top accent bar */}
+        <Box sx={{
+          height: '4px',
+          background: isTimeUp
+            ? 'linear-gradient(90deg, #ef4444, #f97316, #ef4444)'
+            : 'linear-gradient(90deg, #6366f1, #8b5cf6, #6366f1)',
+          backgroundSize: '200% 100%',
+          animation: 'shimmer 2s linear infinite',
+          '@keyframes shimmer': {
+            '0%': { backgroundPosition: '200% 0' },
+            '100%': { backgroundPosition: '-200% 0' }
+          }
+        }} />
 
-          {/* Part A - Quiz Questions */}
-          {questions.filter(q => q.type === 'quiz').length > 0 && (
-            <Box sx={{ mb: 4 }}>
-              <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: '#2196f3' }}>
-                Part A - Quiz Questions ({questions.filter(q => q.type === 'quiz').length})
-              </Typography>
-              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                {questions.filter(q => q.type === 'quiz').map((q, idx) => {
-                  const originalIndex = questions.findIndex(oq => oq._id === q._id);
-                  const isCompleted = savedQuestions.has(originalIndex);
-                  const isVisited = visitedQuestions.has(originalIndex);
-                  
-                  return (
-                    <Box
-                      key={q._id}
-                      sx={{
-                        width: '48px',
-                        height: '48px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        borderRadius: 1,
-                        fontWeight: 600,
-                        bgcolor: isCompleted ? '#4caf50' : isVisited ? '#ff9800' : '#e0e0e0',
-                        color: isCompleted || isVisited ? 'white' : 'text.secondary'
-                      }}
-                    >
-                      {idx + 1}
-                    </Box>
-                  );
-                })}
-              </Box>
+        {/* Header section */}
+        <Box sx={{ px: 4, pt: 4, pb: 3 }}>
+          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2.5 }}>
+            {/* Icon */}
+            <Box sx={{
+              width: 56, height: 56, borderRadius: '16px',
+              background: isTimeUp
+                ? 'linear-gradient(135deg, #fef2f2 0%, #fff7ed 100%)'
+                : 'linear-gradient(135deg, #eef2ff 0%, #f5f3ff 100%)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              border: isTimeUp ? '1px solid #fecaca' : '1px solid #c7d2fe',
+              flexShrink: 0
+            }}>
+              {isTimeUp
+                ? <TimerOff sx={{ fontSize: 28, color: '#dc2626' }} />
+                : <CheckCircle sx={{ fontSize: 28, color: '#6366f1' }} />
+              }
             </Box>
-          )}
 
-          {/* Part B - Frontend Questions */}
-          {questions.filter(q => q.type === 'frontend').length > 0 && (
-            <Box sx={{ mb: 4 }}>
-              <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: '#ff9800' }}>
-                {(() => {
-                  const types = [];
-                  if (questions.filter(q => q.type === 'quiz').length > 0) types.push('quiz');
-                  if (questions.filter(q => q.type === 'frontend').length > 0) types.push('frontend');
-                  const partIndex = types.indexOf('frontend');
-                  return `Part ${String.fromCharCode(65 + partIndex)}`;
-                })()} - Frontend Questions ({questions.filter(q => q.type === 'frontend').length})
+            {/* Title & subtitle */}
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Typography sx={{
+                fontWeight: 800, color: '#0f172a', fontSize: '1.6rem',
+                letterSpacing: '-0.02em', lineHeight: 1.3, mb: 0.5
+              }}>
+                {isTimeUp ? 'Time\'s Up!' : 'Submit Assessment'}
               </Typography>
-              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                {questions.filter(q => q.type === 'frontend').map((q, idx) => {
-                  const originalIndex = questions.findIndex(oq => oq._id === q._id);
-                  const isCompleted = frontendCompletedQuestions.has(originalIndex);
-                  const isPartial = !isCompleted && (frontendQuestionPercentages[originalIndex] || 0) > 0;
-                  const isVisited = visitedQuestions.has(originalIndex);
-                  
-                  return (
-                    <Box
-                      key={q._id}
-                      sx={{
-                        width: '48px',
-                        height: '48px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        borderRadius: 1,
-                        fontWeight: 600,
-                        bgcolor: isCompleted ? '#4caf50' : isPartial ? '#f59e0b' : isVisited ? '#ff9800' : '#e0e0e0',
-                        color: isCompleted || isPartial || isVisited ? 'white' : 'text.secondary'
-                      }}
-                    >
-                      {idx + 1}
-                    </Box>
-                  );
-                })}
-              </Box>
+              <Typography sx={{
+                color: isTimeUp ? '#b91c1c' : '#64748b',
+                fontWeight: 500, fontSize: '1rem', lineHeight: 1.5
+              }}>
+                {isTimeUp
+                  ? 'Your assessment is being submitted automatically.'
+                  : 'Review your progress and confirm submission.'}
+              </Typography>
             </Box>
-          )}
 
-          {/* Part C - MongoDB Questions */}
-          {questions.filter(q => q.type === 'mongodb').length > 0 && (
-            <Box sx={{ mb: 4 }}>
-              <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: '#00bcd4' }}>
-                {(() => {
-                  const types = [];
-                  if (questions.filter(q => q.type === 'quiz').length > 0) types.push('quiz');
-                  if (questions.filter(q => q.type === 'frontend').length > 0) types.push('frontend');
-                  if (questions.filter(q => q.type === 'mongodb').length > 0) types.push('mongodb');
-                  const partIndex = types.indexOf('mongodb');
-                  return `Part ${String.fromCharCode(65 + partIndex)}`;
-                })()} - MongoDB Questions ({questions.filter(q => q.type === 'mongodb').length})
-              </Typography>
-              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                {questions.filter(q => q.type === 'mongodb').map((q, idx) => {
-                  const originalIndex = questions.findIndex(oq => oq._id === q._id);
-                  const isCompleted = savedQuestions.has(originalIndex);
-                  const isVisited = visitedQuestions.has(originalIndex);
-                  
-                  return (
-                    <Box
-                      key={q._id}
-                      sx={{
-                        width: '48px',
-                        height: '48px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        borderRadius: 1,
-                        fontWeight: 600,
-                        bgcolor: isCompleted ? '#4caf50' : isVisited ? '#ff9800' : '#e0e0e0',
-                        color: isCompleted || isVisited ? 'white' : 'text.secondary'
-                      }}
-                    >
-                      {idx + 1}
-                    </Box>
-                  );
-                })}
+            {/* Countdown badge when time is up */}
+            {isTimeUp && (
+              <Box sx={{
+                position: 'relative',
+                width: 64, height: 64, flexShrink: 0
+              }}>
+                {/* Spinning ring */}
+                <Box sx={{
+                  position: 'absolute', inset: 0,
+                  borderRadius: '50%',
+                  border: '3px solid #fee2e2',
+                  borderTopColor: '#ef4444',
+                  animation: 'spin 1s linear infinite'
+                }} />
+                {/* Inner circle with countdown */}
+                <Box sx={{
+                  position: 'absolute', inset: '6px',
+                  borderRadius: '50%',
+                  background: '#fef2f2',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  animation: 'countdownPulse 1s ease-in-out infinite'
+                }}>
+                  <Typography sx={{
+                    fontFamily: 'JetBrains Mono, monospace',
+                    fontWeight: 900, color: '#dc2626', fontSize: '1.25rem'
+                  }}>
+                    {timeRemaining}
+                  </Typography>
+                </Box>
               </Box>
-            </Box>
-          )}
+            )}
 
-          {/* Part C - Programming Questions */}
-          {questions.filter(q => q.type === 'programming').length > 0 && (
-            <Box sx={{ mb: 4 }}>
-              <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: '#9c27b0' }}>
-                {(() => {
-                  const types = [];
-                  if (questions.filter(q => q.type === 'quiz').length > 0) types.push('quiz');
-                  if (questions.filter(q => q.type === 'frontend').length > 0) types.push('frontend');
-                  if (questions.filter(q => q.type === 'mongodb').length > 0) types.push('mongodb');
-                  if (questions.filter(q => q.type === 'programming').length > 0) types.push('programming');
-                  const partIndex = types.indexOf('programming');
-                  return `Part ${String.fromCharCode(65 + partIndex)} - Programming Questions`;
-                })()} ({questions.filter(q => q.type === 'programming').length})
-              </Typography>
-              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                {questions.filter(q => q.type === 'programming').map((q, idx) => {
-                  const originalIndex = questions.findIndex(oq => oq._id === q._id);
-                  const isCompleted = savedQuestions.has(originalIndex);
-                  const isVisited = visitedQuestions.has(originalIndex);
-                  
-                  return (
-                    <Box
-                      key={q._id}
-                      sx={{
-                        width: '48px',
-                        height: '48px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        borderRadius: 1,
-                        fontWeight: 600,
-                        bgcolor: isCompleted ? '#4caf50' : isVisited ? '#ff9800' : '#e0e0e0',
-                        color: isCompleted || isVisited ? 'white' : 'text.secondary'
-                      }}
-                    >
-                      {idx + 1}
+            {/* Close button — only if NOT timeUp */}
+            {!isTimeUp && (
+              <IconButton
+                onClick={() => { setShowFinalSubmitModal(false); setEndTestInput(''); }}
+                sx={{
+                  color: '#94a3b8', mt: -0.5, mr: -1,
+                  '&:hover': { bgcolor: '#f1f5f9', color: '#64748b' }
+                }}
+              >
+                <Close fontSize="small" />
+              </IconButton>
+            )}
+          </Box>
+        </Box>
+
+        <DialogContent sx={{ px: 4, pb: 3, pt: 0 }}>
+          {/* Question Status Grid */}
+          <Box sx={{
+            bgcolor: '#f8fafc',
+            borderRadius: '16px',
+            border: '1px solid #e2e8f0',
+            p: 2.5, mb: 2.5
+          }}>
+            {[{ type: 'quiz', label: 'Quiz', color: '#3b82f6' }, { type: 'frontend', label: 'Frontend', color: '#f59e0b' }, { type: 'mongodb', label: 'MongoDB', color: '#06b6d4' }, { type: 'programming', label: 'Programming', color: '#8b5cf6' }]
+              .filter(({ type }) => questions.filter(q => q.type === type).length > 0)
+              .map(({ type, label, color }, sectionIdx, arr) => {
+                const partIndex = arr.slice(0, sectionIdx).length;
+                const partLabel = `Part ${String.fromCharCode(65 + partIndex)} — ${label}`;
+                const typeQuestions = questions.filter(q => q.type === type);
+                const completedCount = typeQuestions.filter((q) => {
+                  const origIdx = questions.findIndex(oq => oq._id === q._id);
+                  return type === 'frontend'
+                    ? frontendCompletedQuestions.has(origIdx)
+                    : savedQuestions.has(origIdx);
+                }).length;
+                return (
+                  <Box key={type} sx={{ mb: sectionIdx < arr.length - 1 ? 2.5 : 0 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                        <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: color, flexShrink: 0 }} />
+                        <Typography sx={{ fontWeight: 700, color: '#1e293b', fontSize: '0.95rem' }}>
+                          {partLabel}
+                        </Typography>
+                      </Box>
+                      <Typography sx={{
+                        fontWeight: 700, fontSize: '0.85rem',
+                        color: completedCount === typeQuestions.length ? '#059669' : '#94a3b8'
+                      }}>
+                        {completedCount}/{typeQuestions.length}
+                      </Typography>
                     </Box>
-                  );
-                })}
-              </Box>
-            </Box>
-          )}
+                    <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
+                      {typeQuestions.map((q, idx) => {
+                        const origIdx = questions.findIndex(oq => oq._id === q._id);
+                        const isCompleted = type === 'frontend'
+                          ? frontendCompletedQuestions.has(origIdx)
+                          : savedQuestions.has(origIdx);
+                        const isPartial = type === 'frontend' && !isCompleted && (frontendQuestionPercentages[origIdx] || 0) > 0;
+                        const isVisited = visitedQuestions.has(origIdx);
+                        const bg = isCompleted ? '#10b981' : isPartial ? '#f59e0b' : isVisited ? '#f97316' : '#e2e8f0';
+                        return (
+                          <Box key={q._id} sx={{
+                            width: 42, height: 42, borderRadius: '12px',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontWeight: 800, fontSize: '0.9rem',
+                            bgcolor: bg,
+                            color: isCompleted || isPartial || isVisited ? 'white' : '#94a3b8',
+                            border: isCompleted ? '1px solid rgba(16,185,129,0.4)' : '1px solid transparent',
+                            transition: 'all 0.15s ease'
+                          }}>
+                            {idx + 1}
+                          </Box>
+                        );
+                      })}
+                    </Box>
+                  </Box>
+                );
+              })
+            }
+          </Box>
 
           {/* Legend */}
-          <Box sx={{ display: 'flex', gap: 3, mt: 4, p: 2, bgcolor: '#f8f9fa', borderRadius: 1 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Box sx={{ width: 24, height: 24, bgcolor: '#4caf50', borderRadius: 0.5 }} />
-              <Typography variant="body2">Saved</Typography>
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Box sx={{ width: 24, height: 24, bgcolor: '#ff9800', borderRadius: 0.5 }} />
-              <Typography variant="body2">Visited</Typography>
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Box sx={{ width: 24, height: 24, bgcolor: '#e0e0e0', borderRadius: 0.5 }} />
-              <Typography variant="body2">Not Visited</Typography>
-            </Box>
+          <Box sx={{
+            display: 'flex', gap: 2.5, flexWrap: 'wrap',
+            px: 2, py: 1.5, borderRadius: '12px',
+            bgcolor: '#f8fafc',
+            border: '1px solid #f1f5f9',
+            mb: 2.5
+          }}>
+            {[
+              { color: '#10b981', label: 'Submitted' },
+              { color: '#f59e0b', label: 'Partial' },
+              { color: '#f97316', label: 'Visited' },
+              { color: '#e2e8f0', label: 'Not Visited' }
+            ].map(({ color, label }) => (
+              <Box key={label} sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                <Box sx={{ width: 12, height: 12, borderRadius: '4px', bgcolor: color }} />
+                <Typography sx={{ fontWeight: 600, color: '#64748b', fontSize: '0.8rem' }}>{label}</Typography>
+              </Box>
+            ))}
           </Box>
 
-          {/* Confirmation Input */}
-          <Box sx={{ mt: 4 }}>
-            <Typography variant="body1" sx={{ mb: 2, fontWeight: 600, color: 'error.main' }}>
-              Type "END" to confirm submission:
-            </Typography>
-            <Box
-              component="input"
-              value={endTestInput}
-              onChange={(e) => setEndTestInput(e.target.value.toUpperCase())}
-              placeholder="Type END here"
-              sx={{
-                width: '100%',
-                p: 2,
-                border: '2px solid',
-                borderColor: endTestInput === 'END' ? 'success.main' : '#e0e0e0',
-                borderRadius: 1,
-                fontSize: '1.1rem',
-                fontWeight: 600,
-                textAlign: 'center',
-                outline: 'none',
-                '&:focus': {
-                  borderColor: 'primary.main'
-                }
-              }}
-            />
-          </Box>
+          {/* Time-up locked banner */}
+          {isTimeUp && (
+            <Box sx={{
+              p: 2.5, borderRadius: '14px',
+              background: 'linear-gradient(135deg, #fef2f2 0%, #fff7ed 100%)',
+              border: '1px solid #fecaca',
+              display: 'flex', alignItems: 'center', gap: 2
+            }}>
+              <Lock sx={{ color: '#dc2626', fontSize: 22, flexShrink: 0 }} />
+              <Box>
+                <Typography sx={{ fontWeight: 700, color: '#991b1b', fontSize: '0.95rem', mb: 0.25 }}>
+                  Assessment Locked
+                </Typography>
+                <Typography sx={{ color: '#b91c1c', fontSize: '0.85rem', fontWeight: 500, lineHeight: 1.4 }}>
+                  Time has expired. Your responses are being submitted automatically — please do not close this window.
+                </Typography>
+              </Box>
+            </Box>
+          )}
+
+          {/* Confirmation input — hidden when time is up */}
+          {!isTimeUp && (
+            <Box sx={{
+              p: 2.5, borderRadius: '14px',
+              border: '1px solid',
+              borderColor: endTestInput === 'END' ? '#bbf7d0' : '#e2e8f0',
+              bgcolor: endTestInput === 'END' ? '#f0fdf4' : '#f8fafc',
+              transition: 'all 0.25s ease'
+            }}>
+              <Typography sx={{ fontWeight: 700, color: '#1e293b', mb: 0.5, fontSize: '1rem' }}>
+                Confirm Submission
+              </Typography>
+              <Typography sx={{ color: '#64748b', fontWeight: 500, fontSize: '0.85rem', display: 'block', mb: 1.5 }}>
+                Type <Box component="span" sx={{
+                  fontFamily: 'JetBrains Mono, monospace', fontWeight: 900,
+                  color: '#6366f1', bgcolor: '#eef2ff',
+                  px: 0.75, py: 0.25, borderRadius: '6px', fontSize: '0.9rem'
+                }}>END</Box> to unlock the submit button
+              </Typography>
+              <Box
+                component="input"
+                value={endTestInput}
+                onChange={(e) => setEndTestInput(e.target.value.toUpperCase())}
+                placeholder="Type END here"
+                autoComplete="off"
+                sx={{
+                  width: '100%',
+                  p: '12px 16px',
+                  border: '2px solid',
+                  borderColor: endTestInput === 'END' ? '#10b981' : '#e2e8f0',
+                  borderRadius: '12px',
+                  fontSize: '1.1rem',
+                  fontWeight: 800,
+                  fontFamily: 'JetBrains Mono, monospace',
+                  textAlign: 'center',
+                  outline: 'none',
+                  bgcolor: '#ffffff',
+                  color: '#0f172a',
+                  letterSpacing: '0.2em',
+                  transition: 'all 0.2s ease',
+                  '&:focus': { borderColor: '#6366f1', boxShadow: '0 0 0 3px rgba(99,102,241,0.1)' },
+                  '&::placeholder': { color: '#cbd5e1', fontWeight: 600, letterSpacing: '0.05em' },
+                  boxSizing: 'border-box'
+                }}
+              />
+            </Box>
+          )}
         </DialogContent>
-        <DialogActions sx={{ p: 3, borderTop: '1px solid #e0e0e0' }}>
-          {timeRemaining > 5 && (
-            <Button onClick={() => {
-              setShowFinalSubmitModal(false);
-              setEndTestInput('');
-            }} variant="outlined" disabled={isSubmittingAssessment}>
+
+        {/* Footer */}
+        <Box sx={{
+          px: 4, py: 3,
+          borderTop: '1px solid #f1f5f9',
+          bgcolor: '#f8fafc',
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2
+        }}>
+          {!isTimeUp ? (
+            <Button
+              onClick={() => { setShowFinalSubmitModal(false); setEndTestInput(''); }}
+              disabled={isSubmittingAssessment}
+              sx={{
+                color: '#64748b', fontWeight: 700, textTransform: 'none',
+                px: 3, py: 1.2, borderRadius: '12px', fontSize: '0.9rem',
+                border: '1px solid #e2e8f0',
+                '&:hover': { bgcolor: '#f1f5f9', borderColor: '#cbd5e1' }
+              }}
+            >
               Cancel
             </Button>
+          ) : (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <CircularProgress size={16} sx={{ color: '#dc2626' }} />
+              <Typography sx={{ color: '#dc2626', fontWeight: 600, fontSize: '0.8rem' }}>
+                Submitting…
+              </Typography>
+            </Box>
           )}
-          <Button 
+          <Button
             onClick={handleFinalSubmit}
-            variant="contained" 
-            color="error"
-            disabled={endTestInput !== 'END' || isSubmittingAssessment}
-            startIcon={isSubmittingAssessment ? <CircularProgress size={20} sx={{ color: 'white' }} /> : null}
+            variant="contained"
+            disabled={(!isTimeUp && endTestInput !== 'END') || isSubmittingAssessment}
+            startIcon={
+              isSubmittingAssessment
+                ? <CircularProgress size={16} sx={{ color: 'white' }} />
+                : isTimeUp
+                  ? <TimerOff sx={{ fontSize: 18 }} />
+                  : <CheckCircle sx={{ fontSize: 18 }} />
+            }
+            sx={{
+              px: 4, py: 1.4, borderRadius: '12px',
+              fontWeight: 800, fontSize: '0.9rem', textTransform: 'none',
+              background: isTimeUp
+                ? 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)'
+                : 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+              color: 'white',
+              boxShadow: isTimeUp
+                ? '0 8px 24px -4px rgba(220,38,38,0.35)'
+                : '0 8px 24px -4px rgba(99,102,241,0.35)',
+              '&:hover': {
+                background: isTimeUp
+                  ? 'linear-gradient(135deg, #b91c1c 0%, #991b1b 100%)'
+                  : 'linear-gradient(135deg, #4f46e5 0%, #4338ca 100%)',
+                transform: 'translateY(-1px)',
+                boxShadow: isTimeUp
+                  ? '0 12px 28px -4px rgba(220,38,38,0.45)'
+                  : '0 12px 28px -4px rgba(99,102,241,0.45)'
+              },
+              '&:disabled': { opacity: 0.4, transform: 'none', boxShadow: 'none' },
+              transition: 'all 0.2s ease'
+            }}
           >
-            {isSubmittingAssessment ? 'Submitting...' : 'Submit Assessment'}
+            {isSubmittingAssessment ? 'Submitting...' : isTimeUp ? 'Auto Submitting...' : 'Submit Assessment ✓'}
           </Button>
-        </DialogActions>
+        </Box>
       </Dialog>
 
       {/* Toast Notification */}

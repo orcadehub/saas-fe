@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Box, Typography, IconButton, Button, TextField, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
-import { Add, Delete, FolderOpen, InsertDriveFile, PlayArrow, Remove } from '@mui/icons-material';
+import { Box, Typography, IconButton, Button, TextField, Dialog, DialogTitle, DialogContent, DialogActions, CircularProgress, Stack, Card } from '@mui/material';
+import { Add, Delete, FolderOpen, InsertDriveFile, PlayArrow, Remove, CheckCircle, Close, Warning } from '@mui/icons-material';
 import Editor from '@monaco-editor/react';
 import apiService from '../../../services/apiService';
 import frontendTestValidator from '../../../utils/frontendTestValidator';
@@ -253,44 +253,96 @@ export default function FrontendEditor({ assessment, question, attemptId, onTest
       onSelectStart={isProduction ? (e) => e.preventDefault() : undefined}
     >
       {/* Toolbar */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 1, bgcolor: '#f5f5f5', borderBottom: '1px solid #e0e0e0' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <IconButton size="small" onClick={() => setFontSize(prev => Math.max(10, prev - 2))}>
-            <Remove fontSize="small" />
-          </IconButton>
-          <Typography variant="body2" sx={{ minWidth: '30px', textAlign: 'center' }}>
-            {fontSize}
-          </Typography>
-          <IconButton size="small" onClick={() => setFontSize(prev => Math.min(24, prev + 2))}>
-            <Add fontSize="small" />
-          </IconButton>
-        </Box>
-        <Button
-          variant="outlined"
-          size="medium"
-          onClick={handleLoadLastCode}
-          disabled={!lastCodeAvailable}
-          sx={{ textTransform: 'none', px: 3, py: 1 }}
-        >
-          Last Code
-        </Button>
-        <Button
-          variant="contained"
-          size="medium"
-          onClick={() => setShowPreview(!showPreview)}
-          sx={{ textTransform: 'none', ml: 'auto', px: 3, py: 1 }}
-        >
-          {showPreview ? 'Hide Preview' : 'Show Preview'}
-        </Button>
-        <Button
-          variant="contained"
-          size="medium"
-          startIcon={<PlayArrow />}
-          onClick={handleRunTests}
-          sx={{ textTransform: 'none', bgcolor: '#10b981', '&:hover': { bgcolor: '#059669' }, px: 3, py: 1 }}
-        >
-          Run Tests
-        </Button>
+      <Box sx={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'space-between',
+        gap: 2, 
+        px: 2.5, 
+        py: 1, 
+        bgcolor: '#ffffff', 
+        borderBottom: '1px solid #f1f5f9',
+        overflowX: 'auto',
+        minHeight: '68px',
+        '&::-webkit-scrollbar': { height: '4px' },
+        '&::-webkit-scrollbar-thumb': { bgcolor: '#e2e8f0', borderRadius: '4px' }
+      }}>
+        <Stack direction="row" alignItems="center" spacing={2.5}>
+          {/* Font Size Control */}
+          <Box sx={{ 
+            display: 'flex', alignItems: 'center', gap: 0.5, 
+            bgcolor: '#f8fafc', px: 1, py: 0.5, borderRadius: '12px',
+            border: '1px solid #f1f5f9'
+          }}>
+            <IconButton size="small" onClick={() => setFontSize(prev => Math.max(10, prev - 2))} sx={{ color: '#64748b' }}>
+              <Remove fontSize="small" />
+            </IconButton>
+            <Typography variant="body2" sx={{ minWidth: '32px', textAlign: 'center', fontWeight: 900, color: '#0f172a', fontFamily: 'JetBrains Mono' }}>
+              {fontSize}px
+            </Typography>
+            <IconButton size="small" onClick={() => setFontSize(prev => Math.min(24, prev + 2))} sx={{ color: '#64748b' }}>
+              <Add fontSize="small" />
+            </IconButton>
+          </Box>
+
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={<FolderOpen sx={{ fontSize: '1.2rem' }} />}
+            onClick={handleLoadLastCode}
+            disabled={!lastCodeAvailable}
+            sx={{ 
+              textTransform: 'none', 
+              borderRadius: '12px', 
+              fontWeight: 800,
+              px: 2,
+              borderColor: '#e2e8f0',
+              color: '#475569',
+              '&:hover': { bgcolor: '#f8fafc', borderColor: '#cbd5e1' },
+              '&.Mui-disabled': { borderColor: '#f1f5f9', color: '#cbd5e1' }
+            }}
+          >
+            Recover Session
+          </Button>
+        </Stack>
+
+        <Stack direction="row" alignItems="center" spacing={2}>
+          <Button
+            variant="text"
+            size="small"
+            onClick={() => setShowPreview(!showPreview)}
+            sx={{ 
+              textTransform: 'none', 
+              borderRadius: '12px', 
+              fontWeight: 800,
+              px: 2,
+              color: showPreview ? '#6366f1' : '#64748b',
+              bgcolor: showPreview ? '#f5f7ff' : 'transparent',
+              '&:hover': { bgcolor: showPreview ? '#eff2ff' : '#f8fafc' }
+            }}
+          >
+            {showPreview ? 'Stop Live Preview' : 'Launch Viewport'}
+          </Button>
+          
+          <Button
+            variant="contained"
+            size="small"
+            startIcon={<PlayArrow />}
+            onClick={handleRunTests}
+            sx={{ 
+              textTransform: 'none', 
+              borderRadius: '12px', 
+              fontWeight: 900,
+              px: 3,
+              py: 1,
+              bgcolor: '#6366f1', 
+              boxShadow: '0 10px 15px -3px rgba(99, 102, 241, 0.3)',
+              '&:hover': { bgcolor: '#4f46e5', boxShadow: '0 12px 20px -5px rgba(99, 102, 241, 0.4)' }
+            }}
+          >
+            Deploy & Run Diagnostics
+          </Button>
+        </Stack>
       </Box>
 
       {/* Editor and Preview Container */}
@@ -299,10 +351,22 @@ export default function FrontendEditor({ assessment, question, attemptId, onTest
         sx={{ display: 'flex', flexGrow: 1, overflow: 'hidden', userSelect: isDragging ? 'none' : 'auto', pointerEvents: isDragging ? 'none' : 'auto' }}
       >
         {/* File Tabs and Editor */}
-        <Box sx={{ display: 'flex', flexDirection: 'column', width: showPreview ? `${100 - previewWidth}%` : '100%', borderRight: showPreview ? '1px solid #e0e0e0' : 'none' }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', width: showPreview ? `${100 - previewWidth}%` : '100%', borderRight: showPreview ? '1px solid #f1f5f9' : 'none' }}>
           {/* File Tabs */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 1, bgcolor: '#f5f5f5', borderBottom: '1px solid #e0e0e0', overflowX: 'auto', minHeight: '48px', '&::-webkit-scrollbar': { display: 'none' }, msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
-        {Object.keys(files).map(filename => (
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: 1.5, 
+            px: 2,
+            py: 1.25, 
+            bgcolor: '#f8fafc', 
+            borderBottom: '1px solid #f1f5f9', 
+            overflowX: 'auto', 
+            minHeight: '52px',
+            '&::-webkit-scrollbar': { height: '3px' },
+            '&::-webkit-scrollbar-thumb': { bgcolor: '#e2e8f0' }
+          }}>
+          {Object.keys(files).map(filename => (
             <Box
               key={filename}
               onClick={() => setActiveFile(filename)}
@@ -311,35 +375,38 @@ export default function FrontendEditor({ assessment, question, attemptId, onTest
                 alignItems: 'center',
                 gap: 1,
                 px: 2,
-                py: 1,
-                bgcolor: activeFile === filename ? '#fff' : 'transparent',
-                color: '#000',
+                py: 0.75,
+                bgcolor: activeFile === filename ? '#ffffff' : 'transparent',
+                color: activeFile === filename ? '#0f172a' : '#64748b',
                 cursor: 'pointer',
-                borderRadius: 1,
-                border: activeFile === filename ? '1px solid #e0e0e0' : 'none',
-                '&:hover': { bgcolor: '#e8e8e8' }
+                borderRadius: '8px',
+                border: '1px solid',
+                borderColor: activeFile === filename ? '#e2e8f0' : 'transparent',
+                boxShadow: activeFile === filename ? '0 2px 4px rgba(0,0,0,0.04)' : 'none',
+                transition: 'all 0.15s ease',
+                '&:hover': { bgcolor: activeFile === filename ? '#ffffff' : 'rgba(0,0,0,0.03)' }
               }}
             >
-              <InsertDriveFile sx={{ fontSize: 16 }} />
-              <Typography variant="body2">{filename}</Typography>
+              <InsertDriveFile sx={{ fontSize: 16, color: activeFile === filename ? '#6366f1' : 'inherit', opacity: activeFile === filename ? 1 : 0.6 }} />
+              <Typography variant="body2" sx={{ fontWeight: activeFile === filename ? 800 : 700, fontSize: '0.8rem', letterSpacing: '-0.01em' }}>{filename}</Typography>
+              {files[filename].readOnly && <Box sx={{ width: 4, height: 4, borderRadius: '50%', bgcolor: '#f59e0b', ml: 0.5 }} />}
             </Box>
           ))}
           </Box>
 
           {/* Editor */}
-          <Box sx={{ flexGrow: 1, position: 'relative', '& .monaco-editor .overflow-guard': { '& .scrollbar': { display: 'none !important' } } }}>
+          <Box sx={{ flexGrow: 1, position: 'relative', overflow: 'hidden', bgcolor: '#1e1e1e' }}>
             <Editor
               key={activeFile}
               height="100%"
               language={getLanguage(activeFile)}
               value={files[activeFile]?.content || ''}
-              theme="light"
+              theme="vs-dark"
               onChange={(value) => {
                 if (!files[activeFile]?.readOnly) {
                   const updatedFiles = { ...files, [activeFile]: { ...files[activeFile], content: value } };
                   setFiles(updatedFiles);
                   
-                  // Save to localStorage on every change
                   const localStorageKey = `frontend_${attemptId}_${question?._id}`;
                   localStorage.setItem(localStorageKey, JSON.stringify({
                     html: updatedFiles['index.html']?.content || '',
@@ -353,26 +420,31 @@ export default function FrontendEditor({ assessment, question, attemptId, onTest
                 minimap: { enabled: false },
                 readOnly: files[activeFile]?.readOnly || false,
                 wordWrap: 'on',
-                scrollbar: {
-                  vertical: 'hidden',
-                  horizontal: 'hidden'
-                }
+                padding: { top: 24 },
+                fontFamily: "'JetBrains Mono', monospace",
+                fontLigatures: true,
+                cursorSmoothCaretAnimation: 'on',
+                smoothScrolling: true,
+                lineHeight: 1.6
               }}
             />
             {files[activeFile]?.readOnly && (
               <Box sx={{
                 position: 'absolute',
-                top: 8,
-                right: 8,
-                bgcolor: '#ff9800',
-                color: '#fff',
-                px: 2,
+                top: 20,
+                right: 24,
+                bgcolor: 'rgba(245, 158, 11, 0.1)',
+                color: '#f59e0b',
+                px: 1.5,
                 py: 0.5,
-                borderRadius: 1,
-                fontSize: '12px',
-                fontWeight: 600
+                borderRadius: '8px',
+                fontSize: '11px',
+                fontWeight: 900,
+                border: '1px solid rgba(245, 158, 11, 0.3)',
+                zIndex: 10,
+                letterSpacing: '0.1em'
               }}>
-                READ ONLY
+                SECURED CONTENT
               </Box>
             )}
           </Box>
@@ -382,11 +454,12 @@ export default function FrontendEditor({ assessment, question, attemptId, onTest
         {showPreview && (
           <Box
             sx={{
-              width: '4px',
+              width: '2px',
               cursor: 'col-resize',
-              bgcolor: '#6a0dad',
-              '&:hover': { bgcolor: '#5a0d9d' },
-              pointerEvents: 'auto'
+              bgcolor: '#f1f5f9',
+              '&:hover': { bgcolor: '#6366f1' },
+              transition: 'background 0.2s',
+              zIndex: 10
             }}
             onMouseDown={(e) => {
               e.preventDefault();
@@ -397,17 +470,24 @@ export default function FrontendEditor({ assessment, question, attemptId, onTest
 
         {/* Preview Panel */}
         {showPreview && (
-          <Box sx={{ width: `${previewWidth}%`, bgcolor: '#fff', display: 'flex', flexDirection: 'column' }}>
-            <Box sx={{ p: 1, bgcolor: '#f5f5f5', borderBottom: '1px solid #e0e0e0' }}>
-              <Typography variant="body2" sx={{ fontWeight: 600 }}>Preview</Typography>
+          <Box sx={{ width: `${previewWidth}%`, bgcolor: '#ffffff', display: 'flex', flexDirection: 'column' }}>
+            <Box sx={{ px: 2, py: 1.25, bgcolor: '#f8fafc', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#10b981' }} />
+              <Typography variant="body2" sx={{ fontWeight: 800, color: '#64748b', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Runtime Environment</Typography>
             </Box>
-            <Box sx={{ flexGrow: 1, overflow: 'auto', position: 'relative' }}>
+            <Box sx={{ flexGrow: 1, overflow: 'hidden', position: 'relative', bgcolor: '#fff' }}>
               <iframe
                 srcDoc={`
                   <!DOCTYPE html>
                   <html>
                   <head>
-                    <style>${files['styles.css']?.content || ''}</style>
+                    <style>
+                      ::-webkit-scrollbar { width: 8px; height: 8px; }
+                      ::-webkit-scrollbar-track { background: transparent; }
+                      ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 4px; }
+                      body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+                      ${files['styles.css']?.content || ''}
+                    </style>
                   </head>
                   <body>
                     ${files['index.html']?.content || ''}
@@ -419,23 +499,6 @@ export default function FrontendEditor({ assessment, question, attemptId, onTest
                 sandbox="allow-scripts allow-same-origin"
                 style={{ width: '100%', height: '100%', border: 'none' }}
                 title="Preview"
-                onLoad={(e) => {
-                  // Prevent iframe from stealing focus
-                  e.target.contentWindow.addEventListener('focus', (evt) => {
-                    evt.stopPropagation();
-                  });
-                }}
-              />
-              <Box 
-                sx={{ 
-                  position: 'absolute', 
-                  top: 0, 
-                  left: 0, 
-                  right: 0, 
-                  bottom: 0, 
-                  pointerEvents: 'auto',
-                  zIndex: 1
-                }} 
               />
             </Box>
           </Box>
@@ -443,81 +506,148 @@ export default function FrontendEditor({ assessment, question, attemptId, onTest
       </Box>
 
       {/* Test Results Modal */}
-      <Dialog open={showTestResults} onClose={() => setShowTestResults(false)} maxWidth="md" fullWidth>
-        <DialogTitle sx={{ bgcolor: '#f8f9fa', borderBottom: '1px solid #e0e0e0' }}>
-          <Typography variant="h5" sx={{ fontWeight: 600 }}>
-            Test Results
-          </Typography>
+      <Dialog 
+        open={showTestResults} 
+        onClose={() => setShowTestResults(false)} 
+        maxWidth="md" 
+        fullWidth 
+        PaperProps={{ sx: { borderRadius: '32px', border: '1px solid #f1f5f9', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.15)' } }}
+      >
+        <DialogTitle sx={{ p: 4, pb: 2 }}>
+          <Stack direction="row" alignItems="center" justifyContent="space-between">
+            <Typography variant="h3" sx={{ fontWeight: 900, color: '#0f172a', letterSpacing: '-0.02em' }}>
+              Execution Summary
+            </Typography>
+            <IconButton onClick={() => setShowTestResults(false)} sx={{ color: '#94a3b8' }}>
+              <Close />
+            </IconButton>
+          </Stack>
         </DialogTitle>
-        <DialogContent sx={{ p: 3 }}>
+
+        <DialogContent sx={{ p: 4, bgcolor: '#ffffff' }}>
           {!testResults ? (
-            <Box sx={{ textAlign: 'center', py: 4 }}>
-              <Typography variant="body1">Running tests...</Typography>
+            <Box sx={{ textAlign: 'center', py: 10 }}>
+              <CircularProgress size={48} sx={{ color: '#6366f1', mb: 3 }} />
+              <Typography variant="h5" sx={{ color: '#64748b', fontWeight: 600 }}>Analyzing build output...</Typography>
             </Box>
           ) : (
-            <>
-              <Typography variant="h6" sx={{ mb: 3 }}>
-                {testResults.passed}/{testResults.total} Tests Passed
-              </Typography>
-              {testResults.error && (
-                <Typography variant="body2" sx={{ color: 'error.main', mb: 2 }}>
-                  {testResults.error}
-                </Typography>
-              )}
-              <Box sx={{ mb: 3, p: 2, bgcolor: '#f0f9ff', borderRadius: 1, border: '1px solid #0ea5e9' }}>
-                <Typography variant="body2" sx={{ fontWeight: 600, color: '#0369a1' }}>
-                  Percentage: {testResults.percentage}%
-                </Typography>
-              </Box>
-              {testResults.tests?.map((test, idx) => (
-                <Box key={idx} sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, mb: 2, p: 2, bgcolor: test.passed ? '#e8f5e9' : '#ffebee', borderRadius: 1 }}>
-                  <Box
-                    sx={{
-                      width: 12,
-                      height: 12,
-                      borderRadius: '50%',
-                      bgcolor: test.passed ? '#10b981' : '#ef4444',
-                      mt: 0.5,
-                      flexShrink: 0
-                    }}
-                  />
-                  <Box sx={{ flex: 1 }}>
-                    <Typography variant="body1" sx={{ fontWeight: 500 }}>{test.name}</Typography>
-                    {test.error && (
-                      <Typography variant="caption" sx={{ color: '#dc2626', display: 'block', mt: 0.5 }}>
-                        Error: {test.error}
-                      </Typography>
-                    )}
+            <Box>
+              <Box sx={{ 
+                display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 3, mb: 5
+              }}>
+                <Card sx={{ p: 3, borderRadius: '24px', bgcolor: '#f8fafc', border: '1px solid #f1f5f9', boxShadow: 'none' }}>
+                  <Typography variant="caption" sx={{ color: '#94a3b8', fontWeight: 800, textTransform: 'uppercase', mb: 1, display: 'block' }}>Success Rate</Typography>
+                  <Typography variant="h2" sx={{ fontWeight: 900, color: '#0f172a' }}>
+                    {testResults.passed} <Typography component="span" sx={{ fontSize: '1.25rem', color: '#64748b', fontWeight: 700 }}>out of</Typography> {testResults.total}
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: '#64748b', fontWeight: 600, mt: 0.5 }}>Validated Scenarios</Typography>
+                </Card>
+
+                <Card sx={{ p: 3, borderRadius: '24px', bgcolor: testResults.percentage >= 70 ? '#f0fdf4' : '#fef2f2', border: '1px solid', borderColor: testResults.percentage >= 70 ? '#dcfce7' : '#fee2e2', boxShadow: 'none' }}>
+                  <Typography variant="caption" sx={{ color: testResults.percentage >= 70 ? '#22c55e' : '#ef4444', fontWeight: 800, textTransform: 'uppercase', mb: 1, display: 'block' }}>Score Projection</Typography>
+                  <Typography variant="h2" sx={{ fontWeight: 900, color: testResults.percentage >= 70 ? '#14532d' : '#991b1b' }}>
+                    {testResults.percentage}%
+                  </Typography>
+                  <Box sx={{ width: '100%', height: 6, bgcolor: 'rgba(255,255,255,0.5)', borderRadius: 3, mt: 1.5, overflow: 'hidden' }}>
+                     <Box sx={{ width: `${testResults.percentage}%`, height: '100%', bgcolor: testResults.percentage >= 70 ? '#22c55e' : '#ef4444' }} />
                   </Box>
+                </Card>
+              </Box>
+
+              {testResults.error && (
+                <Box sx={{ mb: 4, p: 2.5, bgcolor: '#fef2f2', border: '1px solid #fee2e2', borderRadius: '16px' }}>
+                  <Typography variant="body2" sx={{ color: '#b91c1c', fontWeight: 800, mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Warning sx={{ fontSize: 18 }} /> Runtime Exception
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: '#991b1b', fontWeight: 600, fontFamily: 'JetBrains Mono', display: 'block' }}>
+                    {testResults.error}
+                  </Typography>
                 </Box>
-              ))}
-            </>
+              )}
+
+              <Typography variant="h5" sx={{ fontWeight: 800, color: '#0f172a', mb: 2.5 }}>Test Case Diagnostics</Typography>
+              <Stack spacing={2}>
+                {testResults.tests?.map((test, idx) => (
+                  <Box key={idx} sx={{ 
+                    display: 'flex', 
+                    alignItems: 'flex-start', 
+                    gap: 2.5, 
+                    p: 2.5, 
+                    bgcolor: '#f8fafc',
+                    borderRadius: '20px',
+                    border: '1px solid #f1f5f9',
+                    transition: 'all 0.2s',
+                    '&:hover': { transform: 'translateX(8px)', borderColor: '#cbd5e1' }
+                  }}>
+                    <Box sx={{ 
+                      width: 40, height: 40, borderRadius: '14px', flexShrink: 0,
+                      bgcolor: test.passed ? '#dcfce7' : '#fee2e2',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    }}>
+                      {test.passed ? <CheckCircle sx={{ color: '#22c55e', fontSize: 20 }} /> : <Close sx={{ color: '#ef4444', fontSize: 20 }} />}
+                    </Box>
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="h6" sx={{ fontWeight: 800, color: '#1e293b' }}>{test.name}</Typography>
+                      {test.error ? (
+                        <Box sx={{ mt: 1, p: 1.5, bgcolor: '#ffffff', borderRadius: '8px', border: '1px solid #fee2e2' }}>
+                           <Typography variant="caption" sx={{ color: '#ef4444', fontWeight: 700, fontFamily: 'JetBrains Mono', display: 'block', lineHeight: 1.5 }}>
+                            EXPECTED: {test.error}
+                          </Typography>
+                        </Box>
+                      ) : (
+                        <Typography variant="body2" sx={{ color: '#64748b', fontWeight: 600, mt: 0.5 }}>Scenario executed and verified successfully.</Typography>
+                      )}
+                    </Box>
+                  </Box>
+                ))}
+              </Stack>
+            </Box>
           )}
         </DialogContent>
-        <DialogActions sx={{ p: 3, borderTop: '1px solid #e0e0e0' }}>
-          <Button onClick={() => setShowTestResults(false)} variant="contained">
-            Close
+        <DialogActions sx={{ p: 4, pt: 2 }}>
+          <Button 
+            onClick={() => setShowTestResults(false)} 
+            variant="contained"
+            fullWidth
+            sx={{ 
+                borderRadius: '16px', 
+                py: 2, 
+                fontWeight: 900,
+                fontSize: '1rem',
+                bgcolor: '#0f172a',
+                '&:hover': { bgcolor: '#1e293b' } 
+            }}
+          >
+            Return to Editor
           </Button>
         </DialogActions>
       </Dialog>
 
       {/* New File Dialog */}
-      <Dialog open={showNewFileDialog} onClose={() => setShowNewFileDialog(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Create New File</DialogTitle>
+      <Dialog open={showNewFileDialog} onClose={() => setShowNewFileDialog(false)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: '24px' } }}>
+        <DialogTitle sx={{ fontWeight: 800 }}>Create Project File</DialogTitle>
         <DialogContent>
           <TextField
             autoFocus
             fullWidth
-            label="File Name"
+            label="Filename (e.g., config.js)"
             value={newFileName}
             onChange={(e) => setNewFileName(e.target.value)}
-            placeholder="example.js"
-            sx={{ mt: 2 }}
+            sx={{ 
+                mt: 2,
+                '& .MuiOutlinedInput-root': { borderRadius: '12px' }
+            }}
           />
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setShowNewFileDialog(false)}>Cancel</Button>
-          <Button onClick={handleCreateFile} variant="contained">Create</Button>
+        <DialogActions sx={{ p: 3 }}>
+          <Button onClick={() => setShowNewFileDialog(false)} sx={{ fontWeight: 700, color: '#64748b' }}>Cancel</Button>
+          <Button 
+            onClick={handleCreateFile} 
+            variant="contained"
+            sx={{ borderRadius: '12px', px: 3, fontWeight: 800, bgcolor: '#6366f1' }}
+          >
+            Create File
+          </Button>
         </DialogActions>
       </Dialog>
 

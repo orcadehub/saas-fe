@@ -89,26 +89,42 @@ export default function ProfileSection() {
     <>
       <Chip
         slotProps={{ label: { sx: { lineHeight: 0 } } }}
-        sx={{ ml: 2, height: '48px', alignItems: 'center', borderRadius: '27px' }}
+        sx={{ 
+          ml: 2, 
+          height: '48px', 
+          alignItems: 'center', 
+          borderRadius: '27px', 
+          bgcolor: '#6366f1 !important',
+          color: '#fff !important',
+          border: 'none',
+          transition: 'all 0.3s ease',
+          '&:hover': {
+            bgcolor: '#4f46e5 !important'
+          }
+        }}
         icon={
           <Avatar
             src={studentData?.profile?.profilePic || studentData?.profilePic}
             alt="user-images"
-            sx={{ typography: 'mediumAvatar', margin: '8px 0 8px 8px !important', cursor: 'pointer', bgcolor: 'primary.main', color: 'white' }}
+            sx={{ 
+              typography: 'mediumAvatar', 
+              margin: '8px 0 8px 8px !important', 
+              cursor: 'pointer', 
+              bgcolor: 'rgba(255, 255, 255, 0.2)', 
+              color: '#fff !important'
+            }}
             ref={anchorRef}
             aria-controls={open ? 'menu-list-grow' : undefined}
             aria-haspopup="true"
-            color="inherit"
           >
             {!studentData?.profile?.profilePic && !studentData?.profilePic && (studentData?.name?.charAt(0).toUpperCase() || 'U')}
           </Avatar>
         }
-        label={<IconSettings stroke={1.5} size="24px" />}
+        label={<IconSettings stroke={2} size="22px" style={{ color: '#fff' }} />}
         ref={anchorRef}
         aria-controls={open ? 'menu-list-grow' : undefined}
         aria-haspopup="true"
         onClick={handleToggle}
-        color="primary"
         aria-label="user-account"
       />
       <Popper
@@ -133,17 +149,17 @@ export default function ProfileSection() {
               <Paper>
                 {open && (
                   <MainCard border={false} elevation={16} content={false} boxShadow shadow={theme.shadows[16]}>
-                    <Box sx={{ p: 2, pb: 0 }}>
+                    <Box sx={{ p: 2.5, pb: 0 }}>
                       <Stack>
                         <Stack direction="row" sx={{ alignItems: 'center', gap: 0.5 }}>
-                          <Typography variant="h4">Good Morning,</Typography>
-                          <Typography component="span" variant="h4" sx={{ fontWeight: 400 }}>
-                            {studentData?.name || 'User'}
+                          <Typography variant="h4" sx={{ fontWeight: 800, color: '#1e293b' }}>Good Morning,</Typography>
+                          <Typography component="span" variant="h4" sx={{ fontWeight: 800, color: '#6366f1' }}>
+                            {studentData?.name?.split(' ')[0] || 'User'}
                           </Typography>
                         </Stack>
-                        <Typography variant="subtitle2">{studentData?.email || ''}</Typography>
+                        <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600, mt: 0.5 }}>{studentData?.email || ''}</Typography>
                       </Stack>
-                      <Divider sx={{ mt: 2 }} />
+                      <Divider sx={{ mt: 2.5, opacity: 0.6 }} />
                     </Box>
                     <Box
                       sx={{
@@ -165,38 +181,48 @@ export default function ProfileSection() {
                           '& .MuiListItemButton-root': { mt: 0.5 }
                         }}
                       >
-                        <ListItemButton sx={{ borderRadius: `${borderRadius}px` }}>
-                          <ListItemIcon>
-                            <IconSettings stroke={1.5} size="20px" />
+                        <ListItemButton sx={{ borderRadius: '12px', mb: 0.5, '&:hover': { bgcolor: 'rgba(99, 102, 241, 0.04)' } }}>
+                          <ListItemIcon sx={{ color: '#64748b', minWidth: 40 }}>
+                            <IconSettings stroke={2} size="18px" />
                           </ListItemIcon>
-                          <ListItemText primary={<Typography variant="body2">Account Settings</Typography>} />
+                          <ListItemText primary={<Typography sx={{ fontWeight: 700, fontSize: '0.875rem', color: '#1e293b' }}>Account Settings</Typography>} />
                         </ListItemButton>
-                        <ListItemButton sx={{ borderRadius: `${borderRadius}px` }}>
-                          <ListItemIcon>
-                            <IconUser stroke={1.5} size="20px" />
+                        <ListItemButton sx={{ borderRadius: '12px', mb: 0.5, '&:hover': { bgcolor: 'rgba(99, 102, 241, 0.04)' } }}>
+                          <ListItemIcon sx={{ color: '#64748b', minWidth: 40 }}>
+                            <IconUser stroke={2} size="18px" />
                           </ListItemIcon>
                           <ListItemText
                             primary={
                               <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-                                <Typography variant="body2">Social Profile</Typography>
+                                <Typography sx={{ fontWeight: 700, fontSize: '0.875rem', color: '#1e293b' }}>Social Profile</Typography>
                                 <Chip
-                                  slotProps={{
-                                    label: { sx: { mt: 0.25 } }
-                                  }}
-                                  label="02"
-                                  variant="filled"
+                                  label="New"
                                   size="small"
-                                  color="warning"
+                                  sx={{ 
+                                    height: 20, 
+                                    bgcolor: 'rgba(245, 158, 11, 0.12)', 
+                                    color: '#f59e0b', 
+                                    fontWeight: 800, 
+                                    fontSize: '0.625rem' 
+                                  }}
                                 />
                               </Stack>
                             }
                           />
                         </ListItemButton>
-                        <ListItemButton sx={{ borderRadius: `${borderRadius}px` }} onClick={handleLogout}>
-                          <ListItemIcon>
-                            <IconLogout stroke={1.5} size="20px" />
+                        <Divider sx={{ my: 1, opacity: 0.6 }} />
+                        <ListItemButton 
+                          sx={{ 
+                            borderRadius: '12px',
+                            color: '#ef4444',
+                            '&:hover': { bgcolor: 'rgba(239, 68, 68, 0.05)' }
+                          }} 
+                          onClick={handleLogout}
+                        >
+                          <ListItemIcon sx={{ color: 'inherit', minWidth: 40 }}>
+                            <IconLogout stroke={2} size="18px" />
                           </ListItemIcon>
-                          <ListItemText primary={<Typography variant="body2">Logout</Typography>} />
+                          <ListItemText primary={<Typography sx={{ fontWeight: 800, fontSize: '0.875rem' }}>Logout</Typography>} />
                         </ListItemButton>
                       </List>
                     </Box>

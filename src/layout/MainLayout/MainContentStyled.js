@@ -9,51 +9,29 @@ import { drawerWidth } from 'store/constant';
 const MainContentStyled = styled('main', {
   shouldForwardProp: (prop) => prop !== 'open' && prop !== 'borderRadius'
 })(({ theme, open, borderRadius }) => ({
-  backgroundColor: theme.vars.palette.grey[100],
+  backgroundColor: '#fbfcfe',
   minWidth: '1%',
   width: '100%',
-  minHeight: 'calc(100vh - 88px)',
+  minHeight: 'calc(100vh - 80px)',
   flexGrow: 1,
-  padding: 20,
-  marginTop: 88,
-  marginRight: 20,
-  borderRadius: `${borderRadius}px`,
-  borderBottomLeftRadius: 0,
-  borderBottomRightRadius: 0,
-  ...(!open && {
-    transition: theme.transitions.create('margin', {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.shorter + 200
-    }),
-    [theme.breakpoints.up('md')]: {
-      marginLeft: -(drawerWidth - 72),
-      width: `calc(100% - ${drawerWidth}px)`,
-      marginTop: 88
-    }
+  padding: '24px',
+  marginTop: 80,
+  transition: theme.transitions.create('margin', {
+    easing: theme.transitions.easing.sharp,
+    duration: theme.transitions.duration.shorter + 200
   }),
-  ...(open && {
-    transition: theme.transitions.create('margin', {
-      easing: theme.transitions.easing.easeOut,
-      duration: theme.transitions.duration.shorter + 200
-    }),
-    marginLeft: 0,
-    marginTop: 88,
+  [theme.breakpoints.up('md')]: {
+    marginLeft: open ? 0 : -(drawerWidth - 72),
     width: `calc(100% - ${drawerWidth}px)`,
-    [theme.breakpoints.up('md')]: {
-      marginTop: 88
-    }
-  }),
-  [theme.breakpoints.down('md')]: {
-    marginLeft: 20,
-    padding: 16,
-    marginTop: 88,
-    ...(!open && {
-      width: `calc(100% - ${drawerWidth}px)`
-    })
+    borderRadius: '24px',
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0
   },
-  [theme.breakpoints.down('sm')]: {
-    marginLeft: 10,
-    marginRight: 10
+  [theme.breakpoints.down('md')]: {
+    marginLeft: 0,
+    padding: '20px',
+    marginTop: 80,
+    width: '100%'
   }
 }));
 

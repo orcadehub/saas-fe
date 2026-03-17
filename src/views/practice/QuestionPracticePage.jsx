@@ -23,9 +23,38 @@ export default function QuestionPracticePage() {
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitResults, setSubmitResults] = useState([]);
+  const [tabValue, setTabValue] = useState(0);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [leftWidth, setLeftWidth] = useState(40);
+  const containerRef = useRef(null);
+  const isResizing = useRef(false);
   const [compilerSplit, setCompilerSplit] = useState(60);
   const [isCompilerDragging, setIsCompilerDragging] = useState(false);
   const editorRef = useRef(null);
+
+  const startResizing = (e) => {
+    isResizing.current = true;
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', stopResizing);
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isResizing.current) return;
+    let newWidth = (e.clientX / window.innerWidth) * 100;
+    if (newWidth > 20 && newWidth < 80) {
+      setLeftWidth(newWidth);
+    }
+  };
+
+  const stopResizing = () => {
+    isResizing.current = false;
+    document.removeEventListener('mousemove', handleMouseMove);
+    document.removeEventListener('mouseup', stopResizing);
+    document.body.style.cursor = 'default';
+    document.body.style.userSelect = 'auto';
+  };
 
   useEffect(() => {
     tenantConfig.load().then(setConfig).catch(console.error);
@@ -274,35 +303,72 @@ export default function QuestionPracticePage() {
         <Chip label="Practice Mode" color="success" />
       </Box>
 
-      <Box sx={{ display: 'grid', gridTemplateColumns: '50% 4px 50%', flexGrow: 1, height: '100%', overflow: 'hidden' }}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: `${leftWidth}% 4px 1fr`, flexGrow: 1, overflow: 'hidden' }}>
         {/* Problem Statement */}
-        <Box sx={{ overflow: 'auto', height: '100%', bgcolor: '#ffffff', '&::-webkit-scrollbar': { display: 'none' }, scrollbarWidth: 'none' }}>
+        <Box sx={{ overflow: 'auto', height: '100%', bgcolor: '#ffffff' }}>
           <Box sx={{ p: 4, maxWidth: '900px', mx: 'auto' }}>
-            <Typography variant="h4" sx={{ fontWeight: 700, mb: 3 }}>
+            <Typography variant="h2" sx={{ fontWeight: 900, mb: 2, color: '#1e293b', fontSize: '2.5rem', letterSpacing: '-0.02em' }}>
               {question.title}
             </Typography>
 
             {question.tags && question.tags.length > 0 && (
-              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 3 }}>
+              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 4 }}>
                 {question.tags.map((tag, idx) => (
-                  <Chip key={idx} label={tag} size="small" />
+                  <Chip 
+                    key={idx} 
+                    label={tag} 
+                    size="small" 
+                    sx={{ 
+                      fontWeight: 700, 
+                      bgcolor: 'rgba(99, 102, 241, 0.05)', 
+                      color: '#6366f1',
+                      borderRadius: '8px',
+                      border: '1px solid rgba(99, 102, 241, 0.1)'
+                    }} 
+                  />
                 ))}
               </Box>
             )}
 
-            <Box sx={{ mb: 4 }}>
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>Description</Typography>
-              <Typography variant="body1" sx={{ lineHeight: 1.8 }}>
+            <Box sx={{ mb: 5 }}>
+              <Typography sx={{ 
+                fontWeight: 800, 
+                color: '#6366f1', 
+                textTransform: 'uppercase', 
+                fontSize: '0.75rem', 
+                letterSpacing: '0.1em',
+                mb: 2,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1
+              }}>
+                <Box sx={{ width: 4, height: 16, bgcolor: '#6366f1', borderRadius: 1 }} />
+                Description
+              </Typography>
+              <Typography variant="body1" sx={{ lineHeight: 1.8, color: '#475569', fontSize: '1rem', fontWeight: 600 }}>
                 {question.description}
               </Typography>
             </Box>
 
             {question.constraints && (
-              <Box sx={{ mb: 4 }}>
-                <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>Constraints</Typography>
+              <Box sx={{ mb: 5 }}>
+                <Typography sx={{ 
+                  fontWeight: 800, 
+                  color: '#6366f1', 
+                  textTransform: 'uppercase', 
+                  fontSize: '0.75rem', 
+                  letterSpacing: '0.1em',
+                  mb: 2,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1
+                }}>
+                  <Box sx={{ width: 4, height: 16, bgcolor: '#6366f1', borderRadius: 1 }} />
+                  Constraints
+                </Typography>
                 <Box component="ul" sx={{ pl: 3, m: 0 }}>
                   {(Array.isArray(question.constraints) ? question.constraints : [question.constraints]).map((constraint, idx) => (
-                    <Typography key={idx} component="li" variant="body1" sx={{ mb: 1 }}>
+                    <Typography key={idx} component="li" variant="body1" sx={{ mb: 1, color: '#475569', fontWeight: 600 }}>
                       {constraint}
                     </Typography>
                   ))}
@@ -311,22 +377,35 @@ export default function QuestionPracticePage() {
             )}
 
             {question.example && (
-              <Box sx={{ mb: 4 }}>
-                <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>Example</Typography>
-                <Box sx={{ p: 2, bgcolor: '#f8f9fa', borderRadius: 1 }}>
+              <Box sx={{ mb: 5 }}>
+                <Typography sx={{ 
+                  fontWeight: 800, 
+                  color: '#6366f1', 
+                  textTransform: 'uppercase', 
+                  fontSize: '0.75rem', 
+                  letterSpacing: '0.1em',
+                  mb: 2,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1
+                }}>
+                  <Box sx={{ width: 4, height: 16, bgcolor: '#6366f1', borderRadius: 1 }} />
+                  Example
+                </Typography>
+                <Box sx={{ p: 3, bgcolor: 'rgba(248, 250, 252, 0.8)', borderRadius: '12px', border: '1px solid rgba(226, 232, 240, 0.8)' }}>
                   {question.example.input && (
-                    <Typography variant="body2" sx={{ fontFamily: 'monospace', mb: 1 }}>
-                      <strong>Input:</strong> {question.example.input}
+                    <Typography variant="body2" sx={{ fontFamily: 'JetBrains Mono, monospace', mb: 1.5, color: '#1e293b' }}>
+                      <strong style={{ color: '#6366f1' }}>Input:</strong> {question.example.input}
                     </Typography>
                   )}
                   {question.example.output && (
-                    <Typography variant="body2" sx={{ fontFamily: 'monospace', mb: 1 }}>
-                      <strong>Output:</strong> {question.example.output}
+                    <Typography variant="body2" sx={{ fontFamily: 'JetBrains Mono, monospace', mb: 1.5, color: '#1e293b' }}>
+                      <strong style={{ color: '#6366f1' }}>Output:</strong> {question.example.output}
                     </Typography>
                   )}
                   {question.example.explanation && (
-                    <Typography variant="body2" sx={{ mt: 1, fontStyle: 'italic' }}>
-                      <strong>Explanation:</strong> {question.example.explanation}
+                    <Typography variant="body2" sx={{ mt: 1.5, color: '#64748b', fontStyle: 'italic', fontWeight: 500 }}>
+                      <strong style={{ color: '#6366f1', fontStyle: 'normal' }}>Explanation:</strong> {question.example.explanation}
                     </Typography>
                   )}
                 </Box>
@@ -334,11 +413,24 @@ export default function QuestionPracticePage() {
             )}
 
             {question.intuition?.keyInsights && (
-              <Box sx={{ mb: 4 }}>
-                <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>Key Insights</Typography>
+              <Box sx={{ mb: 5 }}>
+                <Typography sx={{ 
+                  fontWeight: 800, 
+                  color: '#6366f1', 
+                  textTransform: 'uppercase', 
+                  fontSize: '0.75rem', 
+                  letterSpacing: '0.1em',
+                  mb: 2,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1
+                }}>
+                  <Box sx={{ width: 4, height: 16, bgcolor: '#6366f1', borderRadius: 1 }} />
+                  Key Insights
+                </Typography>
                 <Box component="ul" sx={{ pl: 3, m: 0 }}>
                   {question.intuition.keyInsights.map((insight, idx) => (
-                    <Typography key={idx} component="li" variant="body1" sx={{ mb: 1, lineHeight: 1.8 }}>
+                    <Typography key={idx} component="li" variant="body1" sx={{ mb: 1, lineHeight: 1.8, color: '#475569', fontWeight: 600 }}>
                       {insight}
                     </Typography>
                   ))}
@@ -347,11 +439,24 @@ export default function QuestionPracticePage() {
             )}
 
             {question.intuition?.algorithmSteps && (
-              <Box sx={{ mb: 4 }}>
-                <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>Algorithm</Typography>
+              <Box sx={{ mb: 5 }}>
+                <Typography sx={{ 
+                  fontWeight: 800, 
+                  color: '#6366f1', 
+                  textTransform: 'uppercase', 
+                  fontSize: '0.75rem', 
+                  letterSpacing: '0.1em',
+                  mb: 2,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1
+                }}>
+                  <Box sx={{ width: 4, height: 16, bgcolor: '#6366f1', borderRadius: 1 }} />
+                  Algorithm
+                </Typography>
                 <Box component="ol" sx={{ pl: 3, m: 0 }}>
                   {question.intuition.algorithmSteps.map((step, idx) => (
-                    <Typography key={idx} component="li" variant="body1" sx={{ mb: 1, lineHeight: 1.8 }}>
+                    <Typography key={idx} component="li" variant="body1" sx={{ mb: 1, lineHeight: 1.8, color: '#475569', fontWeight: 600 }}>
                       {step}
                     </Typography>
                   ))}
@@ -360,18 +465,41 @@ export default function QuestionPracticePage() {
             )}
 
             {(question.intuition?.timeComplexity || question.intuition?.spaceComplexity) && (
-              <Box sx={{ mb: 4 }}>
-                <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>Complexity</Typography>
-                <Box sx={{ p: 2, bgcolor: '#f8f9fa', borderRadius: 1 }}>
+              <Box sx={{ mb: 5 }}>
+                <Typography sx={{ 
+                  fontWeight: 800, 
+                  color: '#6366f1', 
+                  textTransform: 'uppercase', 
+                  fontSize: '0.75rem', 
+                  letterSpacing: '0.1em',
+                  mb: 2,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1
+                }}>
+                  <Box sx={{ width: 4, height: 16, bgcolor: '#6366f1', borderRadius: 1 }} />
+                  Complexity Analysis
+                </Typography>
+                <Box sx={{ p: 3, bgcolor: 'rgba(248, 250, 252, 0.8)', borderRadius: '12px', border: '1px solid rgba(226, 232, 240, 0.8)', display: 'flex', gap: 4 }}>
                   {question.intuition.timeComplexity && (
-                    <Typography variant="body1" sx={{ mb: 1 }}>
-                      <strong>Time Complexity:</strong> {question.intuition.timeComplexity}
-                    </Typography>
+                    <Box>
+                      <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 700, textTransform: 'uppercase', mb: 0.5, display: 'block' }}>
+                        Time Complexity
+                      </Typography>
+                      <Typography variant="body1" sx={{ fontFamily: 'JetBrains Mono, monospace', color: '#1e293b', fontWeight: 700 }}>
+                        {question.intuition.timeComplexity}
+                      </Typography>
+                    </Box>
                   )}
                   {question.intuition.spaceComplexity && (
-                    <Typography variant="body1">
-                      <strong>Space Complexity:</strong> {question.intuition.spaceComplexity}
-                    </Typography>
+                    <Box>
+                      <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 700, textTransform: 'uppercase', mb: 0.5, display: 'block' }}>
+                        Space Complexity
+                      </Typography>
+                      <Typography variant="body1" sx={{ fontFamily: 'JetBrains Mono, monospace', color: '#1e293b', fontWeight: 700 }}>
+                        {question.intuition.spaceComplexity}
+                      </Typography>
+                    </Box>
                   )}
                 </Box>
               </Box>
@@ -380,43 +508,84 @@ export default function QuestionPracticePage() {
         </Box>
 
         {/* Divider */}
-        <Box sx={{ bgcolor: '#6a0dad', cursor: 'col-resize' }} />
+        <Box 
+          onMouseDown={startResizing}
+          sx={{ 
+            width: '4px',
+            bgcolor: 'rgba(226, 232, 240, 0.8)', 
+            cursor: 'col-resize', 
+            transition: 'background 0.2s',
+            zIndex: 100,
+            '&:hover': { bgcolor: '#6366f1' },
+            '&:active': { bgcolor: '#4f46e5' }
+          }} 
+        />
 
         {/* Code Editor */}
-        <Box sx={{ bgcolor: '#ffffff', display: 'flex', flexDirection: 'column', height: '100%' }} data-compiler-container>
+        <Box sx={{ bgcolor: '#ffffff', display: 'flex', flexDirection: 'column', height: '100%', minWidth: 0 }} data-compiler-container>
           <Box sx={{ height: `${compilerSplit}%`, display: 'flex', flexDirection: 'column', borderBottom: '1px solid #e0e0e0', overflow: 'hidden' }}>
-            <Box sx={{ p: 2, borderBottom: '1px solid #e0e0e0', display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
-              <FormControl size="small" sx={{ minWidth: 120 }}>
-                <InputLabel>Language</InputLabel>
-                <Select value={language} label="Language" onChange={(e) => setLanguage(e.target.value)}>
-                  {['python', 'cpp', 'java', 'c'].map((lang) => (
-                    <MenuItem key={lang} value={lang}>
-                      {lang === 'cpp' ? 'C++' : lang.charAt(0).toUpperCase() + lang.slice(1)}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+            <Box sx={{ 
+              p: 1.5, 
+              borderBottom: '1px solid rgba(226, 232, 240, 0.8)', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'space-between',
+              gap: 2, 
+              overflowX: 'auto',
+              minHeight: '64px',
+              bgcolor: '#fcfdfe',
+              pb: 0.5,
+              '&::-webkit-scrollbar': { height: '6px' },
+              '&::-webkit-scrollbar-track': { bgcolor: 'transparent' },
+              '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(99, 102, 241, 0.2)', borderRadius: '10px' },
+              '&:hover::-webkit-scrollbar-thumb': { bgcolor: 'rgba(99, 102, 241, 0.4)' }
+            }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
+                <FormControl size="small" sx={{ minWidth: 120 }}>
+                  <InputLabel>Language</InputLabel>
+                  <Select value={language} label="Language" onChange={(e) => setLanguage(e.target.value)}>
+                    {['python', 'cpp', 'java', 'c'].map((lang) => (
+                      <MenuItem key={lang} value={lang}>
+                        {lang === 'cpp' ? 'C++' : lang.charAt(0).toUpperCase() + lang.slice(1)}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
 
-              <Box sx={{ flex: 1 }} />
-
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <IconButton size="small" onClick={() => setFontSize(prev => Math.max(12, prev - 2))}>
-                  <Remove fontSize="small" />
-                </IconButton>
-                <Typography variant="body2" sx={{ minWidth: '30px', textAlign: 'center' }}>
-                  {fontSize}
-                </Typography>
-                <IconButton size="small" onClick={() => setFontSize(prev => Math.min(32, prev + 2))}>
-                  <Add fontSize="small" />
-                </IconButton>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, bgcolor: 'rgba(0,0,0,0.03)', px: 1, borderRadius: '8px' }}>
+                  <IconButton size="small" onClick={() => setFontSize(prev => Math.max(12, prev - 2))} sx={{ color: '#64748b' }}>
+                    <Remove fontSize="small" />
+                  </IconButton>
+                  <Typography variant="body2" sx={{ minWidth: '24px', textAlign: 'center', fontWeight: 800, color: '#1e293b' }}>
+                    {fontSize}
+                  </Typography>
+                  <IconButton size="small" onClick={() => setFontSize(prev => Math.min(32, prev + 2))} sx={{ color: '#64748b' }}>
+                    <Add fontSize="small" />
+                  </IconButton>
+                </Box>
               </Box>
 
-              <Button variant="outlined" startIcon={isRunning ? <CircularProgress size={16} /> : <PlayArrow />} onClick={handleRunCode} disabled={!code.trim() || isRunning}>
-                {isRunning ? 'Running...' : 'Run Code'}
-              </Button>
-              <Button variant="contained" onClick={handleSubmit} disabled={!code.trim() || isSubmitting}>
-                Submit
-              </Button>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexShrink: 0 }}>
+                <Button 
+                  variant="outlined" 
+                  size="small"
+                  startIcon={isRunning ? <CircularProgress size={16} /> : <PlayArrow />} 
+                  onClick={handleRunCode} 
+                  disabled={!code.trim() || isRunning}
+                  sx={{ borderRadius: '10px', fontWeight: 800, textTransform: 'none' }}
+                >
+                  {isRunning ? 'Running...' : 'Run Code'}
+                </Button>
+                <Button 
+                  variant="contained" 
+                  size="small"
+                  onClick={handleSubmit} 
+                  disabled={!code.trim() || isSubmitting}
+                  sx={{ borderRadius: '10px', fontWeight: 800, textTransform: 'none', bgcolor: '#6366f1' }}
+                >
+                  Submit
+                </Button>
+              </Box>
             </Box>
 
             <Box sx={{ p: 4, flexGrow: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden' }}>

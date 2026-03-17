@@ -101,12 +101,15 @@ export default function NavGroup({ item, lastItem, remItems, lastItemId, setSele
               gutterBottom
               sx={{
                 display: 'block',
-                fontSize: '0.875rem',
-                fontWeight: 500,
-                color: 'text.heading',
-                padding: 0.75,
-                textTransform: 'capitalize',
-                marginTop: 1.25
+                fontSize: '0.75rem',
+                fontWeight: 800,
+                color: '#64748b',
+                px: 2.5,
+                py: 1.5,
+                textTransform: 'uppercase',
+                letterSpacing: '0.12em',
+                marginTop: 1.5,
+                opacity: 0.8
               }}
             >
               {currentItem.title}
@@ -115,11 +118,13 @@ export default function NavGroup({ item, lastItem, remItems, lastItemId, setSele
                   gutterBottom
                   sx={{
                     display: 'block',
-                    fontSize: '0.6875rem',
-                    fontWeight: 500,
-                    color: 'text.secondary',
-                    textTransform: 'capitalize',
-                    lineHeight: 1.66
+                    fontSize: '0.65rem',
+                    fontWeight: 600,
+                    color: '#94a3b8',
+                    textTransform: 'none',
+                    letterSpacing: 'normal',
+                    lineHeight: 1.5,
+                    mt: 0.5
                   }}
                 >
                   {currentItem.caption}

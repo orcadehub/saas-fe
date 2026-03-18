@@ -3,6 +3,7 @@
   "version": "5.1.0",
   "private": true,
   "dependencies": {
+    "@e2b/code-interpreter": "^2.3.3",
     "@emotion/react": "11.14.0",
     "@emotion/styled": "11.14.1",
     "@fontsource/inter": "5.2.8",

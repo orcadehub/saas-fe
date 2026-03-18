@@ -19,7 +19,8 @@ export default function AssessmentTaking() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [showPreparation, setShowPreparation] = useState(true);
-  const [preparationTime, setPreparationTime] = useState(15);
+  const [preparationTime, setPreparationTime] = useState(300);
+  const [preparationFailed, setPreparationFailed] = useState(false);
   const [config, setConfig] = useState(null);
   const [showFullscreenWarning, setShowFullscreenWarning] = useState(false);
   const [fullscreenWarningTimer, setFullscreenWarningTimer] = useState(30);
@@ -70,6 +71,7 @@ export default function AssessmentTaking() {
   const [showAddCustomInput, setShowAddCustomInput] = useState(false);
   const [customInput, setCustomInput] = useState('');
   const [editingCustomIndex, setEditingCustomIndex] = useState(null);
+  const [execCounter, setExecCounter] = useState(0);
   const [runTour, setRunTour] = useState(false);
   const [tourSteps, setTourSteps] = useState([]);
   
@@ -156,6 +158,91 @@ export default function AssessmentTaking() {
     }
   };
 
+  const recoverFullSession = async (token, currentAttemptId, questionsList, initialAttemptData = null) => {
+    if (!token || !currentAttemptId || !questionsList) return;
+    
+    try {
+      let response = initialAttemptData;
+      if (!response) {
+        response = await apiService.getLastExecutedCode(token, currentAttemptId);
+      }
+      
+      const { lastExecutedCode, successfulCodes, lastExecutedFrontendCode, lastExecutedMongoDBQuery, lastExecutedMongoDBQueries, lastExecutedQuizAnswers, quizAnswers } = response;
+      
+      // Combined Logic Codes (Programming)
+      const progCodes = lastExecutedCode || successfulCodes;
+      if (progCodes) {
+        Object.keys(progCodes).forEach(questionId => {
+          const codeEntry = progCodes[questionId];
+          if (typeof codeEntry === 'object' && codeEntry !== null) {
+            Object.keys(codeEntry).forEach(lang => {
+              const storageKey = `assessment_${id}_question_${questionId}_${lang}`;
+              if (codeEntry[lang]) {
+                sessionStorage.setItem(storageKey, codeEntry[lang]);
+              }
+            });
+          }
+        });
+      }
+      
+      // Recover Frontend Codes
+      if (lastExecutedFrontendCode) {
+        Object.keys(lastExecutedFrontendCode).forEach(questionId => {
+          const storageKey = `frontend_${currentAttemptId}_${questionId}`;
+          localStorage.setItem(storageKey, JSON.stringify(lastExecutedFrontendCode[questionId]));
+        });
+      }
+      
+      // Recover MongoDB Queries
+      const mongoQueries = lastExecutedMongoDBQuery || lastExecutedMongoDBQueries || successfulCodes;
+      if (mongoQueries) {
+        Object.keys(mongoQueries).forEach(questionId => {
+          // Verify if it's a mongodb question to avoid overwriting programming codes
+          const question = questionsList.find(q => q._id === questionId);
+          if (question?.type === 'mongodb') {
+            const storageKey = `mongodb_query_${questionId}`;
+            const queryData = mongoQueries[questionId];
+            localStorage.setItem(storageKey, typeof queryData === 'string' ? queryData : (queryData.query || ''));
+          }
+        });
+      }
+
+      // Recover Quiz Answers
+      const qAnswers = lastExecutedQuizAnswers || quizAnswers;
+      if (qAnswers) {
+        const newAnswers = { ...answers };
+        Object.keys(qAnswers).forEach(questionId => {
+          const data = qAnswers[questionId];
+          const savedOptionIndex = typeof data === 'object' ? data.selectedAnswer : data;
+          newAnswers[questionId] = savedOptionIndex.toString();
+        });
+        setAnswers(newAnswers);
+      }
+      
+      // Update current code state if needed
+      const currentQ = questionsList[currentQuestionIndex];
+      if (currentQ?.type === 'programming' && language) {
+        const storageKey = `assessment_${id}_question_${currentQ._id}_${language}`;
+        const savedCode = sessionStorage.getItem(storageKey);
+        if (savedCode) {
+          setCode(savedCode);
+        }
+      }
+      
+      if (!initialAttemptData) {
+        setToastMessage('Session data synchronized with your latest submissions');
+        setToastSeverity('success');
+        setShowToast(true);
+      }
+      
+      // Force refresh for child components
+      setExecCounter(prev => prev + 1);
+      
+    } catch (error) {
+      console.error('Error recovering session:', error);
+    }
+  };
+
   // Load code from session storage when question or language changes
   useEffect(() => {
     if (questions[currentQuestionIndex]?._id && language) {
@@ -163,7 +250,7 @@ export default function AssessmentTaking() {
       const savedCode = sessionStorage.getItem(storageKey);
       setCode(savedCode || getLanguageTemplate(language));
     }
-  }, [currentQuestionIndex, language, questions, id]);
+  }, [currentQuestionIndex, language, questions, id, execCounter]);
 
   // Set initial editor height to 40% when language is first selected
   useEffect(() => {
@@ -560,12 +647,12 @@ export default function AssessmentTaking() {
           ...(questionsData.quizQuestions || []).map(q => ({ ...q, type: 'quiz' }))
         ];
         
-        // Shuffle questions and options
+        // Shuffle questions but keep options in their original order
         const shuffledQuestions = allQuestions.map(q => {
           if (q.type === 'quiz' && q.options) {
-            // Store original index before shuffling
+            // Store original index (required by backend matching logic) without shuffling the options array
             const optionsWithOriginalIndex = q.options.map((opt, idx) => ({ ...opt, originalIndex: idx }));
-            return { ...q, options: [...optionsWithOriginalIndex].sort(() => Math.random() - 0.5) };
+            return { ...q, options: optionsWithOriginalIndex };
           }
           return q;
         }).sort(() => Math.random() - 0.5);
@@ -597,6 +684,7 @@ export default function AssessmentTaking() {
         const assessmentData = cachedAssessment ? JSON.parse(cachedAssessment) : assessment;
         let attemptStatus = null;
         let currentAttemptId = null;
+        let recoveredAttemptData = assessmentData?.attempt || null;
 
         if (assessmentData?.attempt) {
           currentAttemptId = assessmentData.attempt._id;
@@ -607,19 +695,22 @@ export default function AssessmentTaking() {
             if (attemptResponse) {
               currentAttemptId = attemptResponse._id;
               attemptStatus = attemptResponse.attemptStatus;
+              recoveredAttemptData = attemptResponse;
             }
           } catch (error) {
             console.error('Error fetching attempt:', error);
           }
         }
 
-        if (attemptStatus && attemptStatus !== 'IN_PROGRESS') {
+        if (attemptStatus && (attemptStatus !== 'IN_PROGRESS' && attemptStatus !== 'STARTED' && attemptStatus !== 'RESUMED')) {
            navigate('/assessments');
            return;
         }
 
         if (currentAttemptId) {
           setAttemptId(currentAttemptId);
+          // Recover session data if available
+          recoverFullSession(token, currentAttemptId, shuffledQuestions, recoveredAttemptData);
         }
 
       } catch (error) {
@@ -677,18 +768,27 @@ export default function AssessmentTaking() {
 
   useEffect(() => {
     // Preparation timer
-    if (showPreparation && preparationTime > 0) {
+    if (showPreparation && preparationTime > 0 && !preparationFailed) {
+      if (isDataReady && !loading && attemptId) {
+        setShowPreparation(false);
+        return;
+      }
+      
       const timer = setInterval(() => {
         setPreparationTime(prev => {
           if (prev <= 1) {
-            setShowPreparation(false);
+            if (isDataReady && !loading && attemptId) {
+              setShowPreparation(false);
+            } else {
+              setPreparationFailed(true);
+            }
             return 0;
           }
           return prev - 1;
         });
       }, 1000);
       return () => clearInterval(timer);
-    } else if (!showPreparation && !loading) {
+    } else if (!showPreparation && !loading && !preparationFailed) {
       // After preparation ends, check and re-enter fullscreen
       const checkAndEnterFullscreen = () => {
         if (!document.fullscreenElement) {
@@ -964,11 +1064,11 @@ export default function AssessmentTaking() {
     );
   }
 
-  if (showPreparation) {
+  if (showPreparation || preparationFailed) {
     return (
       <Box 
         onClick={() => {
-          if (!document.fullscreenElement) {
+          if (!document.fullscreenElement && !preparationFailed) {
             document.documentElement.requestFullscreen().catch(console.error);
           }
         }}
@@ -980,7 +1080,7 @@ export default function AssessmentTaking() {
           flexDirection: 'column',
           gap: 4,
           bgcolor: '#ffffff',
-          cursor: 'pointer'
+          cursor: preparationFailed ? 'default' : 'pointer'
         }}>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
           {config?.logoUrl ? (
@@ -994,69 +1094,98 @@ export default function AssessmentTaking() {
           )}
         </Box>
         
-        <Box sx={{ textAlign: 'center' }}>
-          <Typography variant="h2" sx={{ fontWeight: 700, mb: 2, fontSize: '2.5rem' }}>
-            Preparing Assessment
-          </Typography>
-          <Typography variant="h5" sx={{ color: 'text.secondary', mb: 4, fontSize: '1.5rem' }}>
-            Please wait while we set up your assessment environment
-          </Typography>
-        </Box>
-        
-        <Box sx={{
-          width: 200,
-          height: 200,
-          borderRadius: '50%',
-          background: `conic-gradient(#6a0dad ${((15 - preparationTime) / 15) * 360}deg, #e0e0e0 0deg)`,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}>
-          <Box sx={{ 
-            width: 170,
-            height: 170,
-            borderRadius: '50%',
-            bgcolor: '#ffffff',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}>
+        {preparationFailed ? (
+          <Box sx={{ textAlign: 'center' }}>
+            <Typography variant="h2" sx={{ fontWeight: 700, mb: 2, fontSize: '2.5rem', color: 'error.main' }}>
+              Connection Timeout
+            </Typography>
+            <Typography variant="h5" sx={{ color: 'text.secondary', mb: 4, fontSize: '1.5rem', maxWidth: 600, mx: 'auto' }}>
+              We couldn't load all the necessary assessment data within the time limit. Please check your connection and retry.
+            </Typography>
+            <Button
+              variant="contained"
+              size="large"
+              color="primary"
+              onClick={() => window.location.reload()}
+              sx={{ py: 2, px: 6, fontSize: '1.2rem', fontWeight: 800, borderRadius: '16px', textTransform: 'none' }}
+            >
+              Retry Connection
+            </Button>
+          </Box>
+        ) : (
+          <>
             <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="h1" sx={{ 
-                fontWeight: 900, 
-                color: '#6a0dad',
-                fontFamily: 'monospace',
-                fontSize: '4rem'
-              }}>
-                {preparationTime}
+              <Typography variant="h2" sx={{ fontWeight: 700, mb: 2, fontSize: '2.5rem' }}>
+                Preparing Assessment
               </Typography>
-              <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '1.2rem' }}>
-                seconds
+              <Typography variant="h5" sx={{ color: 'text.secondary', mb: 4, fontSize: '1.5rem' }}>
+                Please wait while we set up your assessment environment
               </Typography>
             </Box>
-          </Box>
-        </Box>
-        
-        <Typography variant="body1" sx={{ 
-          textAlign: 'center', 
-          maxWidth: 400,
-          color: 'text.secondary',
-          fontSize: '1.2rem'
-        }}>
-          Loading questions, setting up code environment, and preparing your workspace...
-        </Typography>
-        
-        {!document.fullscreenElement && (
-          <Typography variant="body2" sx={{ 
-            textAlign: 'center', 
-            maxWidth: 400,
-            color: 'primary.main',
-            fontSize: '1rem',
-            fontWeight: 600,
-            mt: 2
-          }}>
-            Click anywhere to enter fullscreen mode
-          </Typography>
+            
+            <Box sx={{
+              width: 200,
+              height: 200,
+              borderRadius: '50%',
+              background: `conic-gradient(#6a0dad ${((300 - preparationTime) / 300) * 360}deg, #e0e0e0 0deg)`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <Box sx={{ 
+                width: 170,
+                height: 170,
+                borderRadius: '50%',
+                bgcolor: '#ffffff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <Box sx={{ textAlign: 'center' }}>
+                  <Typography variant="h1" sx={{ 
+                    fontWeight: 900, 
+                    color: '#6a0dad',
+                    fontFamily: 'monospace',
+                    fontSize: '4rem'
+                  }}>
+                    {preparationTime}
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '1.2rem' }}>
+                    seconds
+                  </Typography>
+                </Box>
+              </Box>
+            </Box>
+            
+            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'center', mt: 2 }}>
+              <Chip icon={assessment ? <CheckCircle /> : <CircularProgress size={16} />} label="Assessment Details" color={assessment ? "success" : "default"} variant={assessment ? "filled" : "outlined"} sx={{ fontWeight: 700 }} />
+              <Chip icon={questions.length > 0 ? <CheckCircle /> : <CircularProgress size={16} />} label="Question Bank" color={questions.length > 0 ? "success" : "default"} variant={questions.length > 0 ? "filled" : "outlined"} sx={{ fontWeight: 700 }} />
+              <Chip icon={attemptId ? <CheckCircle /> : <CircularProgress size={16} />} label="Secure Session" color={attemptId ? "success" : "default"} variant={attemptId ? "filled" : "outlined"} sx={{ fontWeight: 700 }} />
+            </Box>
+
+            <Typography variant="body1" sx={{ 
+              textAlign: 'center', 
+              maxWidth: 400,
+              color: 'text.secondary',
+              fontSize: '1.2rem',
+              mt: 2
+            }}>
+              Loading questions, setting up code environment, and preparing your workspace...
+            </Typography>
+            
+            {!document.fullscreenElement && (
+              <Typography variant="body2" sx={{ 
+                textAlign: 'center', 
+                maxWidth: 400,
+                color: 'primary.main',
+                fontSize: '1rem',
+                fontWeight: 600,
+                mt: 1
+              }}>
+                Click anywhere to instantly enter Fullscreen Mode
+              </Typography>
+            )}
+          </>
         )}
       </Box>
     );
@@ -1514,17 +1643,18 @@ export default function AssessmentTaking() {
                           position: 'relative',
                           
                           ...(isActive ? {
-                            bgcolor: isCompleted ? '#10b981' : (isPartial || visitedQuestions.has(originalIndex)) ? '#f59e0b' : '#6366f1',
+                            bgcolor: isCompleted ? '#10b981' : '#6366f1',
                             color: 'white',
-                            boxShadow: `0 8px 16px -4px ${isCompleted ? 'rgba(16, 185, 129, 0.4)' : (isPartial || visitedQuestions.has(originalIndex)) ? 'rgba(245, 158, 11, 0.4)' : 'rgba(99, 102, 241, 0.4)'}`,
+                            boxShadow: `0 8px 16px -4px ${isCompleted ? 'rgba(16, 185, 129, 0.4)' : 'rgba(99, 102, 241, 0.4)'}`,
                             transform: 'translateY(-2px)',
                             border: 'none',
                             '&:hover': { 
-                                bgcolor: isCompleted ? '#059669' : (isPartial || visitedQuestions.has(originalIndex)) ? '#d97706' : '#4f46e5',
-                                boxShadow: `0 12px 20px -6px ${isCompleted ? 'rgba(16, 185, 129, 0.5)' : (isPartial || visitedQuestions.has(originalIndex)) ? 'rgba(245, 158, 11, 0.5)' : 'rgba(99, 102, 241, 0.5)'}`
+                                bgcolor: isCompleted ? '#059669' : '#4f46e5',
+                                boxShadow: `0 12px 20px -6px ${isCompleted ? 'rgba(16, 185, 129, 0.5)' : 'rgba(99, 102, 241, 0.5)'}`
                             }
                           } : {
                             borderColor: isCompleted ? '#10b981' : (isPartial || visitedQuestions.has(originalIndex)) ? '#f59e0b' : '#e2e8f0',
+
                             bgcolor: isCompleted ? '#f0fdf4' : (isPartial || visitedQuestions.has(originalIndex)) ? '#fffbeb' : 'white',
                             color: isCompleted ? '#10b981' : (isPartial || visitedQuestions.has(originalIndex)) ? '#f59e0b' : '#64748b',
                             '&:hover': {
@@ -1845,7 +1975,7 @@ export default function AssessmentTaking() {
                   {(questions[currentQuestionIndex]?.options || []).map((option, idx) => (
                     <Box key={option._id || idx}>
                       <FormControlLabel
-                        value={option._id}
+                        value={option.originalIndex !== undefined ? option.originalIndex.toString() : idx.toString()}
                         control={<Radio sx={{ display: 'none' }} />}
                         label={
                           <Card sx={{ 
@@ -1856,26 +1986,26 @@ export default function AssessmentTaking() {
                             cursor: 'pointer',
                             transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                             border: '1px solid',
-                            borderColor: answers[questions[currentQuestionIndex]?._id] === option._id ? '#6366f1' : '#f1f5f9',
-                            bgcolor: answers[questions[currentQuestionIndex]?._id] === option._id ? '#f5f7ff' : '#ffffff',
-                            boxShadow: answers[questions[currentQuestionIndex]?._id] === option._id ? '0 12px 24px -8px rgba(99, 102, 241, 0.2)' : 'none',
+                            borderColor: answers[questions[currentQuestionIndex]?._id] === (option.originalIndex !== undefined ? option.originalIndex.toString() : idx.toString()) ? '#6366f1' : '#f1f5f9',
+                            bgcolor: answers[questions[currentQuestionIndex]?._id] === (option.originalIndex !== undefined ? option.originalIndex.toString() : idx.toString()) ? '#f5f7ff' : '#ffffff',
+                            boxShadow: answers[questions[currentQuestionIndex]?._id] === (option.originalIndex !== undefined ? option.originalIndex.toString() : idx.toString()) ? '0 12px 24px -8px rgba(99, 102, 241, 0.2)' : 'none',
                             '&:hover': {
                               borderColor: '#6366f1',
-                              bgcolor: answers[questions[currentQuestionIndex]?._id] === option._id ? '#f5f7ff' : '#f8fafc',
+                              bgcolor: answers[questions[currentQuestionIndex]?._id] === (option.originalIndex !== undefined ? option.originalIndex.toString() : idx.toString()) ? '#f5f7ff' : '#f8fafc',
                               transform: 'translateX(8px)'
                             }
                           }}>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
                               <Box sx={{ 
                                 width: 44, height: 44, borderRadius: '16px', 
-                                bgcolor: answers[questions[currentQuestionIndex]?._id] === option._id ? '#6366f1' : '#f1f5f9',
-                                color: answers[questions[currentQuestionIndex]?._id] === option._id ? 'white' : '#64748b',
+                                bgcolor: answers[questions[currentQuestionIndex]?._id] === (option.originalIndex !== undefined ? option.originalIndex.toString() : idx.toString()) ? '#6366f1' : '#f1f5f9',
+                                color: answers[questions[currentQuestionIndex]?._id] === (option.originalIndex !== undefined ? option.originalIndex.toString() : idx.toString()) ? 'white' : '#64748b',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 fontWeight: 900, fontSize: '1.2rem', flexShrink: 0
                               }}>
                                 {String.fromCharCode(65 + idx)}
                               </Box>
-                              <Typography sx={{ fontWeight: 700, color: answers[questions[currentQuestionIndex]?._id] === option._id ? '#1e293b' : '#475569', fontSize: '1.15rem' }}>
+                              <Typography sx={{ fontWeight: 700, color: answers[questions[currentQuestionIndex]?._id] === (option.originalIndex !== undefined ? option.originalIndex.toString() : idx.toString()) ? '#1e293b' : '#475569', fontSize: '1.15rem' }}>
                                 {option.text}
                               </Typography>
                             </Box>
@@ -1943,8 +2073,7 @@ export default function AssessmentTaking() {
                       setSavingQuestions(prev => new Set([...prev, currentIdx]));
                       const token = localStorage.getItem('studentToken');
                       const selectedOptionId = answers[currentQuestionId];
-                      const selectedOption = questions[currentIdx].options.find(opt => opt._id === selectedOptionId);
-                      const origOptionIndex = selectedOption?.originalIndex ?? 0;
+                      const origOptionIndex = selectedOptionId ? parseInt(selectedOptionId, 10) : 0;
 
                       apiService.saveQuizAnswer(token, attemptId, currentQuestionId, origOptionIndex)
                         .then(() => {
@@ -1980,6 +2109,7 @@ export default function AssessmentTaking() {
             </Box>
           ) : questions[currentQuestionIndex]?.type === 'mongodb' ? (
             <MongoDBPlaygroundEditor 
+              key={`mongodb-${currentQuestionIndex}-${execCounter}`}
               assessment={assessment} 
               question={questions[currentQuestionIndex]} 
               attemptId={attemptId}
@@ -1997,9 +2127,11 @@ export default function AssessmentTaking() {
             />
           ) : questions[currentQuestionIndex]?.type === 'frontend' ? (
             <FrontendEditor 
+              key={`frontend-${currentQuestionIndex}-${execCounter}`}
               assessment={assessment} 
               question={questions[currentQuestionIndex]} 
               attemptId={attemptId}
+              version={execCounter}
               onTestComplete={(passed, total, percentage) => {
                 setFrontendQuestionPercentages(prev => ({ ...prev, [currentQuestionIndex]: percentage || 0 }));
                 if (passed === total && total > 0) {
@@ -2087,29 +2219,8 @@ export default function AssessmentTaking() {
                       variant="outlined"
                       size="small"
                       className="last-code-button"
-                      onClick={async () => {
-                        if (attemptId && questions[currentQuestionIndex]?._id) {
-                          try {
-                            const token = localStorage.getItem('studentToken');
-                            const response = await apiService.getLastExecutedCode(token, attemptId);
-                            const lastExecutedCode = response.lastExecutedCode;
-                            const savedCode = lastExecutedCode?.[questions[currentQuestionIndex]._id]?.[language];
-                            
-                            if (savedCode) {
-                              setLastCodeData(savedCode);
-                              setShowLastCodeModal(true);
-                            } else {
-                              setLastCodeData(null);
-                              setShowLastCodeModal(true);
-                            }
-                          } catch (error) {
-                            console.error('Error loading last executed code:', error);
-                            setLastCodeData(null);
-                            setShowLastCodeModal(true);
-                          }
-                        }
-                      }}
-                      disabled={!language}
+                      onClick={() => recoverFullSession(localStorage.getItem('studentToken'), attemptId, questions)}
+                      disabled={!attemptId}
                       sx={{
                         textTransform: 'none',
                         borderRadius: '12px',

@@ -75,6 +75,20 @@ class ApiService {
     return response.data;
   }
 
+  async sendStudentHeartbeat(token) {
+    const response = await this.client.post('/auth/student/heartbeat', {}, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
+  }
+
+  async getActiveStudentCount(token) {
+    const response = await this.client.get('/auth/student/active-count', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
+  }
+
   async startAssessmentAttempt(token, assessmentId, systemInfo) {
     const response = await this.client.post(`/auth/student/assessment/${assessmentId}/start-attempt`, 
       { systemInfo }, 

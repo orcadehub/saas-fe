@@ -87,6 +87,17 @@ export default function Leaderboard() {
     setPage(1);
   }, [searchQuery, allStudents]);
 
+  useEffect(() => {
+    if (openDialog && allStudents.length > 0 && user?.email) {
+      const currentUserEntry = allStudents.find(s => s.email === user.email);
+      if (currentUserEntry) {
+        setLeetcodeUsername(currentUserEntry.leetcodeUsername || '');
+        setHackerrankUsername(currentUserEntry.hackerrankUsername || '');
+        setCodeforcesUsername(currentUserEntry.codeforcesUsername || '');
+      }
+    }
+  }, [openDialog, allStudents, user]);
+
   const getApiUrl = () => import.meta.env.DEV ? 'http://localhost:4000/api' : 'https://backend.orcode.in/api';
 
   const getHeaders = () => ({

@@ -290,7 +290,7 @@ export default function FrontendEditor({ assessment, question, attemptId, onTest
             size="small"
             startIcon={<FolderOpen sx={{ fontSize: '1.2rem' }} />}
             onClick={handleLoadLastCode}
-            disabled={!lastCodeAvailable}
+            disabled={!attemptId}
             sx={{ 
               textTransform: 'none', 
               borderRadius: '12px', 

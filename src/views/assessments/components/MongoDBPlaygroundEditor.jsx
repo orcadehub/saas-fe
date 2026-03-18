@@ -153,6 +153,25 @@ export default function MongoDBPlaygroundEditor({ question, attemptId, onTestCom
     }
   };
 
+  const handleRecover = async () => {
+    setIsRunning(true);
+    try {
+      const token = localStorage.getItem('studentToken');
+      const response = await apiService.getLastExecutedCode(token, attemptId);
+      const lastExecutedQueries = response.lastExecutedMongoDBQuery || response.lastExecutedMongoDBQueries;
+      if (lastExecutedQueries?.[question._id]) {
+        const queryData = lastExecutedQueries[question._id];
+        const queryStr = typeof queryData === 'string' ? queryData : (queryData.query || '');
+        setQuery(queryStr);
+        localStorage.setItem(`mongodb_query_${question._id}`, queryStr);
+      }
+    } catch (err) {
+      console.error('Error recovering session:', err);
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', bgcolor: '#ffffff' }}>
       {/* Tabs */}
@@ -229,6 +248,24 @@ export default function MongoDBPlaygroundEditor({ question, attemptId, onTestCom
                       <Add fontSize="small" />
                     </IconButton>
                   </Box>
+
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={handleRecover}
+                    disabled={isRunning}
+                    sx={{ 
+                      borderRadius: '10px', 
+                      fontWeight: 800, 
+                      textTransform: 'none',
+                      borderColor: '#e2e8f0',
+                      color: '#475569',
+                      px: 2,
+                      '&:hover': { bgcolor: '#f8fafc', borderColor: '#cbd5e1' }
+                    }}
+                  >
+                    Recover Session
+                  </Button>
                 </Box>
                 <Button
                   variant="contained"

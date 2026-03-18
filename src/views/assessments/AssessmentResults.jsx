@@ -255,8 +255,7 @@ export default function AssessmentResults() {
       </Box>
 
       <Box sx={{ px: { xs: 3, md: 6 }, maxWidth: 1400, mx: 'auto' }}>
-        <Grid container spacing={3} sx={{ mb: 6 }}>
-          {/* 1. Achievement */}
+        <Grid container spacing={3} sx={{ mb: 6 }}>          {/* ROW 1: 4 Dashboad Cards */}
           <Grid item xs={12} sm={6} md={3}>
             <MainCard
               border={false}
@@ -266,158 +265,170 @@ export default function AssessmentResults() {
                 color: '#fff',
                 overflow: 'hidden',
                 position: 'relative',
-                borderRadius: '32px',
-                height: 280,
-                display: 'flex',
-                alignItems: 'center',
+                borderRadius: '16px',
                 '&:after': {
                   content: '""', position: 'absolute', width: 210, height: 210,
-                  background: 'rgba(255,255,255,0.15)',
-                  borderRadius: '50%', top: -85, right: -95
+                  background: 'rgba(255,255,255,0.15)', borderRadius: '50%', top: -85, right: -95
                 },
                 '&:before': {
                   content: '""', position: 'absolute', width: 210, height: 210,
-                  background: 'rgba(255,255,255,0.1)',
-                  borderRadius: '50%', top: -125, right: -15, opacity: 0.5
+                  background: 'rgba(255,255,255,0.1)', borderRadius: '50%', top: -125, right: -15, opacity: 0.5
                 }
               }}
             >
-              <Box sx={{ p: 4, width: '100%', position: 'relative', zIndex: 1 }}>
-                <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.8)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Achievement</Typography>
-                <Box sx={{ mt: 2, display: 'flex', alignItems: 'baseline', gap: 1 }}>
-                  <Typography sx={{ fontWeight: 900, color: '#fff', fontSize: '3rem', fontFamily: "'JetBrains Mono', monospace" }}>{overallScore.toFixed(0)}</Typography>
-                  <Typography sx={{ color: 'rgba(255,255,255,0.6)', fontWeight: 800, fontSize: '1.25rem' }}>%</Typography>
-                </Box>
-                <LinearProgress 
-                  variant="determinate" 
-                  value={overallScore} 
-                  sx={{ mt: 3, height: 8, borderRadius: 4, bgcolor: 'rgba(255,255,255,0.2)', '& .MuiLinearProgress-bar': { bgcolor: '#fff' }}} 
-                />
-              </Box>
-            </MainCard>
-          </Grid>
-
-          {/* 2. Time Used */}
-          <Grid item xs={12} sm={6} md={3}>
-            <MainCard
-              border={false}
-              content={false}
-              sx={{
-                bgcolor: 'secondary.dark', color: '#fff', overflow: 'hidden', position: 'relative', borderRadius: '32px', height: 280, display: 'flex', alignItems: 'center',
-                '&:after': { content: '""', position: 'absolute', width: 210, height: 210, background: 'rgba(255,255,255,0.1)', borderRadius: '50%', top: -85, right: -95 },
-                '&:before': { content: '""', position: 'absolute', width: 210, height: 210, background: 'rgba(255,255,255,0.05)', borderRadius: '50%', top: -125, right: -15 }
-              }}
-            >
-              <Box sx={{ p: 4, width: '100%', position: 'relative', zIndex: 1 }}>
-                <Avatar variant="rounded" sx={{ bgcolor: 'secondary.800', color: '#fff', mb: 2.5, width: 44, height: 44, borderRadius: '12px' }}>
-                  <Timer />
-                </Avatar>
-                <Typography sx={{ color: 'secondary.200', fontWeight: 800, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Time Used</Typography>
-                <Typography sx={{ fontWeight: 900, color: '#fff', fontSize: '2rem', mt: 0.5, fontFamily: "'JetBrains Mono', monospace" }}>
-                  {formatTime((attempt?.timeUsedSeconds || 0) * 1000)}
-                </Typography>
-              </Box>
-            </MainCard>
-          </Grid>
-
-          {/* 3. Accuracy */}
-          <Grid item xs={12} sm={6} md={3}>
-            <MainCard
-              border={false}
-              content={false}
-              sx={{
-                bgcolor: 'primary.dark', color: '#fff', overflow: 'hidden', position: 'relative', borderRadius: '32px', height: 280, display: 'flex', alignItems: 'center',
-                '&:after': { content: '""', position: 'absolute', width: 210, height: 210, background: 'rgba(255,255,255,0.1)', borderRadius: '50%', top: -85, right: -95 },
-                '&:before': { content: '""', position: 'absolute', width: 210, height: 210, background: 'rgba(255,255,255,0.05)', borderRadius: '50%', top: -125, right: -15 }
-              }}
-            >
-              <Box sx={{ p: 4, width: '100%', position: 'relative', zIndex: 1 }}>
-                <Avatar variant="rounded" sx={{ bgcolor: 'primary.800', color: '#fff', mb: 2.5, width: 44, height: 44, borderRadius: '12px' }}>
+              <Box sx={{ p: 2.25 }}>
+                <Avatar variant="rounded" sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: '#fff', mt: 1 }}>
                   <CheckCircle />
                 </Avatar>
-                <Typography sx={{ color: 'primary.200', fontWeight: 800, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Accuracy</Typography>
-                <Typography sx={{ fontWeight: 900, color: '#fff', fontSize: '2rem', mt: 0.5, fontFamily: "'JetBrains Mono', monospace" }}>{attempt?.accuracy || 0}%</Typography>
-              </Box>
-            </MainCard>
-          </Grid>
-
-          {/* 4. Violations */}
-          <Grid item xs={12} sm={6} md={3}>
-            <MainCard
-              border={false}
-              content={false}
-              sx={{
-                bgcolor: 'error.dark', color: '#fff', overflow: 'hidden', position: 'relative', borderRadius: '32px', height: 280, display: 'flex', alignItems: 'center',
-                '&:after': { content: '""', position: 'absolute', width: 210, height: 210, background: 'rgba(255,255,255,0.1)', borderRadius: '50%', top: -85, right: -95 },
-                '&:before': { content: '""', position: 'absolute', width: 210, height: 210, background: 'rgba(255,255,255,0.05)', borderRadius: '50%', top: -125, right: -15 }
-              }}
-            >
-              <Box sx={{ p: 4, width: '100%', position: 'relative', zIndex: 1 }}>
-                <Avatar variant="rounded" sx={{ bgcolor: 'error.main', color: '#fff', mb: 2.5, width: 44, height: 44, borderRadius: '12px' }}>
-                  <Cancel />
-                </Avatar>
-                <Typography sx={{ color: '#ffcdd2', fontWeight: 800, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Violations</Typography>
-                <Typography sx={{ fontWeight: 900, color: '#fff', fontSize: '2rem', mt: 0.5, fontFamily: "'JetBrains Mono', monospace" }}>
-                  {(attempt?.tabSwitchCount || 0) + (attempt?.fullscreenExitCount || 0)}
+                <Grid container alignItems="center">
+                  <Grid item>
+                    <Typography sx={{ fontSize: '2.125rem', fontWeight: 500, mr: 1, mt: 1.75, mb: 0.75 }}>
+                      {overallScore.toFixed(0)}%
+                    </Typography>
+                  </Grid>
+                </Grid>
+                <Typography sx={{ mb: 1.25, fontSize: '1rem', fontWeight: 500, color: 'rgba(255,255,255,0.7)' }}>
+                  Achievement Score
                 </Typography>
               </Box>
             </MainCard>
           </Grid>
 
-          {/* 5. Progress */}
           <Grid item xs={12} sm={6} md={3}>
             <MainCard
               border={false}
               content={false}
               sx={{
-                bgcolor: 'orange.dark', color: '#fff', overflow: 'hidden', position: 'relative', borderRadius: '32px', height: 280, display: 'flex', alignItems: 'center',
-                '&:after': { content: '""', position: 'absolute', width: 210, height: 210, background: 'rgba(255,255,255,0.1)', borderRadius: '50%', top: -85, right: -95 },
-                '&:before': { content: '""', position: 'absolute', width: 210, height: 210, background: 'rgba(255,255,255,0.05)', borderRadius: '50%', top: -125, right: -15 }
+                bgcolor: 'secondary.dark', color: '#fff', overflow: 'hidden', position: 'relative', borderRadius: '16px',
+                '&:after': { content: '""', position: 'absolute', width: 210, height: 210, background: 'rgba(255,255,255,0.05)', borderRadius: '50%', top: -85, right: -95 },
+                '&:before': { content: '""', position: 'absolute', width: 210, height: 210, background: 'rgba(255,255,255,0.05)', borderRadius: '50%', top: -125, right: -15, opacity: 0.5 }
               }}
             >
-              <Box sx={{ p: 4, width: '100%', position: 'relative', zIndex: 1 }}>
-                <Avatar variant="rounded" sx={{ bgcolor: 'orange.main', color: '#fff', mb: 2.5, width: 44, height: 44, borderRadius: '12px' }}>
-                  <Code />
+              <Box sx={{ p: 2.25 }}>
+                <Avatar variant="rounded" sx={{ bgcolor: 'secondary.800', color: '#fff', mt: 1 }}>
+                  <Timer />
                 </Avatar>
-                <Typography sx={{ color: '#ffe0b2', fontWeight: 800, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Progress</Typography>
-                <Typography sx={{ fontWeight: 900, color: '#fff', fontSize: '2rem', mt: 0.5, fontFamily: "'JetBrains Mono', monospace" }}>{attemptedCount}/{totalPossible}</Typography>
+                <Grid container alignItems="center">
+                  <Grid item>
+                    <Typography sx={{ fontSize: '2.125rem', fontWeight: 500, mr: 1, mt: 1.75, mb: 0.75 }}>
+                      {formatTime((attempt?.timeUsedSeconds || 0) * 1000)}
+                    </Typography>
+                  </Grid>
+                </Grid>
+                <Typography sx={{ mb: 1.25, fontSize: '1rem', fontWeight: 500, color: 'secondary.200' }}>
+                  Time Consumed
+                </Typography>
               </Box>
             </MainCard>
           </Grid>
 
-          {/* 6. Sectional Efficiency */}
           <Grid item xs={12} sm={6} md={3}>
             <MainCard
               border={false}
               content={false}
               sx={{
-                bgcolor: '#1e293b', color: '#fff', overflow: 'hidden', position: 'relative', borderRadius: '32px', height: 280, display: 'flex', alignItems: 'center',
-                '&:after': { content: '""', position: 'absolute', width: 210, height: 210, background: 'rgba(99,102,241,0.1)', borderRadius: '50%', top: -85, right: -95 }
+                bgcolor: 'error.main', color: '#fff', overflow: 'hidden', position: 'relative', borderRadius: '16px',
+                '&:after': { content: '""', position: 'absolute', width: 210, height: 210, background: 'rgba(255,255,255,0.1)', borderRadius: '50%', top: -85, right: -95 },
+                '&:before': { content: '""', position: 'absolute', width: 210, height: 210, background: 'rgba(255,255,255,0.1)', borderRadius: '50%', top: -125, right: -15, opacity: 0.5 }
               }}
             >
-              <Box sx={{ p: 3.5, width: '100%', position: 'relative', zIndex: 1 }}>
-                <Typography variant="caption" sx={{ color: '#94a3b8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Section Efficiency</Typography>
-                <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-                  {qCounts.quiz > 0 && (
-                    <Box>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                        <Typography variant="caption" sx={{ color: '#f8fafc', fontWeight: 700 }}>Quiz</Typography>
-                        <Typography variant="caption" sx={{ color: '#6366f1', fontWeight: 900 }}>{(attempt?.quizPercentage || 0).toFixed(0)}%</Typography>
-                      </Box>
-                      <LinearProgress variant="determinate" value={attempt?.quizPercentage || 0} sx={{ height: 4, borderRadius: 2, bgcolor: '#334155', '& .MuiLinearProgress-bar': { bgcolor: '#6366f1' } }} />
-                    </Box>
-                  )}
-                  {qCounts.programming > 0 && (
-                    <Box>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                        <Typography variant="caption" sx={{ color: '#f8fafc', fontWeight: 700 }}>Logic</Typography>
-                        <Typography variant="caption" sx={{ color: '#10b981', fontWeight: 900 }}>{(attempt?.programmingPercentage || 0).toFixed(0)}%</Typography>
-                      </Box>
-                      <LinearProgress variant="determinate" value={attempt?.programmingPercentage || 0} sx={{ height: 4, borderRadius: 2, bgcolor: '#334155', '& .MuiLinearProgress-bar': { bgcolor: '#10b981' } }} />
-                    </Box>
-                  )}
-                </Box>
+              <Box sx={{ p: 2.25 }}>
+                <Avatar variant="rounded" sx={{ bgcolor: 'error.dark', color: '#fff', mt: 1 }}>
+                  <Cancel />
+                </Avatar>
+                <Grid container alignItems="center">
+                  <Grid item>
+                    <Typography sx={{ fontSize: '2.125rem', fontWeight: 500, mr: 1, mt: 1.75, mb: 0.75 }}>
+                      {(attempt?.tabSwitchCount || 0) + (attempt?.fullscreenExitCount || 0)}
+                    </Typography>
+                  </Grid>
+                </Grid>
+                <Typography sx={{ mb: 1.25, fontSize: '1rem', fontWeight: 500, color: 'error.light' }}>
+                  Security Violations
+                </Typography>
               </Box>
+            </MainCard>
+          </Grid>
+
+          <Grid item xs={12} sm={6} md={3}>
+            <MainCard
+              border={false}
+              content={false}
+              sx={{
+                bgcolor: 'orange.dark', color: '#fff', overflow: 'hidden', position: 'relative', borderRadius: '16px',
+                '&:after': { content: '""', position: 'absolute', width: 210, height: 210, background: 'rgba(255,255,255,0.1)', borderRadius: '50%', top: -85, right: -95 },
+                '&:before': { content: '""', position: 'absolute', width: 210, height: 210, background: 'rgba(255,255,255,0.1)', borderRadius: '50%', top: -125, right: -15, opacity: 0.5 }
+              }}
+            >
+              <Box sx={{ p: 2.25 }}>
+                <Avatar variant="rounded" sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: '#fff', mt: 1 }}>
+                  <Code />
+                </Avatar>
+                <Grid container alignItems="center">
+                  <Grid item>
+                    <Typography sx={{ fontSize: '2.125rem', fontWeight: 500, mr: 1, mt: 1.75, mb: 0.75 }}>
+                      {attemptedCount} / {totalPossible}
+                    </Typography>
+                  </Grid>
+                </Grid>
+                <Typography sx={{ mb: 1.25, fontSize: '1rem', fontWeight: 500, color: 'rgba(255,255,255,0.7)' }}>
+                  Task Progress
+                </Typography>
+              </Box>
+            </MainCard>
+          </Grid>
+
+          {/* ROW 2: Sectional Efficiency Full Width Container */}
+          <Grid item xs={12}>
+            <MainCard
+              border={false}
+              content={false}
+              sx={{
+                bgcolor: '#1e293b', color: '#fff', borderRadius: '16px', mt: 1, p: 3,
+                boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)'
+              }}
+            >
+              <Typography variant="subtitle1" sx={{ color: '#94a3b8', fontWeight: 600, mb: 3 }}>
+                Sectional Efficiency Overview
+              </Typography>
+              <Grid container spacing={4}>
+                {qCounts.quiz > 0 && (
+                  <Grid item xs={12} sm={6} md={3}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                      <Typography sx={{ color: '#f8fafc', fontWeight: 500 }}>Quiz / MCQ</Typography>
+                      <Typography sx={{ color: '#6366f1', fontWeight: 700 }}>{(attempt?.quizPercentage || 0).toFixed(0)}%</Typography>
+                    </Box>
+                    <LinearProgress variant="determinate" value={attempt?.quizPercentage || 0} sx={{ height: 6, borderRadius: 3, bgcolor: '#334155', '& .MuiLinearProgress-bar': { bgcolor: '#6366f1' } }} />
+                  </Grid>
+                )}
+                {qCounts.programming > 0 && (
+                  <Grid item xs={12} sm={6} md={3}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                      <Typography sx={{ color: '#f8fafc', fontWeight: 500 }}>Software Logic</Typography>
+                      <Typography sx={{ color: '#10b981', fontWeight: 700 }}>{(attempt?.programmingPercentage || 0).toFixed(0)}%</Typography>
+                    </Box>
+                    <LinearProgress variant="determinate" value={attempt?.programmingPercentage || 0} sx={{ height: 6, borderRadius: 3, bgcolor: '#334155', '& .MuiLinearProgress-bar': { bgcolor: '#10b981' } }} />
+                  </Grid>
+                )}
+                {qCounts.mongodb > 0 && (
+                  <Grid item xs={12} sm={6} md={3}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                      <Typography sx={{ color: '#f8fafc', fontWeight: 500 }}>MongoDB</Typography>
+                      <Typography sx={{ color: '#ec4899', fontWeight: 700 }}>{(attempt?.mongodbPercentage || 0).toFixed(0)}%</Typography>
+                    </Box>
+                    <LinearProgress variant="determinate" value={attempt?.mongodbPercentage || 0} sx={{ height: 6, borderRadius: 3, bgcolor: '#334155', '& .MuiLinearProgress-bar': { bgcolor: '#ec4899' } }} />
+                  </Grid>
+                )}
+                {qCounts.frontend > 0 && (
+                  <Grid item xs={12} sm={6} md={3}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                      <Typography sx={{ color: '#f8fafc', fontWeight: 500 }}>Frontend UI</Typography>
+                      <Typography sx={{ color: '#0ea5e9', fontWeight: 700 }}>{(attempt?.frontendPercentage || 0).toFixed(0)}%</Typography>
+                    </Box>
+                    <LinearProgress variant="determinate" value={attempt?.frontendPercentage || 0} sx={{ height: 6, borderRadius: 3, bgcolor: '#334155', '& .MuiLinearProgress-bar': { bgcolor: '#0ea5e9' } }} />
+                  </Grid>
+                )}
+              </Grid>
             </MainCard>
           </Grid>
         </Grid>
@@ -432,7 +443,8 @@ export default function AssessmentResults() {
             <Box key={t.index} onClick={() => setTabValue(t.index)} sx={{ 
               flex: 1, px: 3, py: 1.5, borderRadius: '16px', cursor: 'pointer', textAlign: 'center',
               bgcolor: tabValue === t.index ? '#6366f1' : 'transparent',
-              color: tabValue === t.index ? '#ffffff' : '#64748b'
+              color: tabValue === t.index ? '#ffffff' : '#64748b',
+              transition: 'all 0.2s'
             }}>
               <Typography variant="body2" sx={{ fontWeight: 800, whiteSpace: 'nowrap' }}>{t.label} ({t.count})</Typography>
             </Box>
@@ -477,16 +489,39 @@ export default function AssessmentResults() {
 
           {tabValue === 1 && assessment?.questions?.map((q, i) => {
             const score = attempt?.questionPercentages?.[q._id] || 0;
-            const code = attempt?.successfulCodes?.[q._id];
+            const codeObj = attempt?.successfulCodes?.[q._id] || attempt?.lastExecutedCode?.[q._id];
             return (
               <Card key={q._id} sx={{ borderRadius: '32px', overflow: 'hidden', border: '1px solid #f1f5f9' }}>
-                <Box sx={{ bgcolor: score >= 70 ? '#dcfce7' : '#fef3c7', p: 3, display: 'flex', justifyContent: 'space-between' }}>
-                  <Typography sx={{ fontWeight: 900 }}>Question {i + 1}</Typography>
-                  <Typography sx={{ fontWeight: 900 }}>{score.toFixed(0)}%</Typography>
+                <Box sx={{ bgcolor: score >= 70 ? '#dcfce7' : (score > 0 ? '#fef3c7' : '#fee2e2'), p: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Box sx={{ width: 40, height: 40, borderRadius: '12px', bgcolor: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
+                      <Code sx={{ color: score >= 70 ? '#16a34a' : (score > 0 ? '#d97706' : '#dc2626') }} />
+                    </Box>
+                    <Box>
+                      <Typography sx={{ fontWeight: 900, color: '#0f172a', fontSize: '1.25rem' }}>Logic Exercise {i + 1}</Typography>
+                      <Typography variant="caption" sx={{ color: '#475569', fontWeight: 800 }}>{q.title}</Typography>
+                    </Box>
+                  </Box>
+                  <Typography sx={{ fontWeight: 900, color: score >= 70 ? '#16a34a' : (score > 0 ? '#d97706' : '#dc2626'), fontSize: '1.5rem' }}>{score.toFixed(0)}%</Typography>
                 </Box>
                 <Box sx={{ p: 4 }}>
-                  <Typography sx={{ mb: 3 }}>{q.description}</Typography>
-                  <CodeBlock code={code || 'No solution submitted'} />
+                  <Typography sx={{ mb: 3, fontWeight: 600, color: '#475569', lineHeight: 1.7 }} dangerouslySetInnerHTML={{ __html: q.description || '' }} />
+                  {codeObj && typeof codeObj === 'object' ? (
+                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                       {Object.keys(codeObj).map(lang => (
+                         <Accordion key={lang} sx={{ border: '1px solid #f1f5f9', borderRadius: '16px !important', boxShadow: 'none', '&:before': { display: 'none' } }}>
+                           <AccordionSummary expandIcon={<ExpandMore />}>
+                             <Typography sx={{ fontWeight: 800, color: '#6366f1', textTransform: 'uppercase', fontSize: '0.75rem' }}>{lang} source</Typography>
+                           </AccordionSummary>
+                           <AccordionDetails sx={{ p: 0 }}>
+                             <CodeBlock code={codeObj[lang]} />
+                           </AccordionDetails>
+                         </Accordion>
+                       ))}
+                     </Box>
+                  ) : (
+                    <CodeBlock code={codeObj || 'No solution submitted'} />
+                  )}
                 </Box>
               </Card>
             );
@@ -506,7 +541,7 @@ export default function AssessmentResults() {
                   </Box>
                 </Box>
                 <Box sx={{ p: 4 }}>
-                  <Typography sx={{ mb: 3, fontWeight: 600, color: '#475569', lineHeight: 1.7 }}>{q.problemStatement}</Typography>
+                  <Typography sx={{ mb: 3, fontWeight: 600, color: '#475569', lineHeight: 1.7 }} dangerouslySetInnerHTML={{ __html: q.problemStatement || '' }} />
                   {fCode ? (
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                       {['html', 'css', 'js'].filter(l => fCode[l]).map(l => (
@@ -527,13 +562,28 @@ export default function AssessmentResults() {
           })}
 
           {tabValue === 3 && assessment?.mongodbPlaygroundQuestions?.map((q, i) => {
-            const dbCode = attempt?.successfulCodes?.[q._id];
+            const dbObj = attempt?.lastExecutedMongoDBQuery?.[q._id] || attempt?.successfulCodes?.[q._id];
+            let queryString = 'No solution submitted';
+            if (typeof dbObj === 'string') queryString = dbObj;
+            else if (dbObj && dbObj.query) queryString = dbObj.query;
+            
+            const isCorrect = (attempt?.questionPercentages?.[q._id] >= 100) || (dbObj && dbObj.isCorrect);
+
             return (
               <Card key={q._id} sx={{ borderRadius: '32px', overflow: 'hidden', border: '1px solid #f1f5f9' }}>
-                <Box sx={{ bgcolor: '#fdf2f8', p: 3 }}><Typography sx={{ fontWeight: 900 }}>Database Query {i + 1}</Typography></Box>
+                <Box sx={{ bgcolor: isCorrect ? '#dcfce7' : '#fee2e2', p: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Box sx={{ width: 40, height: 40, borderRadius: '12px', bgcolor: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
+                    <CheckCircle sx={{ color: isCorrect ? '#16a34a' : '#dc2626' }} />
+                  </Box>
+                  <Box>
+                    <Typography sx={{ fontWeight: 900, color: '#0f172a', fontSize: '1.25rem' }}>Database Query {i + 1}</Typography>
+                    <Typography variant="caption" sx={{ color: '#475569', fontWeight: 800 }}>{q.title || q.collectionName || 'Query'}</Typography>
+                  </Box>
+                </Box>
                 <Box sx={{ p: 4 }}>
-                  <Typography sx={{ mb: 3 }}>{q.description}</Typography>
-                  <CodeBlock code={typeof dbCode === 'string' ? dbCode : JSON.stringify(dbCode, null, 2)} />
+                  <Typography sx={{ mb: 3, fontWeight: 600, color: '#475569', lineHeight: 1.7 }} dangerouslySetInnerHTML={{ __html: q.description || q.problemStatement || '' }} />
+                  <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 1, color: '#64748b' }}>Submitted Query</Typography>
+                  <CodeBlock code={queryString} />
                 </Box>
               </Card>
             );

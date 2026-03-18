@@ -148,6 +148,16 @@ export default function Dashboard() {
     } finally { setConnecting(false); }
   };
 
+  useEffect(() => {
+    if (showConnectModal) {
+      setUsernames({
+        leetcode: codingProfiles?.leetcode?.username || '',
+        hackerrank: codingProfiles?.hackerrank?.username || '',
+        codeforces: codingProfiles?.codeforces?.username || ''
+      });
+    }
+  }, [showConnectModal, codingProfiles]);
+
   if (loading) return <Box sx={{ p: { xs: 2, md: 3 } }}><DashboardSkeleton /></Box>;
 
   return (

@@ -16,19 +16,34 @@ import tenantConfig from 'config/tenantConfig';
 
 export default function App() {
   useEffect(() => {
-    // Check 5-hour session expiry
-    const checkSession = () => {
-      const sessionStart = localStorage.getItem('sessionStartTime');
-      if (sessionStart) {
-        const startTime = parseInt(sessionStart, 10);
-        if (Date.now() - startTime > 5 * 60 * 60 * 1000) {
-          localStorage.clear();
-          window.location.reload(); 
-        }
+    // Automatically clear localStorage every day at 3:00 AM IST
+    const checkAndClearStorage = () => {
+      const now = new Date();
+      // Calculate current time in IST (UTC + 5:30)
+      const utcTime = now.getTime() + (now.getTimezoneOffset() * 60000);
+      const istTime = new Date(utcTime + (5.5 * 60 * 60 * 1000));
+      
+      const hours = istTime.getHours();
+      
+      // Determine the current "clearance schedule day"
+      // If it's before 3 AM IST, it belongs to yesterday's schedule block
+      let clearDayDate = new Date(istTime);
+      if (hours < 3) {
+        clearDayDate.setDate(clearDayDate.getDate() - 1);
+      }
+      
+      const currentClearKey = clearDayDate.toISOString().split('T')[0]; // "YYYY-MM-DD"
+      const lastClearKey = localStorage.getItem('lastStorageClearDate');
+      
+      if (lastClearKey !== currentClearKey) {
+        localStorage.clear();
+        localStorage.setItem('lastStorageClearDate', currentClearKey);
+        window.location.reload(); 
       }
     };
-    checkSession();
-    const sessionInterval = setInterval(checkSession, 60000); // Check every minute
+
+    checkAndClearStorage();
+    const intervalId = setInterval(checkAndClearStorage, 60000); // Check every 60 seconds
 
     tenantConfig.load().then(config => {
       if (config?.tenantName) {
@@ -43,7 +58,7 @@ export default function App() {
       }
     }).catch(console.error);
 
-    return () => clearInterval(sessionInterval);
+    return () => clearInterval(intervalId);
   }, []);
 
   return (

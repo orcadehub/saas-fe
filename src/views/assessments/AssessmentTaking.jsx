@@ -12,6 +12,7 @@ import { submitCode } from 'services/pistonService';
 
 import FrontendEditor from './components/FrontendEditor';
 import MongoDBPlaygroundEditor from './components/MongoDBPlaygroundEditor';
+import SQLPlaygroundEditor from './components/SQLPlaygroundEditor';
 
 export default function AssessmentTaking() {
   const isProduction = import.meta.env.MODE === 'production';
@@ -167,7 +168,7 @@ export default function AssessmentTaking() {
         response = await apiService.getLastExecutedCode(token, currentAttemptId);
       }
       
-      const { lastExecutedCode, successfulCodes, lastExecutedFrontendCode, lastExecutedMongoDBQuery, lastExecutedMongoDBQueries, lastExecutedQuizAnswers, quizAnswers } = response;
+      const { lastExecutedCode, successfulCodes, lastExecutedFrontendCode, lastExecutedMongoDBQuery, lastExecutedMongoDBQueries, lastExecutedSQLQuery, lastExecutedQuizAnswers, quizAnswers } = response;
       
       // Combined Logic Codes (Programming)
       const progCodes = lastExecutedCode || successfulCodes;
@@ -203,6 +204,17 @@ export default function AssessmentTaking() {
             const storageKey = `mongodb_query_${questionId}`;
             const queryData = mongoQueries[questionId];
             localStorage.setItem(storageKey, typeof queryData === 'string' ? queryData : (queryData.query || ''));
+          }
+        });
+      }
+
+      // Recover SQL Queries
+      if (lastExecutedSQLQuery) {
+        Object.keys(lastExecutedSQLQuery).forEach(questionId => {
+          const question = questionsList.find(q => q._id === questionId);
+          if (question?.type === 'sql') {
+            const storageKey = `sql_query_${questionId}`;
+            localStorage.setItem(storageKey, lastExecutedSQLQuery[questionId]);
           }
         });
       }
@@ -644,6 +656,7 @@ export default function AssessmentTaking() {
           ...(questionsData.programmingQuestions || []).map(q => ({ ...q, type: 'programming' })),
           ...(questionsData.frontendQuestions || []).map(q => ({ ...q, type: 'frontend' })),
           ...(questionsData.mongodbPlaygroundQuestions || []).map(q => ({ ...q, type: 'mongodb' })),
+          ...(questionsData.sqlPlaygroundQuestions || []).map(q => ({ ...q, type: 'sql' })),
           ...(questionsData.quizQuestions || []).map(q => ({ ...q, type: 'quiz' }))
         ];
         
@@ -1533,8 +1546,9 @@ export default function AssessmentTaking() {
               const hasQuiz = questions.filter(q => q.type === 'quiz').length > 0;
               const hasFrontend = questions.filter(q => q.type === 'frontend').length > 0;
               const hasMongoDB = questions.filter(q => q.type === 'mongodb').length > 0;
+              const hasSQL = questions.filter(q => q.type === 'sql').length > 0;
               const hasProgramming = questions.filter(q => q.type === 'programming').length > 0;
-              const totalParts = [hasQuiz, hasFrontend, hasMongoDB, hasProgramming].filter(Boolean).length;
+              const totalParts = [hasQuiz, hasFrontend, hasMongoDB, hasSQL, hasProgramming].filter(Boolean).length;
               
               if (totalParts <= 1) return null;
               
@@ -1542,11 +1556,12 @@ export default function AssessmentTaking() {
               if (hasQuiz) types.push('quiz');
               if (hasFrontend) types.push('frontend');
               if (hasMongoDB) types.push('mongodb');
+              if (hasSQL) types.push('sql');
               if (hasProgramming) types.push('programming');
               
               const currentType = questions[currentQuestionIndex]?.type;
               const currentTypeIndex = types.indexOf(currentType);
-              const partLabels = { quiz: 'Quiz', frontend: 'Frontend', mongodb: 'MongoDB', programming: 'Programming' };
+              const partLabels = { quiz: 'Quiz', frontend: 'Frontend', mongodb: 'MongoDB', sql: 'SQL', programming: 'Programming' };
               const partLabel = `Part ${String.fromCharCode(65 + currentTypeIndex)} - ${partLabels[currentType]}`;
               
               return (
@@ -2110,6 +2125,24 @@ export default function AssessmentTaking() {
           ) : questions[currentQuestionIndex]?.type === 'mongodb' ? (
             <MongoDBPlaygroundEditor 
               key={`mongodb-${currentQuestionIndex}-${execCounter}`}
+              assessment={assessment} 
+              question={questions[currentQuestionIndex]} 
+              attemptId={attemptId}
+              onTestComplete={(passed, total) => {
+                if (passed === total && total > 0) {
+                  setSavedQuestions(prev => new Set([...prev, currentQuestionIndex]));
+                } else {
+                  setSavedQuestions(prev => {
+                    const newSet = new Set(prev);
+                    newSet.delete(currentQuestionIndex);
+                    return newSet;
+                  });
+                }
+              }}
+            />
+          ) : questions[currentQuestionIndex]?.type === 'sql' ? (
+            <SQLPlaygroundEditor 
+              key={`sql-${currentQuestionIndex}-${execCounter}`}
               assessment={assessment} 
               question={questions[currentQuestionIndex]} 
               attemptId={attemptId}

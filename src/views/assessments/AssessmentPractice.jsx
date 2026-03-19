@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Box, Typography, Button, IconButton, Tabs, Tab, Select, MenuItem, FormControl, InputLabel, CircularProgress, Dialog, DialogTitle, DialogContent, DialogActions, Card, CardContent, Chip, Skeleton } from '@mui/material';
+import { Box, Typography, Button, IconButton, Tabs, Tab, Select, MenuItem, FormControl, InputLabel, CircularProgress, Dialog, DialogTitle, DialogContent, DialogActions, Card, CardContent, Chip, Skeleton, Stack } from '@mui/material';
 import { ArrowBack, PlayArrow, CheckCircle, Close, Add, Remove, Fullscreen, FullscreenExit } from '@mui/icons-material';
 import Editor from '@monaco-editor/react';
 import { submitCode } from 'services/pistonService';
@@ -72,8 +72,21 @@ export default function AssessmentPractice() {
       const token = localStorage.getItem('studentToken');
       const assessmentData = await apiService.getAssessmentDetails(token, id);
       setAssessment(assessmentData);
-      setQuestions(assessmentData.questions || []);
-      if (assessmentData.questions?.length > 0) {
+      
+      // Fetch full question data
+      const questionsData = await apiService.getAssessmentQuestions(token, id);
+      
+      // Combine all question types for practice mode
+      const allQuestions = [
+        ...(questionsData.programmingQuestions || []),
+        ...(questionsData.quizQuestions || []),
+        ...(questionsData.sqlPlaygroundQuestions || []),
+        ...(questionsData.mongodbPlaygroundQuestions || []),
+        ...(questionsData.frontendQuestions || [])
+      ];
+      
+      setQuestions(allQuestions);
+      if (allQuestions.length > 0) {
         setLanguage(assessmentData.allowedLanguages?.[0] || 'python');
       }
     } catch (error) {
@@ -115,9 +128,12 @@ export default function AssessmentPractice() {
 
   useEffect(() => {
     if (questions[currentQuestionIndex]?._id && language) {
-      const storageKey = `practice_assessment_${id}_question_${questions[currentQuestionIndex]._id}_${language}`;
+      const question = questions[currentQuestionIndex];
+      const storageKey = `practice_assessment_${id}_question_${question._id}_${language}`;
       const savedCode = localStorage.getItem(storageKey);
-      setCode(savedCode || getLanguageTemplate(language));
+      
+      const defaultCode = question.starterCode || getLanguageTemplate(language);
+      setCode(savedCode || defaultCode);
     }
   }, [currentQuestionIndex, language, questions, id]);
 

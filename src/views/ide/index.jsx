@@ -11,7 +11,15 @@ const templates = {
   python: `# Write your Python code here\nprint("Hello World")`,
   cpp: `#include <iostream>\nusing namespace std;\n\nint main() {\n    cout << "Hello World" << endl;\n    return 0;\n}`,
   java: `public class Main {\n    public static void main(String[] args) {\n        System.out.println("Hello World");\n    }\n}`,
-  c: `#include <stdio.h>\n\nint main() {\n    printf("Hello World\\n");\n    return 0;\n}`
+  c: `#include <stdio.h>\n\nint main() {\n    printf("Hello World\\n");\n    return 0;\n}`,
+  javascript: `console.log("Hello World");`,
+  typescript: `const message: string = "Hello World";\nconsole.log(message);`,
+  go: `package main\n\nimport "fmt"\n\nfunc main() {\n    fmt.Println("Hello World")\n}`,
+  rust: `fn main() {\n    println!("Hello World");\n}`,
+  kotlin: `fun main() {\n    println("Hello World")\n}`,
+  ruby: `puts "Hello World"`,
+  php: `<?php\necho "Hello World\\n";`,
+  bash: `#!/bin/bash\necho "Hello World"`,
 };
 
 const langMeta = {
@@ -19,6 +27,14 @@ const langMeta = {
   cpp: { label: 'C++', color: '#f34b7d', glow: 'rgba(243, 75, 125, 0.15)' },
   java: { label: 'Java', color: '#b07219', glow: 'rgba(176, 114, 25, 0.15)' },
   c: { label: 'C', color: '#555555', glow: 'rgba(85, 85, 85, 0.15)' },
+  javascript: { label: 'JavaScript', color: '#f1e05a', glow: 'rgba(241, 224, 90, 0.15)' },
+  typescript: { label: 'TypeScript', color: '#3178c6', glow: 'rgba(49, 120, 198, 0.15)' },
+  go: { label: 'Go', color: '#00ADD8', glow: 'rgba(0, 173, 216, 0.15)' },
+  rust: { label: 'Rust', color: '#dea584', glow: 'rgba(222, 165, 132, 0.15)' },
+  kotlin: { label: 'Kotlin', color: '#A97BFF', glow: 'rgba(169, 123, 255, 0.15)' },
+  ruby: { label: 'Ruby', color: '#CC342D', glow: 'rgba(204, 52, 45, 0.15)' },
+  php: { label: 'PHP', color: '#4F5D95', glow: 'rgba(79, 93, 149, 0.15)' },
+  bash: { label: 'Bash', color: '#89e051', glow: 'rgba(137, 224, 81, 0.15)' },
 };
 
 // ── Soft Light Background ──
@@ -84,7 +100,15 @@ export default function IDE() {
     python: 71,
     cpp: 54,
     java: 62,
-    c: 50
+    c: 50,
+    javascript: 93,
+    typescript: 74,
+    go: 60,
+    rust: 73,
+    kotlin: 78,
+    ruby: 72,
+    php: 68,
+    bash: 46,
   };
 
   useEffect(() => {

@@ -138,6 +138,13 @@ export default function Assessments() {
                 size="small"
                 sx={{ fontWeight: 700, bgcolor: '#f0fdf4', color: '#10b981', borderRadius: '8px' }}
               />
+              {assessment.questionCounts?.sql > 0 && (
+                <Chip 
+                  label={`${assessment.questionCounts.sql} sql`}
+                  size="small"
+                  sx={{ fontWeight: 700, bgcolor: '#eff6ff', color: '#3b82f6', borderRadius: '8px' }}
+                />
+              )}
               {assessment.quizQuestionCount > 0 && (
                 <Chip 
                   label={`${assessment.quizQuestionCount} quiz`}
@@ -180,6 +187,8 @@ export default function Assessments() {
                     navigate(`/assessments/${assessment._id}/practice-frontend`);
                   } else if (assessment.type === 'mongodb') {
                     navigate(`/assessments/${assessment._id}/practice-mongodb`);
+                  } else if (assessment.type === 'sql') {
+                    navigate(`/assessments/${assessment._id}/practice-sql`);
                   } else {
                     navigate(`/assessments/${assessment._id}/practice`);
                   }

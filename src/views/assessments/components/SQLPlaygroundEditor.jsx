@@ -6,7 +6,7 @@ import axios from 'axios';
 import apiService from 'services/apiService';
 import tenantConfig from 'config/tenantConfig';
 
-export default function MongoDBPlaygroundEditor({ question, attemptId, onTestComplete }) {
+export default function SQLPlaygroundEditor({ question, attemptId, onTestComplete }) {
   const [query, setQuery] = useState('');
   const [isRunning, setIsRunning] = useState(false);
   const [result, setResult] = useState(null);
@@ -38,19 +38,19 @@ export default function MongoDBPlaygroundEditor({ question, attemptId, onTestCom
   // Load query from localStorage when question changes
   useEffect(() => {
     if (question?._id) {
-      const storageKey = `mongodb_query_${question._id}`;
+      const storageKey = `sql_query_${question._id}`;
       const savedQuery = localStorage.getItem(storageKey);
-      setQuery(savedQuery || '');
+      setQuery(savedQuery || question.starterCode || '');
       setExpectedOutput(null);
       setResult(null);
       setError(null);
     }
-  }, [question?._id]);
+  }, [question?._id, question?.starterCode]);
 
   // Save query to localStorage when it changes
   useEffect(() => {
     if (question?._id && query !== undefined) {
-      const storageKey = `mongodb_query_${question._id}`;
+      const storageKey = `sql_query_${question._id}`;
       localStorage.setItem(storageKey, query);
     }
   }, [query, question?._id]);
@@ -70,10 +70,10 @@ export default function MongoDBPlaygroundEditor({ question, attemptId, onTestCom
       const config = tenantConfig.get();
       const baseURL = import.meta.env.DEV ? 'http://localhost:4000' : (window.location.origin.includes('localhost') ? 'http://localhost:4000' : 'https://backend.orcode.in');
       const response = await axios.post(
-        `${baseURL}/api/mongodb-playground/expected-output`,
+        `${baseURL}/api/sql-playground/expected-output`,
         {
           expectedQuery,
-          collectionName: question.collectionName
+          tableName: question.tableName
         },
         {
           headers: {
@@ -101,10 +101,10 @@ export default function MongoDBPlaygroundEditor({ question, attemptId, onTestCom
       const config = tenantConfig.get();
       const baseURL = import.meta.env.DEV ? 'http://localhost:4000' : (window.location.origin.includes('localhost') ? 'http://localhost:4000' : 'https://backend.orcode.in');
       const response = await axios.post(
-        `${baseURL}/api/mongodb-playground/execute`,
+        `${baseURL}/api/sql-playground/execute`,
         {
           query,
-          collectionName: question.collectionName
+          tableName: question.tableName
         },
         {
           headers: {
@@ -121,10 +121,10 @@ export default function MongoDBPlaygroundEditor({ question, attemptId, onTestCom
         // Check if correct by comparing with expected output
         const isCorrect = arraysEqual(response.data.result, expectedOutput);
         
-        // Save to backend
+        // Save to backend (We need to add this to apiService)
         if (attemptId && question._id) {
           try {
-            await apiService.saveMongoDBQuery(
+            await apiService.saveSQLQuery(
               token,
               attemptId,
               question._id,
@@ -134,7 +134,7 @@ export default function MongoDBPlaygroundEditor({ question, attemptId, onTestCom
               isCorrect
             );
           } catch (err) {
-            console.error('Error saving MongoDB query:', err);
+            console.error('Error saving SQL query:', err);
           }
         }
         
@@ -158,12 +158,12 @@ export default function MongoDBPlaygroundEditor({ question, attemptId, onTestCom
     try {
       const token = localStorage.getItem('studentToken');
       const response = await apiService.getLastExecutedCode(token, attemptId);
-      const lastExecutedQueries = response.lastExecutedMongoDBQuery || response.lastExecutedMongoDBQueries;
+      const lastExecutedQueries = response.lastExecutedSQLQuery || response.lastExecutedSQLQueries;
       if (lastExecutedQueries?.[question._id]) {
         const queryData = lastExecutedQueries[question._id];
         const queryStr = typeof queryData === 'string' ? queryData : (queryData.query || '');
         setQuery(queryStr);
-        localStorage.setItem(`mongodb_query_${question._id}`, queryStr);
+        localStorage.setItem(`sql_query_${question._id}`, queryStr);
       }
     } catch (err) {
       console.error('Error recovering session:', err);
@@ -205,8 +205,8 @@ export default function MongoDBPlaygroundEditor({ question, attemptId, onTestCom
             }
           }}
         >
-          <Tab label="Shell Environment" />
-          <Tab label="Data Schema" />
+          <Tab label="SQL Editor" />
+          <Tab label="Table Schema" />
           <Tab label="Expected Output" />
           <Tab label="Runtime Output" />
         </Tabs>
@@ -235,7 +235,7 @@ export default function MongoDBPlaygroundEditor({ question, attemptId, onTestCom
               }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
                   <Typography variant="body2" sx={{ fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    MongoDB Shell
+                    PostgreSQL Editor
                   </Typography>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, bgcolor: 'rgba(0,0,0,0.03)', px: 1, borderRadius: '8px' }}>
                     <IconButton size="small" onClick={() => setFontSize(prev => Math.max(12, prev - 2))} sx={{ color: '#64748b' }}>
@@ -283,7 +283,7 @@ export default function MongoDBPlaygroundEditor({ question, attemptId, onTestCom
                     '&:hover': { bgcolor: '#4f46e5', boxShadow: '0 6px 16px rgba(99, 102, 241, 0.3)' }
                   }}
                 >
-                  {isRunning ? 'Running...' : 'Execute Query'}
+                  {isRunning ? 'Running...' : 'Execute SQL'}
                 </Button>
               </Box>
 
@@ -292,7 +292,7 @@ export default function MongoDBPlaygroundEditor({ question, attemptId, onTestCom
                 <Box sx={{ height: '100%', overflow: 'hidden' }}>
                   <Editor
                     height="100%"
-                    language="javascript"
+                    language="sql"
                     value={query}
                     theme="vs-dark"
                     onChange={(value) => setQuery(value || '')}
@@ -314,21 +314,21 @@ export default function MongoDBPlaygroundEditor({ question, attemptId, onTestCom
           {currentTab === 1 && (
             <Box sx={{ p: 4 }}>
               <Typography variant="h4" sx={{ mb: 1, fontWeight: 800, color: '#1e293b' }}>
-                Collection Structure
+                Table Schema
               </Typography>
               <Typography variant="body1" sx={{ color: '#64748b', mb: 3 }}>
-                Currently interacting with collection: <Typography component="span" sx={{ fontWeight: 800, color: '#6366f1' }}>{question?.collectionName}</Typography>
+                Currently interacting with table: <Typography component="span" sx={{ fontWeight: 800, color: '#6366f1' }}>{question?.tableName}</Typography>
               </Typography>
               
               <Card sx={{ borderRadius: '20px', border: '1px solid rgba(226, 232, 240, 0.8)', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', bgcolor: '#fff' }}>
                 <CardContent sx={{ p: 3 }}>
                   <Box sx={{ p: 2, bgcolor: '#f8fafc', borderRadius: '12px', border: '1px solid #f1f5f9', mb: 2 }}>
                     <Typography variant="body1" sx={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: '#1e293b' }}>
-                      db.{question?.collectionName}.find()
+                      SELECT * FROM {question?.tableName} LIMIT 10;
                     </Typography>
                   </Box>
                   <Typography variant="body2" sx={{ color: '#64748b', fontWeight: 600, lineHeight: 1.6 }}>
-                    Tip: Use the find() command in the Shell tab to explore every document in this collection.
+                    Tip: Use the SELECT command to explore the data structure and values in this table.
                   </Typography>
                 </CardContent>
               </Card>
@@ -337,24 +337,34 @@ export default function MongoDBPlaygroundEditor({ question, attemptId, onTestCom
 
           {currentTab === 2 && (
             <Box sx={{ p: 4 }}>
-              <Typography variant="h4" sx={{ mb: 3, fontWeight: 800, color: '#1e293b' }}>Target Payload</Typography>
+              <Typography variant="h4" sx={{ mb: 3, fontWeight: 800, color: '#1e293b' }}>Expected Result Set</Typography>
               {expectedOutput ? (
                 <Card sx={{ borderRadius: '20px', border: '1px solid rgba(226, 232, 240, 0.8)', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', bgcolor: '#fff' }}>
                   <CardContent sx={{ p: 3 }}>
-                    <pre style={{ 
-                      backgroundColor: '#1e293b', 
-                      color: '#e2e8f0',
-                      padding: '24px', 
-                      borderRadius: '12px',
-                      overflow: 'auto',
-                      fontSize: '14px',
-                      fontFamily: "'JetBrains Mono', monospace",
-                      margin: 0,
-                      maxHeight: '500px',
-                      border: '1px solid rgba(255,255,255,0.1)'
-                    }}>
-                      {JSON.stringify(expectedOutput, null, 2)}
-                    </pre>
+                    <Box sx={{ overflow: 'auto', maxHeight: '500px' }}>
+                      {expectedOutput.length > 0 ? (
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: "'JetBrains Mono', monospace", fontSize: '14px' }}>
+                          <thead>
+                            <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
+                              {Object.keys(expectedOutput[0]).map(key => (
+                                <th key={key} style={{ padding: '12px', textAlign: 'left', fontWeight: 800, color: '#475569' }}>{key}</th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {expectedOutput.map((row, i) => (
+                              <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                {Object.values(row).map((val, j) => (
+                                  <td key={j} style={{ padding: '12px', color: '#1e293b' }}>{String(val)}</td>
+                                ))}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      ) : (
+                        <Typography sx={{ color: '#64748b', textAlign: 'center', py: 4 }}>No data returned.</Typography>
+                      )}
+                    </Box>
                   </CardContent>
                 </Card>
               ) : (
@@ -368,11 +378,11 @@ export default function MongoDBPlaygroundEditor({ question, attemptId, onTestCom
 
           {currentTab === 3 && (
             <Box sx={{ p: 4 }}>
-              <Typography variant="h4" sx={{ mb: 3, fontWeight: 800, color: '#1e293b' }}>Execution Terminal</Typography>
+              <Typography variant="h4" sx={{ mb: 3, fontWeight: 800, color: '#1e293b' }}>Query Results</Typography>
               {error && (
                 <Card sx={{ borderRadius: '16px', border: '1px solid rgba(239, 68, 68, 0.2)', bgcolor: 'rgba(239, 68, 68, 0.02)', mb: 3 }}>
                   <CardContent sx={{ p: 3 }}>
-                    <Typography variant="subtitle2" sx={{ color: '#ef4444', fontWeight: 800, textTransform: 'uppercase', mb: 1 }}>Query Error</Typography>
+                    <Typography variant="subtitle2" sx={{ color: '#ef4444', fontWeight: 800, textTransform: 'uppercase', mb: 1 }}>SQL Error</Typography>
                     <Typography sx={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '14px', color: '#1e293b' }}>{error}</Typography>
                   </CardContent>
                 </Card>
@@ -388,9 +398,9 @@ export default function MongoDBPlaygroundEditor({ question, attemptId, onTestCom
                 }}>
                   <CardContent sx={{ p: 3 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-                        <Typography variant="h6" sx={{ fontWeight: 800, color: '#1e293b' }}>Result Snapshot</Typography>
+                        <Typography variant="h6" sx={{ fontWeight: 800, color: '#1e293b' }}>Execution Output</Typography>
                         <Chip 
-                            label={arraysEqual(result, expectedOutput) ? 'Match Successful' : 'Mismatch Detected'} 
+                            label={arraysEqual(result, expectedOutput) ? 'Result Matches' : 'Result Mismatch'} 
                             size="small"
                             sx={{ 
                                 fontWeight: 800, 
@@ -399,27 +409,37 @@ export default function MongoDBPlaygroundEditor({ question, attemptId, onTestCom
                             }}
                         />
                     </Box>
-                    <pre style={{ 
-                      backgroundColor: '#1e293b', 
-                      color: '#e2e8f0',
-                      padding: '24px', 
-                      borderRadius: '12px',
-                      overflow: 'auto',
-                      fontSize: '14px',
-                      fontFamily: "'JetBrains Mono', monospace",
-                      margin: 0,
-                      maxHeight: '500px',
-                      border: '1px solid rgba(255,255,255,0.1)'
-                    }}>
-                      {JSON.stringify(result, null, 2)}
-                    </pre>
+                    <Box sx={{ overflow: 'auto', maxHeight: '500px' }}>
+                      {result.length > 0 ? (
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: "'JetBrains Mono', monospace", fontSize: '14px' }}>
+                          <thead>
+                            <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
+                              {Object.keys(result[0]).map(key => (
+                                <th key={key} style={{ padding: '12px', textAlign: 'left', fontWeight: 800, color: '#475569' }}>{key}</th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {result.map((row, i) => (
+                              <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                {Object.values(row).map((val, j) => (
+                                  <td key={j} style={{ padding: '12px', color: '#1e293b' }}>{String(val)}</td>
+                                ))}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      ) : (
+                        <Typography sx={{ color: '#64748b', textAlign: 'center', py: 4 }}>No data returned.</Typography>
+                      )}
+                    </Box>
                   </CardContent>
                 </Card>
               )}
               
               {!result && !error && (
                 <Box sx={{ py: 12, textAlign: 'center' }}>
-                  <Typography sx={{ color: '#94a3b8', fontWeight: 600 }}>Execute your query in the Shell tab to see results here.</Typography>
+                  <Typography sx={{ color: '#94a3b8', fontWeight: 600 }}>Execute your SQL query in the Editor tab to see results here.</Typography>
                 </Box>
               )}
             </Box>

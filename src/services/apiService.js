@@ -168,6 +168,14 @@ class ApiService {
     return response.data;
   }
 
+  async saveSQLQuery(token, attemptId, questionId, query, result, expectedOutput, isCorrect) {
+    const response = await this.client.post(`/auth/student/assessment-attempt/${attemptId}/save-sql-query`,
+      { questionId, query, result, expectedOutput, isCorrect },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return response.data;
+  }
+
   async connectCodingProfiles(token, data) {
     const response = await this.client.post('/auth/student/connect-coding-profiles',
       data,

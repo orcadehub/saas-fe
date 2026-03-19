@@ -38,9 +38,10 @@ export default function AssessmentDetails() {
     programming: assessment?.questionCounts?.programming || 0,
     frontend: assessment?.questionCounts?.frontend || 0,
     quiz: assessment?.questionCounts?.quiz || 0,
-    mongodb: assessment?.questionCounts?.mongodb || 0
+    mongodb: assessment?.questionCounts?.mongodb || 0,
+    sql: assessment?.questionCounts?.sql || 0
   };
-  const codingQuestionCount = assessment?.codingQuestionCount || (questionCounts.programming + questionCounts.frontend + questionCounts.mongodb);
+  const codingQuestionCount = assessment?.codingQuestionCount || (questionCounts.programming + questionCounts.frontend + questionCounts.mongodb + questionCounts.sql);
   const quizQuestionCount = assessment?.quizQuestionCount || questionCounts.quiz;
 
   useEffect(() => {

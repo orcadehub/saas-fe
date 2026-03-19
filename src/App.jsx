@@ -35,7 +35,11 @@ export default function App() {
       const currentClearKey = clearDayDate.toISOString().split('T')[0]; // "YYYY-MM-DD"
       const lastClearKey = localStorage.getItem('lastStorageClearDate');
       
-      if (lastClearKey !== currentClearKey) {
+      if (!lastClearKey) {
+        // Initialize for brand new visitors without a jarring reload
+        localStorage.setItem('lastStorageClearDate', currentClearKey);
+      } else if (lastClearKey !== currentClearKey) {
+        // Wipe exactly once per day, starting firmly at 3:00 AM IST or first load after
         localStorage.clear();
         localStorage.setItem('lastStorageClearDate', currentClearKey);
         window.location.reload(); 

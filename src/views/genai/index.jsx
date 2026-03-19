@@ -96,8 +96,24 @@ let cellIdCounter = 3;
 // Stable session ID per page load
 const SESSION_ID = `genai_${Date.now()}_${Math.random().toString(36).slice(2)}`;
 
+function loadSavedCells() {
+  try {
+    const saved = localStorage.getItem('genai_notebook_cells');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        // Reset runtime state, keep code
+        const maxId = Math.max(...parsed.map(c => c.id), 2);
+        cellIdCounter = maxId + 1;
+        return parsed.map(c => ({ ...c, output: null, running: false, executionCount: null }));
+      }
+    }
+  } catch {}
+  return DEFAULT_CELLS;
+}
+
 export default function GenAIPlayground() {
-  const [cells, setCells] = useState(DEFAULT_CELLS);
+  const [cells, setCells] = useState(loadSavedCells);
   const [geminiKey, setGeminiKey] = useState(() => localStorage.getItem('genai_gemini_key') || '');
   const [hfKey, setHfKey] = useState(() => localStorage.getItem('genai_hf_key') || '');
   const [execCounter, setExecCounter] = useState(0);
@@ -162,6 +178,12 @@ export default function GenAIPlayground() {
   useEffect(() => { if (geminiKey) localStorage.setItem('genai_gemini_key', geminiKey); }, [geminiKey]);
   useEffect(() => { if (hfKey) localStorage.setItem('genai_hf_key', hfKey); }, [hfKey]);
 
+  // Persist notebook cells to localStorage
+  useEffect(() => {
+    const toSave = cells.map(c => ({ id: c.id, code: c.code }));
+    localStorage.setItem('genai_notebook_cells', JSON.stringify(toSave));
+  }, [cells]);
+
   // Fetch questions when switching to practice mode
   useEffect(() => {
     if (mode !== 'practice' || questions.length > 0) return;
@@ -183,9 +205,18 @@ export default function GenAIPlayground() {
 
   const selectQuestion = (q) => {
     setSelectedQuestion(q);
-    setPracticeCode(q.starterCode || '');
+    // Restore saved code for this question, or use starter code
+    const savedCode = localStorage.getItem(`genai_practice_${q._id}`);
+    setPracticeCode(savedCode !== null ? savedCode : (q.starterCode || ''));
     setEvalResult(null);
   };
+
+  // Persist practice code per question
+  useEffect(() => {
+    if (selectedQuestion && practiceCode !== undefined) {
+      localStorage.setItem(`genai_practice_${selectedQuestion._id}`, practiceCode);
+    }
+  }, [practiceCode, selectedQuestion]);
 
   // Kill sandbox on unmount
   useEffect(() => {

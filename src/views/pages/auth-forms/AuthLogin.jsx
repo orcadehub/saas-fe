@@ -130,6 +130,9 @@ export default function AuthLogin() {
       // Update AuthContext
       login({ ...student, token });
       
+      // Store session start time for 5-hour auto-clear
+      localStorage.setItem('sessionStartTime', Date.now().toString());
+
       // Navigate to dashboard
       navigate('/dashboard');
     } catch (err) {

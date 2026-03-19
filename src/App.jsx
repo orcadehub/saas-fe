@@ -16,6 +16,20 @@ import tenantConfig from 'config/tenantConfig';
 
 export default function App() {
   useEffect(() => {
+    // Check 5-hour session expiry
+    const checkSession = () => {
+      const sessionStart = localStorage.getItem('sessionStartTime');
+      if (sessionStart) {
+        const startTime = parseInt(sessionStart, 10);
+        if (Date.now() - startTime > 5 * 60 * 60 * 1000) {
+          localStorage.clear();
+          window.location.reload(); 
+        }
+      }
+    };
+    checkSession();
+    const sessionInterval = setInterval(checkSession, 60000); // Check every minute
+
     tenantConfig.load().then(config => {
       if (config?.tenantName) {
         document.title = config.tenantName;
@@ -28,6 +42,8 @@ export default function App() {
         document.getElementsByTagName('head')[0].appendChild(link);
       }
     }).catch(console.error);
+
+    return () => clearInterval(sessionInterval);
   }, []);
 
   return (

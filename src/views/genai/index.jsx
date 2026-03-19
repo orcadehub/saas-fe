@@ -93,8 +93,15 @@ const DEFAULT_CELLS = [
 
 let cellIdCounter = 3;
 
-// Stable session ID per page load
-const SESSION_ID = `genai_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+// Stable session ID persisted across reloads (reuses same sandbox)
+const SESSION_ID = (() => {
+  let id = localStorage.getItem('genai_session_id');
+  if (!id) {
+    id = `genai_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    localStorage.setItem('genai_session_id', id);
+  }
+  return id;
+})();
 
 function loadSavedCells() {
   try {

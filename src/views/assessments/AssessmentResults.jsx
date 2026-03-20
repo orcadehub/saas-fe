@@ -215,10 +215,11 @@ export default function AssessmentResults() {
     programming: assessment?.questions?.length || 0,
     frontend: assessment?.frontendQuestions?.length || 0,
     mongodb: assessment?.mongodbPlaygroundQuestions?.length || 0,
+    sql: assessment?.sqlPlaygroundQuestions?.length || 0,
     quiz: assessment?.quizQuestions?.length || 0
   };
 
-  const totalPossible = qCounts.programming + qCounts.frontend + qCounts.mongodb + qCounts.quiz;
+  const totalPossible = qCounts.programming + qCounts.frontend + qCounts.mongodb + (qCounts.sql || 0) + qCounts.quiz;
   const attemptedCount = (Object.keys(attempt?.successfulCodes || {}).length) + (Object.keys(attempt?.quizAnswers || {}).length);
   const overallScore = attempt?.overallPercentage || 0;
 
@@ -428,6 +429,15 @@ export default function AssessmentResults() {
                     <LinearProgress variant="determinate" value={attempt?.frontendPercentage || 0} sx={{ height: 6, borderRadius: 3, bgcolor: '#334155', '& .MuiLinearProgress-bar': { bgcolor: '#0ea5e9' } }} />
                   </Grid>
                 )}
+                {(qCounts.sql || 0) > 0 && (
+                  <Grid item xs={12} sm={6} md={3}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                      <Typography sx={{ color: '#f8fafc', fontWeight: 500 }}>SQL</Typography>
+                      <Typography sx={{ color: '#10b981', fontWeight: 700 }}>{(attempt?.sqlPercentage || 0).toFixed(0)}%</Typography>
+                    </Box>
+                    <LinearProgress variant="determinate" value={attempt?.sqlPercentage || 0} sx={{ height: 6, borderRadius: 3, bgcolor: '#334155', '& .MuiLinearProgress-bar': { bgcolor: '#10b981' } }} />
+                  </Grid>
+                )}
               </Grid>
             </MainCard>
           </Grid>
@@ -438,7 +448,8 @@ export default function AssessmentResults() {
             { label: 'Quiz Section', count: qCounts.quiz, index: 0, show: qCounts.quiz > 0 },
             { label: 'Coding Logic', count: qCounts.programming, index: 1, show: qCounts.programming > 0 },
             { label: 'Frontend Design', count: qCounts.frontend, index: 2, show: qCounts.frontend > 0 },
-            { label: 'Database Architect', count: qCounts.mongodb, index: 3, show: qCounts.mongodb > 0 }
+            { label: 'MongoDB', count: qCounts.mongodb, index: 3, show: qCounts.mongodb > 0 },
+            { label: 'SQL', count: qCounts.sql || 0, index: 4, show: (qCounts.sql || 0) > 0 }
           ].filter(t => t.show).map((t) => (
             <Box key={t.index} onClick={() => setTabValue(t.index)} sx={{ 
               flex: 1, px: 3, py: 1.5, borderRadius: '16px', cursor: 'pointer', textAlign: 'center',
@@ -578,6 +589,34 @@ export default function AssessmentResults() {
                   <Box>
                     <Typography sx={{ fontWeight: 900, color: '#0f172a', fontSize: '1.25rem' }}>Database Query {i + 1}</Typography>
                     <Typography variant="caption" sx={{ color: '#475569', fontWeight: 800 }}>{q.title || q.collectionName || 'Query'}</Typography>
+                  </Box>
+                </Box>
+                <Box sx={{ p: 4 }}>
+                  <Typography sx={{ mb: 3, fontWeight: 600, color: '#475569', lineHeight: 1.7 }} dangerouslySetInnerHTML={{ __html: q.description || q.problemStatement || '' }} />
+                  <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 1, color: '#64748b' }}>Submitted Query</Typography>
+                  <CodeBlock code={queryString} />
+                </Box>
+              </Card>
+            );
+          })}
+
+          {tabValue === 4 && assessment?.sqlPlaygroundQuestions?.map((q, i) => {
+            const dbObj = attempt?.lastExecutedSQLQuery?.[q._id] || attempt?.successfulCodes?.[q._id];
+            let queryString = 'No solution submitted';
+            if (typeof dbObj === 'string') queryString = dbObj;
+            else if (dbObj && dbObj.query) queryString = dbObj.query;
+            
+            const isCorrect = (attempt?.questionPercentages?.[q._id] >= 100) || (dbObj && dbObj.isCorrect);
+
+            return (
+              <Card key={q._id} sx={{ borderRadius: '32px', overflow: 'hidden', border: '1px solid #f1f5f9' }}>
+                <Box sx={{ bgcolor: isCorrect ? '#dcfce7' : '#fee2e2', p: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Box sx={{ width: 40, height: 40, borderRadius: '12px', bgcolor: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
+                    <CheckCircle sx={{ color: isCorrect ? '#16a34a' : '#dc2626' }} />
+                  </Box>
+                  <Box>
+                    <Typography sx={{ fontWeight: 900, color: '#0f172a', fontSize: '1.25rem' }}>SQL Query {i + 1}</Typography>
+                    <Typography variant="caption" sx={{ color: '#475569', fontWeight: 800 }}>{q.title || q.tableName || 'Query'}</Typography>
                   </Box>
                 </Box>
                 <Box sx={{ p: 4 }}>

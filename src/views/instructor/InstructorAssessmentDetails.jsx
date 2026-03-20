@@ -400,8 +400,6 @@ const InstructorAssessmentDetails = () => {
                   <TableCell sx={{ fontWeight: 700 }}>Tab Switches</TableCell>
                   <TableCell sx={{ fontWeight: 700 }}>Fullscreen Exits</TableCell>
                   <TableCell align="center" sx={{ fontWeight: 700 }}>Quiz %</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 700 }}>Coding %</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 700 }}>Frontend %</TableCell>
                   <TableCell align="center" sx={{ fontWeight: 700, color: '#1e40af' }}>Overall %</TableCell>
                   <TableCell sx={{ fontWeight: 700 }}>Actions</TableCell>
                 </TableRow>
@@ -409,7 +407,7 @@ const InstructorAssessmentDetails = () => {
               <TableBody>
                 {paginatedStudents.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={13} align="center">No students found</TableCell>
+                    <TableCell colSpan={11} align="center">No students found</TableCell>
                   </TableRow>
                 ) : (
                   paginatedStudents.map((student) => (
@@ -438,8 +436,6 @@ const InstructorAssessmentDetails = () => {
                       </TableCell>
                       <TableCell align="center">{student.fullscreenExitCount || 0}</TableCell>
                       <TableCell align="center"><PctBadge value={student.quizPercentage} /></TableCell>
-                      <TableCell align="center"><PctBadge value={student.programmingPercentage} /></TableCell>
-                      <TableCell align="center"><PctBadge value={student.frontendPercentage} /></TableCell>
                       <TableCell align="center"><PctBadge value={student.overallPercentage} bold /></TableCell>
                       <TableCell>
                         <Box sx={{ display: 'flex', gap: 0.5 }}>

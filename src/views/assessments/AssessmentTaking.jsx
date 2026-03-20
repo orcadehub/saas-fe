@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Box, Typography, Button, CircularProgress, Modal, Radio, RadioGroup, FormControlLabel, IconButton, Tabs, Tab, Select, MenuItem, FormControl, InputLabel, Dialog, DialogTitle, DialogContent, DialogActions, Card, CardContent, Chip, Snackbar, Alert, Stack } from '@mui/material';
+import { Box, Typography, Button, ButtonGroup, CircularProgress, Modal, Radio, RadioGroup, FormControlLabel, IconButton, Tabs, Tab, Select, MenuItem, FormControl, InputLabel, Dialog, DialogTitle, DialogContent, DialogActions, Card, CardContent, Chip, Snackbar, Alert, Stack } from '@mui/material';
 import { ChevronLeft, ChevronRight, PlayArrow, CheckCircle, Close, Add, Remove, Edit, Warning, TimerOff, Lock, AccessTime, FullscreenExit, TabUnselected } from '@mui/icons-material';
 import Editor from '@monaco-editor/react';
 import Joyride, { STATUS } from 'react-joyride';
@@ -1565,33 +1565,39 @@ export default function AssessmentTaking() {
               const partLabel = `Part ${String.fromCharCode(65 + currentTypeIndex)} - ${partLabels[currentType]}`;
               
               return (
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2, flexWrap: 'wrap', gap: 2 }}>
                   <Typography variant="h6" sx={{ fontWeight: 600, fontSize: { xs: '16px', sm: '18px', md: '20px' } }}>
                     {partLabel} ({questions.filter(q => q.type === currentType).length})
                   </Typography>
-                  <Button
-                    variant="contained"
-                    size="small"
-                    onClick={() => {
-                      const nextType = types[(currentTypeIndex + 1) % types.length];
-                      const firstQuestionIndex = questions.findIndex(q => q.type === nextType);
-                      if (firstQuestionIndex !== -1) {
-                        setCurrentQuestionIndex(firstQuestionIndex);
-                      }
-                    }}
-                    sx={{
-                      bgcolor: 'secondary.main',
-                      color: 'white',
-                      fontWeight: 600,
-                      px: 3,
-                      py: 1,
-                      borderRadius: 2,
-                      textTransform: 'none',
-                      '&:hover': { bgcolor: 'secondary.dark' }
-                    }}
-                  >
-                    Next Part
-                  </Button>
+                  <ButtonGroup size="small" variant="outlined" sx={{ '& .MuiButtonGroup-grouped': { textTransform: 'none', fontWeight: 600, px: 2, py: 0.75 } }}>
+                    {types.map((type, idx) => {
+                      const isCurrent = type === currentType;
+                      return (
+                        <Button
+                          key={type}
+                          onClick={() => {
+                            if (isCurrent) return;
+                            const firstQuestionIndex = questions.findIndex(q => q.type === type);
+                            if (firstQuestionIndex !== -1) {
+                              setCurrentQuestionIndex(firstQuestionIndex);
+                            }
+                          }}
+                          sx={isCurrent ? {
+                            bgcolor: 'secondary.main',
+                            color: 'white !important',
+                            borderColor: 'secondary.main !important',
+                            '&:hover': { bgcolor: 'secondary.dark', borderColor: 'secondary.dark !important' }
+                          } : {
+                            color: 'secondary.main',
+                            borderColor: 'rgba(156, 39, 176, 0.5)',
+                            '&:hover': { bgcolor: 'rgba(156, 39, 176, 0.04)', borderColor: 'secondary.main' }
+                          }}
+                        >
+                          Part {String.fromCharCode(65 + idx)} - {partLabels[type]}
+                        </Button>
+                      );
+                    })}
+                  </ButtonGroup>
                 </Box>
               );
             })()}

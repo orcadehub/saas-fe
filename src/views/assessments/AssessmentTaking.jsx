@@ -513,6 +513,10 @@ export default function AssessmentTaking() {
     };
 
     const handleBlur = () => {
+      if (document.activeElement && document.activeElement.tagName.toLowerCase() === 'iframe') {
+        return; // Ignore blur if the user clicked inside an iframe (e.g., live preview)
+      }
+
       setTabSwitchCount(prev => {
         const newCount = prev + 1;
         
@@ -3135,7 +3139,7 @@ export default function AssessmentTaking() {
             border: '1px solid #e2e8f0',
             p: 2.5, mb: 2.5
           }}>
-            {[{ type: 'quiz', label: 'Quiz', color: '#3b82f6' }, { type: 'frontend', label: 'Frontend', color: '#f59e0b' }, { type: 'mongodb', label: 'MongoDB', color: '#06b6d4' }, { type: 'programming', label: 'Programming', color: '#8b5cf6' }]
+            {[{ type: 'quiz', label: 'Quiz', color: '#3b82f6' }, { type: 'frontend', label: 'Frontend', color: '#f59e0b' }, { type: 'mongodb', label: 'MongoDB', color: '#06b6d4' }, { type: 'sql', label: 'SQL', color: '#10b981' }, { type: 'programming', label: 'Programming', color: '#8b5cf6' }]
               .filter(({ type }) => questions.filter(q => q.type === type).length > 0)
               .map(({ type, label, color }, sectionIdx, arr) => {
                 const partIndex = arr.slice(0, sectionIdx).length;

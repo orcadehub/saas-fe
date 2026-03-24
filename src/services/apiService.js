@@ -201,5 +201,45 @@ class ApiService {
     const response = await this.client.get(`/study-materials/${id}`);
     return response.data;
   }
+
+  async getProgrammingTopics() {
+    const response = await this.client.get('/programming-questions/topics');
+    return response.data;
+  }
+
+  async getProgrammingTopicQuestions(topic) {
+    const response = await this.client.get(`/programming-questions/questions/${topic}`);
+    return response.data;
+  }
+
+  // Aptitude
+  async getAptitudeTopics() {
+    const response = await this.client.get('/aptitude-questions/topics');
+    return response.data;
+  }
+  async getAptitudeTopicQuestions(topic) {
+    const response = await this.client.get(`/aptitude-questions/questions/${topic}`);
+    return response.data;
+  }
+
+  // Verbal
+  async getVerbalTopics() {
+    const response = await this.client.get('/verbal-questions/topics');
+    return response.data;
+  }
+  async getVerbalTopicQuestions(topic) {
+    const response = await this.client.get(`/verbal-questions/questions/${topic}`);
+    return response.data;
+  }
+
+  // Quantitative
+  async getQuantitativeTopics() {
+    const response = await this.client.get('/quantitative-questions/topics');
+    return response.data;
+  }
+  async getQuantitativeTopicQuestions(topic) {
+    const response = await this.client.get(`/quantitative-questions/questions/${topic}`);
+    return response.data;
+  }
 }
 export default new ApiService();

@@ -7,7 +7,16 @@ import CardSkeleton from 'ui-component/skeletons/CardSkeleton';
 
 const MotionCard = motion.create(Card);
 
-const practiceCategories = [
+const isTestUser = (() => {
+  try {
+    const data = JSON.parse(localStorage.getItem('studentData'));
+    return data?.email === 'test@test.com';
+  } catch (e) {
+    return false;
+  }
+})();
+
+const baseCategories = [
   {
     id: 'gamified',
     title: 'Gamified',
@@ -17,6 +26,58 @@ const practiceCategories = [
     bg: '#fffbeb'
   }
 ];
+
+if (isTestUser) {
+  baseCategories.push(
+    {
+      id: 'programming',
+      title: 'Programming',
+      description: 'Master data structures and algorithms with hands-on coding',
+      icon: IconCode,
+      color: '#6366f1',
+      bg: '#eef2ff',
+      questionsCount: '5000+'
+    },
+    {
+      id: 'aptitude',
+      title: 'Aptitude',
+      description: 'Strengthen your problem-solving and logical ability',
+      icon: IconClipboardList,
+      color: '#ec4899',
+      bg: '#fdf2f8',
+      questionsCount: '5000+'
+    },
+    {
+      id: 'quantitative',
+      title: 'Quantitative',
+      description: 'Numerical ability and mathematical problem solving',
+      icon: IconCalculator,
+      color: '#06b6d4',
+      bg: '#f0f9ff',
+      questionsCount: '5000+'
+    },
+    {
+      id: 'verbal',
+      title: 'Verbal',
+      description: 'English language skills and reading comprehension',
+      icon: IconBook,
+      color: '#8b5cf6',
+      bg: '#f5f3ff',
+      questionsCount: '5000+'
+    },
+    {
+      id: 'reasoning',
+      title: 'Reasoning',
+      description: 'Logical reasoning and critical thinking patterns',
+      icon: IconBrain,
+      color: '#10b981',
+      bg: '#ecfdf5',
+      questionsCount: '5000+'
+    }
+  );
+}
+
+const practiceCategories = baseCategories;
 
 // ── Soft Light Background ──
 const LightBackground = () => (
@@ -122,16 +183,30 @@ export default function Practice() {
                     }
                   }}
                 >
-                  <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', p: { xs: 2.5, sm: 3 } }}>
-                    <Box sx={{ 
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', 
-                      width: { xs: 44, sm: 52 }, height: { xs: 44, sm: 52 }, 
-                      borderRadius: '12px', 
-                      bgcolor: category.bg || 'rgba(99, 102, 241, 0.1)', 
-                      color: category.color || '#6366f1', 
-                      mb: 2
-                    }}>
-                      <Icon size={28} />
+                  <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', p: { xs: 2.5, sm: 3 }, position: 'relative' }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                      <Box sx={{ 
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                        width: { xs: 44, sm: 52 }, height: { xs: 44, sm: 52 }, 
+                        borderRadius: '12px', 
+                        bgcolor: category.bg || 'rgba(99, 102, 241, 0.1)', 
+                        color: category.color || '#6366f1'
+                      }}>
+                        <Icon size={28} />
+                      </Box>
+                      {category.questionsCount && (
+                        <Box sx={{ 
+                          bgcolor: category.bg, 
+                          color: category.color, 
+                          px: 1.5, py: 0.5, 
+                          borderRadius: '10px', 
+                          fontSize: '0.75rem', 
+                          fontWeight: 800,
+                          border: `1px solid ${category.color}20`
+                        }}>
+                          {category.questionsCount} Questions
+                        </Box>
+                      )}
                     </Box>
                     
                     <Typography variant="h3" sx={{ 

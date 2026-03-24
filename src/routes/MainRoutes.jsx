@@ -40,6 +40,9 @@ const QuestionPracticePage = Loadable(lazy(() => import('views/practice/Question
 const AptitudePractice = Loadable(lazy(() => import('views/practice/AptitudePractice')));
 const VerbalPractice = Loadable(lazy(() => import('views/practice/VerbalPractice')));
 const QuantitativePractice = Loadable(lazy(() => import('views/practice/QuantitativePractice')));
+const AptitudeQuestions = Loadable(lazy(() => import('views/practice/AptitudeQuestions')));
+const VerbalQuestions = Loadable(lazy(() => import('views/practice/VerbalQuestions')));
+const QuantitativeQuestions = Loadable(lazy(() => import('views/practice/QuantitativeQuestions')));
 const CompanyPractice = Loadable(lazy(() => import('views/practice/CompanyPractice')));
 const IDE = Loadable(lazy(() => import('views/ide')));
 const Labs = Loadable(lazy(() => import('views/playgrounds')));
@@ -47,6 +50,14 @@ const LabDetail = Loadable(lazy(() => import('views/playgrounds/LabDetail')));
 const LabPractice = Loadable(lazy(() => import('views/playgrounds/LabPractice')));
 const TechnologyLabs = Loadable(lazy(() => import('views/playgrounds/TechnologyLabs')));
 const AIMock = Loadable(lazy(() => import('views/ai-mock')));
+const ResumeBasedMock = Loadable(lazy(() => import('views/ai-mock/ResumeBasedMock')));
+const TopicBasedMock = Loadable(lazy(() => import('views/ai-mock/TopicBasedMock')));
+const LanguageBasedMock = Loadable(lazy(() => import('views/ai-mock/LanguageBasedMock')));
+const JDBasedMock = Loadable(lazy(() => import('views/ai-mock/JDBasedMock')));
+const CodingChallengeMock = Loadable(lazy(() => import('views/ai-mock/CodingChallengeMock')));
+const InterviewPage = Loadable(lazy(() => import('views/ai-mock/InterviewPage')));
+const CodeInterviewPage = Loadable(lazy(() => import('views/ai-mock/CodeInterviewPage')));
+const ResultPage = Loadable(lazy(() => import('views/ai-mock/ResultPage')));
 const GenAIPlayground = Loadable(lazy(() => import('views/genai')));
 
 // ==============================|| MAIN ROUTING ||============================== //
@@ -178,12 +189,24 @@ const MainRoutes = {
           element: <AptitudePractice />
         },
         {
+          path: 'practice/aptitude/:topic',
+          element: <AptitudeQuestions />
+        },
+        {
           path: 'practice/verbal',
           element: <VerbalPractice />
         },
         {
+          path: 'practice/verbal/:topic',
+          element: <VerbalQuestions />
+        },
+        {
           path: 'practice/quantitative',
           element: <QuantitativePractice />
+        },
+        {
+          path: 'practice/quantitative/:topic',
+          element: <QuantitativeQuestions />
         },
         {
           path: 'practice/company',
@@ -212,6 +235,38 @@ const MainRoutes = {
         {
           path: 'ai-mock',
           element: <AIMock />
+        },
+        {
+          path: 'ai-mock/resume',
+          element: <ResumeBasedMock />
+        },
+        {
+          path: 'ai-mock/topic',
+          element: <TopicBasedMock />
+        },
+        {
+          path: 'ai-mock/language',
+          element: <LanguageBasedMock />
+        },
+        {
+          path: 'ai-mock/jd',
+          element: <JDBasedMock />
+        },
+        {
+          path: 'ai-mock/coding',
+          element: <CodingChallengeMock />
+        },
+        {
+          path: 'ai-mock/interview/:id',
+          element: <InterviewPage />
+        },
+        {
+          path: 'ai-mock/code-interview/:id',
+          element: <CodeInterviewPage />
+        },
+        {
+          path: 'ai-mock/result',
+          element: <ResultPage />
         },
         {
           path: 'genai',

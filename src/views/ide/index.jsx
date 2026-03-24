@@ -320,7 +320,7 @@ export default function IDE() {
             renderValue={(val) => (
               <Stack direction="row" alignItems="center" spacing={0.75}>
                 <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: langMeta[val].color }} />
-                <Typography sx={{ fontWeight: 700, fontSize: '0.82rem' }}>{langMeta[val].label}</Typography>
+                <Typography sx={{ fontWeight: 700, fontSize: '0.82rem', color: isDarkMode ? '#fff' : 'inherit' }}>{langMeta[val].label}</Typography>
               </Stack>
             )}
           >

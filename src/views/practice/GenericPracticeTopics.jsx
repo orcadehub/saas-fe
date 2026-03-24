@@ -1,15 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Box, Card, CardContent, Typography, Breadcrumbs, Link } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
-import { IconCode, IconChevronRight } from '@tabler/icons-react';
-import MainCard from 'ui-component/cards/MainCard';
+import { Box, Card, CardContent, Typography, Breadcrumbs, Link, Chip } from '@mui/material';
+import { useNavigate, useParams } from 'react-router-dom';
+import { IconChevronRight, IconClipboardList, IconBook, IconCalculator, IconBrain } from '@tabler/icons-react';
 import CardSkeleton from 'ui-component/skeletons/CardSkeleton';
 import apiService from 'services/apiService';
 import { motion } from 'framer-motion';
 
 const MotionCard = motion.create(Card);
 
-export default function ProgrammingPractice() {
+export default function GenericPracticeTopics({ category, title, icon: Icon, fetchMethod }) {
   const navigate = useNavigate();
   const [topics, setTopics] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -20,25 +19,22 @@ export default function ProgrammingPractice() {
 
   const fetchTopics = async () => {
     try {
-      const data = await apiService.getProgrammingTopics();
+      const data = await apiService[fetchMethod]();
       setTopics(data);
     } catch (error) {
-      console.error('Error fetching topics:', error);
+      console.error(`Error fetching ${category} topics:`, error);
     } finally {
       setLoading(false);
     }
   };
 
-  const getTopicColor = (index) => {
-    const colors = [
-      { color: '#6366f1', bg: '#f5f3ff' },
-      { color: '#ec4899', bg: '#fdf2f8' },
-      { color: '#8b5cf6', bg: '#f5f3ff' },
-      { color: '#06b6d4', bg: '#ecfeff' },
-      { color: '#10b981', bg: '#f0fdf4' }
-    ];
-    return colors[index % colors.length];
-  };
+  const colors = [
+    { color: '#6366f1', bg: '#f5f3ff' },
+    { color: '#ec4899', bg: '#fdf2f8' },
+    { color: '#8b5cf6', bg: '#f5f3ff' },
+    { color: '#06b6d4', bg: '#ecfeff' },
+    { color: '#10b981', bg: '#f0fdf4' }
+  ];
 
   return (
     <Box sx={{ p: { xs: 2.5, sm: 3, md: 4 } }}>
@@ -54,15 +50,15 @@ export default function ProgrammingPractice() {
         >
           Practice
         </Link>
-        <Typography sx={{ fontWeight: 800, color: '#1e293b' }}>Programming</Typography>
+        <Typography sx={{ fontWeight: 800, color: '#1e293b' }}>{title}</Typography>
       </Breadcrumbs>
 
       <Box sx={{ mb: 6 }}>
         <Typography variant="h1" sx={{ fontWeight: 900, color: '#1e293b', mb: 1, fontSize: '2.5rem', letterSpacing: '-0.02em' }}>
-          Programming Hub
+          {title} Training
         </Typography>
         <Typography variant="body1" sx={{ color: '#64748b', fontSize: '1.1rem', fontWeight: 500 }}>
-          Master essential coding principles and data structures with curated paths.
+          Master {title.toLowerCase()} essentials and prepare for your next challenge.
         </Typography>
       </Box>
 
@@ -82,13 +78,13 @@ export default function ProgrammingPractice() {
           }}
         >
           {topics.map((topic, idx) => {
-            const theme = getTopicColor(idx);
+            const theme = colors[idx % colors.length];
             return (
               <MotionCard
                 key={topic.topic}
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: idx * 0.05 }}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.3, delay: idx * 0.05 }}
                 sx={{
                   cursor: 'pointer',
                   borderRadius: '24px',
@@ -103,7 +99,7 @@ export default function ProgrammingPractice() {
                     boxShadow: '0 12px 30px rgba(15, 23, 42, 0.08)' 
                   }
                 }}
-                onClick={() => navigate(`/practice/programming/${topic.topic}`)}
+                onClick={() => navigate(`/practice/${category}/${topic.topic}`)}
               >
                 <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', p: { xs: 2.5, sm: 3 } }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2.5 }}>
@@ -114,7 +110,7 @@ export default function ProgrammingPractice() {
                       bgcolor: theme.bg, 
                       color: theme.color 
                     }}>
-                      <IconCode size={28} />
+                      <Icon size={28} />
                     </Box>
                     <Box sx={{ 
                       bgcolor: theme.bg, 
@@ -145,7 +141,7 @@ export default function ProgrammingPractice() {
                     lineHeight: 1.6,
                     flexGrow: 1 
                   }}>
-                    Deep dive into {topic.topic} with targeted problem solving.
+                    Explore specialized {topic.topic} modules and track your progress.
                   </Typography>
                 </CardContent>
               </MotionCard>

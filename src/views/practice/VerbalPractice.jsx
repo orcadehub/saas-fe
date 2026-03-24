@@ -1,12 +1,13 @@
-import { Typography } from '@mui/material';
-import MainCard from 'ui-component/cards/MainCard';
+import GenericPracticeTopics from './GenericPracticeTopics';
+import { IconBook } from '@tabler/icons-react';
 
 export default function VerbalPractice() {
   return (
-    <MainCard title="Verbal Ability Practice">
-      <Typography variant="body1">
-        Verbal ability practice content coming soon...
-      </Typography>
-    </MainCard>
+    <GenericPracticeTopics 
+      category="verbal" 
+      title="Verbal" 
+      icon={IconBook} 
+      fetchMethod="getVerbalTopics" 
+    />
   );
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Typography, Box, Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Alert, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Pagination, Avatar, IconButton, Stack, InputAdornment, CircularProgress } from '@mui/material';
+import { Typography, Box, Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Alert, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Pagination, Avatar, IconButton, Stack, InputAdornment, CircularProgress, Select, MenuItem, FormControl } from '@mui/material';
 import { Link as LinkIcon, EmojiEvents, Person, Visibility, Search, EmojiEventsTwoTone } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useAuth } from 'contexts/AuthContext';
@@ -63,6 +63,7 @@ export default function Leaderboard() {
   const [statsDialog, setStatsDialog] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [timeframe, setTimeframe] = useState('allTime');
 
   useEffect(() => {
     tenantConfig.load().then(setConfig).catch(console.error);
@@ -70,7 +71,9 @@ export default function Leaderboard() {
 
   useEffect(() => {
     if (config && user?.token) {
-      if (!cachedLeaderboard) { fetchLeaderboard(); } 
+      if (!cachedLeaderboard || timeframe !== 'allTime') { 
+        fetchLeaderboard(); 
+      } 
       else {
         setAllStudents(cachedLeaderboard);
         setLeaderboardData(cachedLeaderboard);
@@ -78,7 +81,7 @@ export default function Leaderboard() {
         setLoading(false);
       }
     }
-  }, [config, user, cachedLeaderboard]);
+  }, [config, user, cachedLeaderboard, timeframe]);
 
   useEffect(() => {
     const filtered = allStudents.filter(student => student.name.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -108,7 +111,8 @@ export default function Leaderboard() {
   });
 
   const fetchLeaderboard = async () => {
-    const data = await fetchLeaderboardData();
+    setLoading(true);
+    const data = await fetchLeaderboardData(true, timeframe);
     if (data) {
       setAllStudents(data);
       setLeaderboardData(data);
@@ -175,6 +179,17 @@ export default function Leaderboard() {
           </Box>
 
           <Stack direction="row" spacing={2} sx={{ width: { xs: '100%', md: 'auto' } }}>
+            <FormControl sx={{ minWidth: 150, ...lightInputSx }}>
+              <Select
+                value={timeframe}
+                onChange={(e) => setTimeframe(e.target.value)}
+                displayEmpty
+              >
+                <MenuItem value="allTime">All Time</MenuItem>
+                <MenuItem value="thisMonth">This Month</MenuItem>
+                <MenuItem value="thisWeek">This Week</MenuItem>
+              </Select>
+            </FormControl>
             <TextField
               sx={{ ...lightInputSx, width: { xs: '100%', md: 280 } }}
               placeholder="Search student..."

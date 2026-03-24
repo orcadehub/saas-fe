@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Box, Card, CardContent, Typography, Chip, Breadcrumbs, Link } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
-import { IconCode, IconChevronRight } from '@tabler/icons-react';
+import { IconBook, IconChevronRight, IconClipboardList, IconCalculator } from '@tabler/icons-react';
 import CardSkeleton from 'ui-component/skeletons/CardSkeleton';
 import apiService from 'services/apiService';
 import { motion } from 'framer-motion';
 
 const MotionCard = motion.create(Card);
 
-export default function ProgrammingQuestions() {
+export default function GenericPracticeQuestions({ category, title, icon: Icon, fetchMethod }) {
   const navigate = useNavigate();
   const { topic } = useParams();
   const [questions, setQuestions] = useState([]);
@@ -20,10 +20,10 @@ export default function ProgrammingQuestions() {
 
   const fetchQuestions = async () => {
     try {
-      const data = await apiService.getProgrammingTopicQuestions(topic);
+      const data = await apiService[fetchMethod](topic);
       setQuestions(data);
     } catch (error) {
-      console.error('Error fetching questions:', error);
+      console.error(`Error fetching ${category} questions:`, error);
     } finally {
       setLoading(false);
     }
@@ -57,11 +57,11 @@ export default function ProgrammingQuestions() {
           href="#"
           onClick={(e) => {
             e.preventDefault();
-            navigate('/practice/programming');
+            navigate(`/practice/${category}`);
           }}
           sx={{ cursor: 'pointer', fontWeight: 600, color: '#64748b', '&:hover': { color: '#6366f1' } }}
         >
-          Programming
+          {title}
         </Link>
         <Typography sx={{ fontWeight: 800, color: '#1e293b', textTransform: 'capitalize' }}>{topic}</Typography>
       </Breadcrumbs>
@@ -116,7 +116,7 @@ export default function ProgrammingQuestions() {
                     boxShadow: '0 12px 30px rgba(15, 23, 42, 0.08)' 
                   }
                 }}
-                onClick={() => navigate(`/practice/programming/${topic}/${question._id}`)}
+                onClick={() => navigate(`/practice/assessment/${question._id}`)}
               >
                 <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', p: { xs: 2.5, sm: 3 } }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2.5 }}>
@@ -127,7 +127,7 @@ export default function ProgrammingQuestions() {
                       bgcolor: '#f8fafc', 
                       color: '#6366f1' 
                     }}>
-                      <IconCode size={24} />
+                      <Icon size={24} />
                     </Box>
                     <Box sx={{ 
                       bgcolor: theme.bg, 
@@ -164,7 +164,7 @@ export default function ProgrammingQuestions() {
                     WebkitBoxOrient: 'vertical',
                     overflow: 'hidden'
                   }}>
-                    {question.description || 'Practice your problem-solving skills with this interactive challenge.'}
+                    {question.description || 'Practice your skills with this targeted dummy challenge provided for review.'}
                   </Typography>
 
                   <Box sx={{ mt: 2.5, display: 'flex', gap: 1, flexWrap: 'wrap' }}>

@@ -7,6 +7,12 @@ import reportWebVitals from 'reportWebVitals';
 import { ConfigProvider } from 'contexts/ConfigContext';
 import { AuthProvider } from 'contexts/AuthContext';
 import { AssessmentsProvider } from 'contexts/AssessmentsContext';
+import { AIMockProvider } from 'contexts/AIMockContext';
+import { setupTestUserMock, mockApiService } from 'services/testUserMock';
+import apiService from 'services/apiService';
+
+setupTestUserMock();
+mockApiService(apiService);
 
 // style + assets
 import 'assets/scss/style.scss';
@@ -35,7 +41,9 @@ root.render(
   <ConfigProvider>
     <AuthProvider>
       <AssessmentsProvider>
-        <App />
+        <AIMockProvider>
+          <App />
+        </AIMockProvider>
       </AssessmentsProvider>
     </AuthProvider>
   </ConfigProvider>

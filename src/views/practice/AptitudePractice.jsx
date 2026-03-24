@@ -1,12 +1,13 @@
-import { Typography } from '@mui/material';
-import MainCard from 'ui-component/cards/MainCard';
+import GenericPracticeTopics from './GenericPracticeTopics';
+import { IconClipboardList } from '@tabler/icons-react';
 
 export default function AptitudePractice() {
   return (
-    <MainCard title="Aptitude Practice">
-      <Typography variant="body1">
-        Aptitude practice content coming soon...
-      </Typography>
-    </MainCard>
+    <GenericPracticeTopics 
+      category="aptitude" 
+      title="Aptitude" 
+      icon={IconClipboardList} 
+      fetchMethod="getAptitudeTopics" 
+    />
   );
 }

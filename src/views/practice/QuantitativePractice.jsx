@@ -1,12 +1,13 @@
-import { Typography } from '@mui/material';
-import MainCard from 'ui-component/cards/MainCard';
+import GenericPracticeTopics from './GenericPracticeTopics';
+import { IconCalculator } from '@tabler/icons-react';
 
 export default function QuantitativePractice() {
   return (
-    <MainCard title="Quantitative Practice">
-      <Typography variant="body1">
-        Quantitative practice content coming soon...
-      </Typography>
-    </MainCard>
+    <GenericPracticeTopics 
+      category="quantitative" 
+      title="Quantitative" 
+      icon={IconCalculator} 
+      fetchMethod="getQuantitativeTopics" 
+    />
   );
 }

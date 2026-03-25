@@ -8,15 +8,14 @@ export const LabsProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  const [currentLab, setCurrentLab] = useState(null);
+
   const fetchLabs = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const token = localStorage.getItem('token');
-      const response = await apiService.client.get('/labs', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setLabs(response.data || []);
+      const data = await apiService.getLabs();
+      setLabs(data || []);
     } catch (err) {
       console.error('Error fetching labs:', err);
       setError(err.message);
@@ -25,8 +24,30 @@ export const LabsProvider = ({ children }) => {
     }
   }, []);
 
+  const getLabById = useCallback(async (id) => {
+    setLoading(true);
+    try {
+      const data = await apiService.getLabById?.(id);
+      setCurrentLab(data);
+      return data;
+    } catch (err) {
+      console.error('Error fetching lab by ID:', err);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   return (
-    <LabsContext.Provider value={{ labs, loading, error, fetchLabs }}>
+    <LabsContext.Provider value={{ 
+      labs, 
+      currentLab,
+      loading, 
+      error, 
+      fetchLabs,
+      getLabById,
+      setCurrentLab 
+    }}>
       {children}
     </LabsContext.Provider>
   );

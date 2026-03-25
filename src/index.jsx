@@ -8,6 +8,9 @@ import { ConfigProvider } from 'contexts/ConfigContext';
 import { AuthProvider } from 'contexts/AuthContext';
 import { AssessmentsProvider } from 'contexts/AssessmentsContext';
 import { AIMockProvider } from 'contexts/AIMockContext';
+import { LabsProvider } from 'contexts/LabsContext';
+import { StudyMaterialsProvider } from 'contexts/StudyMaterialsContext';
+import { OrcaProvider } from 'contexts/OrcaContext';
 import { setupTestUserMock, mockApiService } from 'services/testUserMock';
 import apiService from 'services/apiService';
 
@@ -42,7 +45,13 @@ root.render(
     <AuthProvider>
       <AssessmentsProvider>
         <AIMockProvider>
-          <App />
+          <LabsProvider>
+            <StudyMaterialsProvider>
+              <OrcaProvider>
+                <App />
+              </OrcaProvider>
+            </StudyMaterialsProvider>
+          </LabsProvider>
         </AIMockProvider>
       </AssessmentsProvider>
     </AuthProvider>

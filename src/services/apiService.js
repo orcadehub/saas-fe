@@ -202,6 +202,17 @@ class ApiService {
     return response.data;
   }
 
+  // Labs
+  async getLabs() {
+    const response = await this.client.get('/labs');
+    return response.data;
+  }
+
+  async getLabById(id) {
+    const response = await this.client.get(`/labs/${id}`);
+    return response.data;
+  }
+
   async getProgrammingTopics() {
     const response = await this.client.get('/programming-questions/topics');
     return response.data;

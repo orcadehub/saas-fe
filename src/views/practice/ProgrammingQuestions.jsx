@@ -40,31 +40,7 @@ export default function ProgrammingQuestions() {
 
   return (
     <Box sx={{ p: { xs: 2.5, sm: 3, md: 4 } }}>
-      <Breadcrumbs separator={<IconChevronRight size={16} />} sx={{ mb: 4 }}>
-        <Link
-          color="inherit"
-          href="#"
-          onClick={(e) => {
-            e.preventDefault();
-            navigate('/practice');
-          }}
-          sx={{ cursor: 'pointer', fontWeight: 600, color: '#64748b', '&:hover': { color: '#6366f1' } }}
-        >
-          Practice
-        </Link>
-        <Link
-          color="inherit"
-          href="#"
-          onClick={(e) => {
-            e.preventDefault();
-            navigate('/practice/programming');
-          }}
-          sx={{ cursor: 'pointer', fontWeight: 600, color: '#64748b', '&:hover': { color: '#6366f1' } }}
-        >
-          Programming
-        </Link>
-        <Typography sx={{ fontWeight: 800, color: '#1e293b', textTransform: 'capitalize' }}>{topic}</Typography>
-      </Breadcrumbs>
+
 
       <Box sx={{ mb: 6 }}>
         <Typography variant="h1" sx={{ fontWeight: 900, color: '#1e293b', mb: 1, fontSize: '2.5rem', letterSpacing: '-0.02em', textTransform: 'capitalize' }}>

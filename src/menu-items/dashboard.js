@@ -59,6 +59,15 @@ const dashboard = {
       title: 'Practice',
       type: 'item',
       url: '/practice',
+      excludeFromActive: ['/practice/programming'],
+      icon: icons.IconCode,
+      breadcrumbs: false
+    },
+    {
+      id: 'orca',
+      title: 'ORCA',
+      type: 'item',
+      url: '/practice/programming',
       icon: icons.IconCode,
       breadcrumbs: false
     },

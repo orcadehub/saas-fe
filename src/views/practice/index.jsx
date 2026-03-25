@@ -7,16 +7,7 @@ import CardSkeleton from 'ui-component/skeletons/CardSkeleton';
 
 const MotionCard = motion.create(Card);
 
-const isTestUser = (() => {
-  try {
-    const data = JSON.parse(localStorage.getItem('studentData'));
-    return data?.email === 'test@test.com';
-  } catch (e) {
-    return false;
-  }
-})();
-
-const baseCategories = [
+const practiceCategories = [
   {
     id: 'gamified',
     title: 'Gamified',
@@ -24,60 +15,44 @@ const baseCategories = [
     icon: IconTrophy,
     color: '#f59e0b',
     bg: '#fffbeb'
+  },
+  {
+    id: 'aptitude',
+    title: 'Aptitude',
+    description: 'Strengthen your problem-solving and logical ability',
+    icon: IconClipboardList,
+    color: '#ec4899',
+    bg: '#fdf2f8',
+    questionsCount: '1000+'
+  },
+  {
+    id: 'quantitative',
+    title: 'Quantitative',
+    description: 'Numerical ability and mathematical problem solving',
+    icon: IconCalculator,
+    color: '#06b6d4',
+    bg: '#f0f9ff',
+    questionsCount: '1000+'
+  },
+  {
+    id: 'verbal',
+    title: 'Verbal',
+    description: 'English language skills and reading comprehension',
+    icon: IconBook,
+    color: '#8b5cf6',
+    bg: '#f5f3ff',
+    questionsCount: '1000+'
+  },
+  {
+    id: 'reasoning',
+    title: 'Reasoning',
+    description: 'Logical reasoning and critical thinking patterns',
+    icon: IconBrain,
+    color: '#10b981',
+    bg: '#ecfdf5',
+    questionsCount: '1000+'
   }
 ];
-
-if (isTestUser) {
-  baseCategories.push(
-    {
-      id: 'programming',
-      title: 'Programming',
-      description: 'Master data structures and algorithms with hands-on coding',
-      icon: IconCode,
-      color: '#6366f1',
-      bg: '#eef2ff',
-      questionsCount: '5000+'
-    },
-    {
-      id: 'aptitude',
-      title: 'Aptitude',
-      description: 'Strengthen your problem-solving and logical ability',
-      icon: IconClipboardList,
-      color: '#ec4899',
-      bg: '#fdf2f8',
-      questionsCount: '5000+'
-    },
-    {
-      id: 'quantitative',
-      title: 'Quantitative',
-      description: 'Numerical ability and mathematical problem solving',
-      icon: IconCalculator,
-      color: '#06b6d4',
-      bg: '#f0f9ff',
-      questionsCount: '5000+'
-    },
-    {
-      id: 'verbal',
-      title: 'Verbal',
-      description: 'English language skills and reading comprehension',
-      icon: IconBook,
-      color: '#8b5cf6',
-      bg: '#f5f3ff',
-      questionsCount: '5000+'
-    },
-    {
-      id: 'reasoning',
-      title: 'Reasoning',
-      description: 'Logical reasoning and critical thinking patterns',
-      icon: IconBrain,
-      color: '#10b981',
-      bg: '#ecfdf5',
-      questionsCount: '5000+'
-    }
-  );
-}
-
-const practiceCategories = baseCategories;
 
 // ── Soft Light Background ──
 const LightBackground = () => (

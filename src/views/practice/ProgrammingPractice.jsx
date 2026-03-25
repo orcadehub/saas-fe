@@ -42,27 +42,12 @@ export default function ProgrammingPractice() {
 
   return (
     <Box sx={{ p: { xs: 2.5, sm: 3, md: 4 } }}>
-      <Breadcrumbs separator={<IconChevronRight size={16} />} sx={{ mb: 4 }}>
-        <Link
-          color="inherit"
-          href="#"
-          onClick={(e) => {
-            e.preventDefault();
-            navigate('/practice');
-          }}
-          sx={{ cursor: 'pointer', fontWeight: 600, color: '#64748b', '&:hover': { color: '#6366f1' } }}
-        >
-          Practice
-        </Link>
-        <Typography sx={{ fontWeight: 800, color: '#1e293b' }}>Programming</Typography>
-      </Breadcrumbs>
-
       <Box sx={{ mb: 6 }}>
         <Typography variant="h1" sx={{ fontWeight: 900, color: '#1e293b', mb: 1, fontSize: '2.5rem', letterSpacing: '-0.02em' }}>
-          Programming Hub
+          ORCA
         </Typography>
         <Typography variant="body1" sx={{ color: '#64748b', fontSize: '1.1rem', fontWeight: 500 }}>
-          Master essential coding principles and data structures with curated paths.
+          Master essential coding principles, data structures, and algorithms through competitive challenges.
         </Typography>
       </Box>
 

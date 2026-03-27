@@ -97,7 +97,7 @@ export default function QuestionPracticePage() {
     if (!container) return;
     const rect = container.getBoundingClientRect();
     const newHeight = ((e.clientY - rect.top) / rect.height) * 100;
-    if (newHeight > 10 && newHeight < 90) setCompilerSplit(newHeight);
+    if (newHeight > 5 && newHeight < 95) setCompilerSplit(newHeight);
   };
 
   const stopResizingVertical = () => {
@@ -235,7 +235,7 @@ export default function QuestionPracticePage() {
     headerBg: isDarkMode ? 'linear-gradient(to right, rgba(15,17,30,0.8), rgba(12,14,26,0.8))' : '#ffffff',
     cardBg: isDarkMode ? 'rgba(0,0,0,0.3)' : '#ffffff',
     codeBg: isDarkMode ? '#0c0e1a' : '#ffffff',
-    testCaseBg: isDarkMode ? 'rgba(12,14,26,0.95)' : '#fbfcfe'
+    testCaseBg: isDarkMode ? '#fbfcfe' : '#ffffff'
   };
 
   const selectMenuStyle = {
@@ -259,8 +259,8 @@ export default function QuestionPracticePage() {
       {/* ── Top Header ── */}
       <Box sx={{ 
         height: 64, px: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        borderBottom: `1px solid ${t.border}`, backdropFilter: 'blur(20px)', zIndex: 10,
-        background: t.headerBg
+        borderBottom: `1px solid ${t.border}`, backdropFilter: 'blur(20px)', zIndex: 1000,
+        background: t.headerBg, position: 'relative'
       }}>
         <Stack direction="row" spacing={3} alignItems="center">
           <IconButton onClick={() => navigate(-1)} sx={{ color: isDarkMode ? 'rgba(255,255,255,0.7)' : '#64748b', '&:hover': { color: isDarkMode ? '#fff' : '#1e293b', bgcolor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)' } }}>
@@ -319,10 +319,10 @@ export default function QuestionPracticePage() {
       </Box>
 
       {/* ── Main Content Area ── */}
-      <Box sx={{ flex: 1, display: 'flex', overflow: 'hidden', position: 'relative', zIndex: 5 }}>
+      <Box sx={{ flex: 1, display: 'flex', overflow: 'hidden', position: 'relative', zIndex: 10 }}>
         
         {/* Left Pane: Problem Description */}
-        <Box sx={{ width: `${leftWidth}%`, height: '100%', overflow: 'auto', borderRight: `1px solid ${t.border}`, bgcolor: t.bgSide, backdropFilter: isDarkMode ? 'blur(30px)' : 'none' }}>
+        <Box sx={{ position: 'relative', zIndex: 5, width: `${leftWidth}%`, height: '100%', overflow: 'auto', borderRight: `1px solid ${t.border}`, bgcolor: t.bgSide, backdropFilter: isDarkMode ? 'blur(30px)' : 'none' }}>
           <Box sx={{ p: 4, maxWidth: 900, mx: 'auto' }}>
             <Typography variant="h3" sx={{ color: t.text, fontWeight: 900, mb: 1, letterSpacing: '-0.03em' }}>
               {question.title}
@@ -419,18 +419,18 @@ export default function QuestionPracticePage() {
             sx={{ 
                 width: 4, cursor: 'col-resize', bgcolor: t.border, transition: 'all 0.2s', 
                 '&:hover': { bgcolor: '#6366f1', boxShadow: isDarkMode ? '0 0 10px rgba(99, 102, 241, 0.5)' : 'none' },
-                position: 'relative', zIndex: 10
+                position: 'relative', zIndex: 50
             }} 
         />
 
         {/* Right Pane: IDE & Compiler */}
-        <Box id="split-container" sx={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', bgcolor: t.codeBg }}>
+        <Box id="split-container" sx={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', bgcolor: t.codeBg, position: 'relative', zIndex: 10 }}>
           
           {/* IDE Section */}
-          <Box sx={{ height: `${compilerSplit}%`, display: 'flex', flexDirection: 'column', borderBottom: `1px solid ${t.border}` }}>
+          <Box sx={{ position: 'relative', zIndex: 1, height: `${compilerSplit}%`, display: 'flex', flexDirection: 'column', borderBottom: `1px solid ${t.border}`, overflow: 'hidden' }}>
             <Box sx={{ 
               px: 3, height: 48, borderBottom: `1px solid ${t.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              bgcolor: isDarkMode ? 'rgba(15, 17, 30, 0.6)' : '#ffffff', backdropFilter: isDarkMode ? 'blur(10px)' : 'none'
+              bgcolor: isDarkMode ? 'rgba(15, 17, 30, 0.6)' : '#ffffff', backdropFilter: isDarkMode ? 'blur(10px)' : 'none', zIndex: 10
             }}>
               <Stack direction="row" spacing={3} alignItems="center">
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
@@ -461,7 +461,7 @@ export default function QuestionPracticePage() {
               </Stack>
             </Box>
 
-            <Box sx={{ flex: 1, p: 2, bgcolor: t.codeBg }}>
+            <Box sx={{ flex: 1, p: 0, bgcolor: t.codeBg, position: 'relative', zIndex: 5 }}>
                <Editor
                  height="100%"
                  language={language === 'cpp' ? 'cpp' : language}
@@ -490,10 +490,10 @@ export default function QuestionPracticePage() {
           <Box 
             onMouseDown={startResizingVertical} 
             sx={{ 
-                height: 5, 
+                height: 6, 
                 cursor: 'row-resize', 
                 bgcolor: t.border, 
-                zIndex: 100,
+                zIndex: 200,
                 position: 'relative',
                 '&:hover': { bgcolor: '#6366f1' }, 
                 '&::after': {
@@ -511,8 +511,8 @@ export default function QuestionPracticePage() {
           />
 
           {/* Console / Output Section */}
-          <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', bgcolor: t.testCaseBg, backdropFilter: isDarkMode ? 'blur(20px)' : 'none', overflow: 'hidden' }}>
-            <Box sx={{ height: 48, borderBottom: `1px solid ${t.border}`, display: 'flex', alignItems: 'center', px: 2 }}>
+          <Box sx={{ position: 'relative', zIndex: 100, flex: 1, display: 'flex', flexDirection: 'column', bgcolor: t.testCaseBg, overflow: 'hidden' }}>
+            <Box sx={{ height: 48, borderBottom: `1px solid ${t.border}`, display: 'flex', alignItems: 'center', px: 2, bgcolor: isDarkMode ? 'rgba(15, 17, 30, 0.4)' : '#ffffff', zIndex: 10 }}>
                <Tabs 
                  value={currentTestCaseTab} onChange={(e, v) => setCurrentTestCaseTab(v)}
                  variant="scrollable" scrollButtons="auto"
@@ -529,7 +529,7 @@ export default function QuestionPracticePage() {
                </Tabs>
             </Box>
 
-            <Box sx={{ flex: 1, p: 4, overflow: 'auto' }}>
+            <Box sx={{ flex: 1, p: 4, overflow: 'auto', bgcolor: t.testCaseBg, position: 'relative', zIndex: 5 }}>
                {question.testCases.filter(tc => tc.isPublic)[currentTestCaseTab] && (
                  <Stack spacing={4}>
                     <Box>
@@ -578,7 +578,7 @@ export default function QuestionPracticePage() {
       {/* ── Submission Modal ── */}
       <Dialog 
         open={showSubmitModal} maxWidth="md" fullWidth 
-        PaperProps={{ sx: { bgcolor: isDarkMode ? '#0c0e1a' : '#ffffff', color: t.text, borderRadius: '32px', border: `1px solid ${t.border}`, backdropFilter: 'blur(50px)' } }}
+        PaperProps={{ sx: { bgcolor: isDarkMode ? '#0c0e1a' : '#ffffff', color: t.text, borderRadius: '32px', border: `1px solid ${t.border}`, backdropFilter: 'blur(50px)', zIndex: 2000 } }}
         disableEscapeKeyDown={isSubmitting}
       >
         <DialogTitle sx={{ py: 4, px: 5, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>

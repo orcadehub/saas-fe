@@ -58,7 +58,10 @@ export default function Header() {
 
     // Setup Socket connection for global achievements
     const socketUrl = import.meta.env.DEV ? 'http://localhost:4000' : 'https://backend.orcode.in';
-    socketRef.current = io(socketUrl);
+    socketRef.current = io(socketUrl, {
+      transports: ['websocket'],
+      upgrade: false
+    });
     
     socketRef.current.on('practice_completion', (data) => {
       setNotifications(prev => [...prev, data]);

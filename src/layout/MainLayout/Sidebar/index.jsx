@@ -56,7 +56,13 @@ function Sidebar() {
   }, [downMD, drawerOpen]);
 
   return (
-    <Box component="nav" sx={{ flexShrink: { md: 0 }, width: { xs: 'auto', md: drawerWidth } }} aria-label="mailbox folders">
+    <Box
+      component="nav"
+      sx={{ flexShrink: { md: 0 }, width: { xs: 'auto', md: drawerWidth } }}
+      aria-label="mailbox folders"
+      onMouseEnter={() => !downMD && handlerDrawerOpen(true)}
+      onMouseLeave={() => !downMD && handlerDrawerOpen(false)}
+    >
       {downMD || (miniDrawer && drawerOpen) ? (
         <Drawer
           variant={downMD ? 'temporary' : 'persistent'}

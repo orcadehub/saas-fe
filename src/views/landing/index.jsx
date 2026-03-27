@@ -19,6 +19,8 @@ import {
   Close as CloseIcon
 } from '@mui/icons-material';
 import tenantConfig from 'config/tenantConfig';
+import StarryBackground from 'components/StarryBackground';
+import CelestialCursor from 'components/CelestialCursor';
 
 // ── Animated Grid Background ──
 const AnimatedGridBackground = () => (
@@ -93,47 +95,9 @@ const AnimatedGridBackground = () => (
   </Box>
 );
 
-// ── Interactive Cursor ──
-const InteractiveCursor = () => {
-  const [mousePos, setMousePos] = useState({ x: -100, y: -100 });
-  const [isHovering, setIsHovering] = useState(false);
+// ── Starry Background (Moved to components/StarryBackground.jsx) ──
 
-  useEffect(() => {
-    const handleMouseMove = (e) => setMousePos({ x: e.clientX, y: e.clientY });
-    const handleMouseOver = (e) => {
-      setIsHovering(!!(e.target.closest('button') || e.target.closest('a') || e.target.closest('.interactive')));
-    };
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseover', handleMouseOver);
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseover', handleMouseOver);
-    };
-  }, []);
-
-  return (
-    <motion.div
-      style={{
-        position: 'fixed', top: 0, left: 0, width: 32, height: 32,
-        borderRadius: '50%', pointerEvents: 'none', zIndex: 9999,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}
-      animate={{
-        x: mousePos.x - 16, y: mousePos.y - 16,
-        scale: isHovering ? 2.5 : 1,
-      }}
-      transition={{ type: 'spring', stiffness: 500, damping: 28, mass: 0.5 }}
-    >
-      <Box sx={{
-        width: '8px', height: '8px',
-        background: 'linear-gradient(135deg, #8b5cf6, #06b6d4)',
-        borderRadius: '50%',
-        boxShadow: '0 0 20px 4px rgba(139,92,246,0.5), 0 0 40px 8px rgba(6,182,212,0.2)',
-        opacity: 0.8,
-      }} />
-    </motion.div>
-  );
-};
+// ── Interactive Cursor (Moved to components/CelestialCursor.jsx) ──
 
 // ── Letter-by-letter animated text ──
 const LetterByLetterText = ({ text, delay = 0, sx = {} }) => {
@@ -277,8 +241,9 @@ export default function Landing() {
       overflowX: 'hidden',
     }}>
       <AnimatedGridBackground />
+      <StarryBackground />
       <FloatingParticles />
-      <InteractiveCursor />
+      <CelestialCursor />
 
       {/* ══════════ Navbar ══════════ */}
       <Box component="nav" sx={{
@@ -297,7 +262,12 @@ export default function Landing() {
                   component="img"
                   src={config.logoUrl}
                   alt="Logo"
-                  sx={{ height: 40, objectFit: 'contain', filter: 'brightness(1.1)', borderRadius: '10px' }}
+                  sx={{
+                    height: 48,
+                    objectFit: 'contain',
+                    filter: 'brightness(1.1)',
+                    borderRadius: '12px',
+                  }}
                   onError={(e) => { e.target.style.display = 'none'; }}
                 />
               ) : (

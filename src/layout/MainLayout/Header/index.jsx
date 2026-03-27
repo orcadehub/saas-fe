@@ -54,28 +54,6 @@ export default function Header() {
         <Box component="span" sx={{ display: { xs: 'none', md: 'block' }, flexGrow: 1 }}>
           <LogoSection />
         </Box>
-        <Avatar
-          variant="rounded"
-          sx={{
-            width: 44,
-            height: 44,
-            borderRadius: '12px',
-            cursor: 'pointer',
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            bgcolor: 'rgba(99, 102, 241, 0.08)',
-            color: '#6366f1',
-            border: '1px solid rgba(99, 102, 241, 0.1)',
-            '&:hover': {
-              bgcolor: '#6366f1',
-              color: '#fff',
-              transform: 'scale(1.05)',
-              boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)'
-            }
-          }}
-          onClick={() => handlerDrawerOpen(!drawerOpen)}
-        >
-          {drawerOpen ? <IconChevronLeft stroke={2} size="22px" /> : <IconChevronRight stroke={2} size="22px" />}
-        </Avatar>
       </Box>
 
       {/* header search / active count */}

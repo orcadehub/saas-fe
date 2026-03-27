@@ -1,6 +1,8 @@
 import { Box, Container, Typography, Button, Card, CardContent, Stack, Chip, IconButton } from '@mui/material';
 import { WhatsApp, CheckCircle, AutoAwesomeRounded, Menu as MenuIcon, Close as CloseIcon } from '@mui/icons-material';
 import useConfig from 'hooks/useConfig';
+import StarryBackground from 'components/StarryBackground';
+import CelestialCursor from 'components/CelestialCursor';
 import tenantConfig from 'config/tenantConfig';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
@@ -11,7 +13,7 @@ const MotionCard = motion.create(Card);
 
 // ── Animated Grid Background ──
 const AnimatedGridBackground = () => (
-  <Box sx={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0, overflow: 'hidden', pointerEvents: 'none' }}>
+  <Box sx={{ position: 'fixed', inset: 0, zIndex: 0, overflow: 'hidden', pointerEvents: 'none' }}>
     <Box sx={{ position: 'absolute', inset: 0, bgcolor: '#0a0a0f' }} />
     <Box sx={{
       position: 'absolute', inset: 0,
@@ -50,48 +52,6 @@ const AnimatedGridBackground = () => (
   </Box>
 );
 
-// ── Interactive Cursor ──
-const InteractiveCursor = () => {
-  const [mousePos, setMousePos] = useState({ x: -100, y: -100 });
-  const [isHovering, setIsHovering] = useState(false);
-
-  useEffect(() => {
-    const handleMouseMove = (e) => setMousePos({ x: e.clientX, y: e.clientY });
-    const handleMouseOver = (e) => {
-      setIsHovering(!!(e.target.closest('button') || e.target.closest('a') || e.target.closest('.interactive')));
-    };
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseover', handleMouseOver);
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseover', handleMouseOver);
-    };
-  }, []);
-
-  return (
-    <motion.div
-      style={{
-        position: 'fixed', top: 0, left: 0, width: 32, height: 32,
-        borderRadius: '50%', pointerEvents: 'none', zIndex: 9999,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}
-      animate={{
-        x: mousePos.x - 16, y: mousePos.y - 16,
-        scale: isHovering ? 2.5 : 1,
-      }}
-      transition={{ type: 'spring', stiffness: 500, damping: 28, mass: 0.5 }}
-    >
-      <Box sx={{
-        width: '8px', height: '8px',
-        background: 'linear-gradient(135deg, #8b5cf6, #06b6d4)',
-        borderRadius: '50%',
-        boxShadow: '0 0 20px 4px rgba(139,92,246,0.5), 0 0 40px 8px rgba(6,182,212,0.2)',
-        opacity: 0.8,
-      }} />
-    </motion.div>
-  );
-};
-
 // ── Navbar ──
 const DarkNavbar = ({ config }) => {
   const navigate = useNavigate();
@@ -108,7 +68,7 @@ const DarkNavbar = ({ config }) => {
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ py: 1.5 }}>
           <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', cursor: 'pointer' }} onClick={() => navigate('/')}>
             {config?.logoUrl ? (
-              <Box component="img" src={config.logoUrl} alt="Logo" sx={{ height: 40, objectFit: 'contain', filter: 'brightness(1.1)' }} onError={(e) => { e.target.style.display = 'none'; }} />
+              <Box component="img" src={config.logoUrl} alt="Logo" sx={{ height: 40, objectFit: 'contain', filter: 'brightness(1.1)', borderRadius: '12px' }} onError={(e) => { e.target.style.display = 'none'; }} />
             ) : (
               <Typography variant="h5" sx={{
                 fontWeight: 800, letterSpacing: '-0.5px', display: 'flex', alignItems: 'center', gap: 1,
@@ -188,7 +148,8 @@ export default function Pricing() {
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: '#0a0a0f', color: '#e2e8f0', position: 'relative', overflowX: 'hidden' }}>
       <AnimatedGridBackground />
-      <InteractiveCursor />
+      <StarryBackground />
+      <CelestialCursor />
       <DarkNavbar config={config} />
 
       {/* Hero */}

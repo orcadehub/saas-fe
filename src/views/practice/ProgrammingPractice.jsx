@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Box, Card, CardContent, Typography, Breadcrumbs, Link } from '@mui/material';
+import { Box, Card, CardContent, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { IconCode, IconChevronRight } from '@tabler/icons-react';
-import MainCard from 'ui-component/cards/MainCard';
+import { IconCode } from '@tabler/icons-react';
 import CardSkeleton from 'ui-component/skeletons/CardSkeleton';
 import apiService from 'services/apiService';
 import { motion } from 'framer-motion';

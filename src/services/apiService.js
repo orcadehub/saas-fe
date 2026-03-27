@@ -252,5 +252,14 @@ class ApiService {
     const response = await this.client.get(`/quantitative-questions/questions/${topic}`);
     return response.data;
   }
+
+  // Admin/Instructor: Add programming question
+  async addProgrammingQuestion(token, data) {
+    const response = await this.client.post('/programming-questions/add', 
+      data, 
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return response.data;
+  }
 }
 export default new ApiService();

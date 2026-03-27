@@ -34,6 +34,7 @@ const ProgrammingQuestionPractice = Loadable(lazy(() => import('views/practice/Q
 const GamifiedPractice = Loadable(lazy(() => import('views/practice/GamifiedPractice')));
 const GamifiedQuestions = Loadable(lazy(() => import('views/practice/GamifiedQuestions')));
 const GamePlayer = Loadable(lazy(() => import('views/practice/GamePlayer')));
+const PracticeLeaderboard = Loadable(lazy(() => import('views/practice/PracticeLeaderboard')));
 const AssessmentQuestions = Loadable(lazy(() => import('views/practice/AssessmentQuestions')));
 const QuestionSolver = Loadable(lazy(() => import('views/practice/QuestionSolver')));
 const QuestionPracticePage = Loadable(lazy(() => import('views/practice/QuestionPracticePage')));
@@ -175,6 +176,10 @@ const MainRoutes = {
         {
           path: 'practice/gamified/:subtopicId/:questionId',
           element: <GamePlayer />
+        },
+        {
+          path: 'practice/leaderboard',
+          element: <PracticeLeaderboard />
         },
         {
           path: 'practice/assessment',

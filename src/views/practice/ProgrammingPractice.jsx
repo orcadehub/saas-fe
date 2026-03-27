@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Box, Card, CardContent, Typography, Stack, LinearProgress, Chip } from '@mui/material';
+import { EmojiEvents } from '@mui/icons-material';
+import { Box, Card, CardContent, Typography, Stack, LinearProgress, Chip, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { IconCode, IconCircleCheck, IconStar } from '@tabler/icons-react';
 import CardSkeleton from 'ui-component/skeletons/CardSkeleton';
@@ -66,12 +67,25 @@ export default function ProgrammingPractice() {
     <Box sx={{ p: { xs: 2.5, sm: 3, md: 4 } }}>
       <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }} sx={{ mb: 6 }} spacing={3}>
         <Box>
-          <Typography variant="h1" sx={{ fontWeight: 900, color: '#1e293b', mb: 1, fontSize: '2.5rem', letterSpacing: '-0.02em' }}>
-            ORCA <Box component="span" sx={{ color: '#6366f1' }}>Practice</Box>
-          </Typography>
-          <Typography variant="body1" sx={{ color: '#64748b', fontSize: '1.1rem', fontWeight: 500 }}>
-            Master essential coding principles through adaptive, gamified challenges.
-          </Typography>
+           <Stack direction="row" spacing={2} alignItems="center" mb={1}>
+              <Typography variant="h1" sx={{ fontWeight: 950, color: '#1e293b', fontSize: '2.5rem', letterSpacing: '-0.04em' }}>
+                ORCA <Box component="span" sx={{ color: '#6366f1' }}>Practice</Box>
+              </Typography>
+              <Button 
+                variant="outlined" 
+                startIcon={<EmojiEvents sx={{ color: '#fbbf24' }} />}
+                onClick={() => navigate('/practice/leaderboard')}
+                sx={{ 
+                  borderRadius: '12px', border: '1px solid #e2e8f0', color: '#64748b', fontWeight: 800, textTransform: 'none', px: 2, height: 40,
+                  '&:hover': { bgcolor: '#f8fafc', borderColor: '#cbd5e1', color: '#1e293b' }
+                }}
+              >
+                Hall of Fame
+              </Button>
+           </Stack>
+           <Typography variant="body1" sx={{ color: '#64748b', fontSize: '1.1rem', fontWeight: 500 }}>
+             Master essential coding principles through adaptive, gamified challenges.
+           </Typography>
         </Box>
 
         {!loading && (

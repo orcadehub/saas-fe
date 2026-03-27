@@ -343,7 +343,7 @@ export default function QuestionPracticePage() {
                    <Typography variant="h2" sx={{ fontWeight: 950, letterSpacing: '-0.05em', color: isSubmitting ? t.text : (isAllPassed ? '#10b981' : '#ef4444'), mb: 1, textShadow: isDarkMode ? '0 0 20px rgba(0,0,0,0.5)' : 'none' }}>
                       {isSubmitting ? 'Authenticating...' : (isAllPassed ? 'ACCEPTED' : 'WRONG ANSWER')}
                    </Typography>
-                   <Typography variant="v6" variant="body1" sx={{ color: t.textSecondary, fontWeight: 700, mb: 5 }}>
+                   <Typography variant="body1" sx={{ color: t.textSecondary, fontWeight: 700, mb: 5 }}>
                       {isSubmitting ? 'Validating your solution against hidden benchmarks...' : (isAllPassed ? "Masterful! You've passed all requirements." : `Failed on ${totalCount - passedCount} critical test cases.`)}
                    </Typography>
 

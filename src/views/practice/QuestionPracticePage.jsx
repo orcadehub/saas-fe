@@ -97,7 +97,7 @@ export default function QuestionPracticePage() {
     if (!container) return;
     const rect = container.getBoundingClientRect();
     const newHeight = ((e.clientY - rect.top) / rect.height) * 100;
-    if (newHeight > 20 && newHeight < 90) setCompilerSplit(newHeight);
+    if (newHeight > 10 && newHeight < 90) setCompilerSplit(newHeight);
   };
 
   const stopResizingVertical = () => {
@@ -413,7 +413,7 @@ export default function QuestionPracticePage() {
           </Box>
         </Box>
 
-        {/* Resizer */}
+        {/* Resizer Slider (Horizontal) */}
         <Box 
             onMouseDown={startResizing} 
             sx={{ 
@@ -479,14 +479,36 @@ export default function QuestionPracticePage() {
                     renderLineHighlight: 'all',
                     padding: { top: 20 },
                     scrollbar: { verticalScrollbarSize: 6 },
-                    bracketPairColorization: { enabled: true }
+                    bracketPairColorization: { enabled: true },
+                    automaticLayout: true
                  }}
                />
             </Box>
           </Box>
 
-          {/* Horizontal Resizer */}
-          <Box onMouseDown={startResizingVertical} sx={{ height: 4, cursor: 'row-resize', bgcolor: t.border, '&:hover': { bgcolor: '#6366f1' }, position: 'relative', zIndex: 10 }} />
+          {/* Horizontal Resizer Slider (Vertical Sidebar) */}
+          <Box 
+            onMouseDown={startResizingVertical} 
+            sx={{ 
+                height: 5, 
+                cursor: 'row-resize', 
+                bgcolor: t.border, 
+                zIndex: 100,
+                position: 'relative',
+                '&:hover': { bgcolor: '#6366f1' }, 
+                '&::after': {
+                    content: '""',
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    width: 40,
+                    height: 3,
+                    borderRadius: 2,
+                    bgcolor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
+                }
+            }} 
+          />
 
           {/* Console / Output Section */}
           <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', bgcolor: t.testCaseBg, backdropFilter: isDarkMode ? 'blur(20px)' : 'none', overflow: 'hidden' }}>

@@ -247,7 +247,12 @@ export default function QuestionPracticePage() {
             fontWeight: 700,
             fontSize: '0.85rem',
             '&:hover': { bgcolor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)' },
-            '&.Mui-selected': { bgcolor: 'rgba(99, 102, 241, 0.1)', color: '#818cf8', '&:hover': { bgcolor: 'rgba(99, 102, 241, 0.15)' } }
+            '&.Mui-selected': { 
+                bgcolor: isDarkMode ? 'rgba(99, 102, 241, 0.25)' : 'rgba(99, 102, 241, 0.1)', 
+                color: isDarkMode ? '#ffffff' : '#818cf8', 
+                fontWeight: 900,
+                '&:hover': { bgcolor: isDarkMode ? 'rgba(99, 102, 241, 0.35)' : 'rgba(99, 102, 241, 0.15)' } 
+            }
         }
     }
   };

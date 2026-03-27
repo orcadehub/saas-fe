@@ -4,12 +4,15 @@ import {
   Box, Typography, Button, IconButton, Tabs, Tab, 
   Select, MenuItem, FormControl, InputLabel, CircularProgress, 
   Dialog, DialogTitle, DialogContent, DialogActions, 
-  Chip, Stack, Tooltip, Breadcrumbs, Link
+  Chip, Stack, Tooltip, Breadcrumbs, Link, LinearProgress, Avatar
 } from '@mui/material';
 import { 
   ArrowBack, PlayArrow, CheckCircle, Close, Add, Remove, 
   Fullscreen, FullscreenExit, Description, Code, Terminal, 
-  Lightbulb, Timer, Storage, Check, LightMode, DarkMode
+  Lightbulb, Timer, Storage, Check, LightMode, DarkMode,
+  EmojiEvents, Speed, SignalCellularAlt, History, Replay, Launch,
+  InfoOutlined, HelpOutline, Stars, ErrorOutline,
+  AssignmentTurnedIn, TrendingUp, Analytics, WorkspacePremium, Notifications
 } from '@mui/icons-material';
 import Editor from '@monaco-editor/react';
 import { submitCode } from 'services/pistonService';
@@ -17,6 +20,7 @@ import tenantConfig from 'config/tenantConfig';
 import { useAuth } from 'contexts/AuthContext';
 import StarryBackground from 'components/StarryBackground';
 import { motion, AnimatePresence } from 'framer-motion';
+import { io } from 'socket.io-client';
 
 const MotionBox = motion.create(Box);
 
@@ -51,11 +55,17 @@ export default function QuestionPracticePage() {
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitResults, setSubmitResults] = useState([]);
+  const [submitStats, setSubmitStats] = useState({ runtime: 0, memory: 0, avgTime: 0, coinsEarned: 0 });
   const [leftWidth, setLeftWidth] = useState(45);
   const [compilerSplit, setCompilerSplit] = useState(65);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
   
+  // Real-time notifications queue
+  const [notifications, setNotifications] = useState([]);
+  const socketRef = useRef(null);
+  const notificationTimerRef = useRef(null);
+
   const containerRef = useRef(null);
   const isResizing = useRef(false);
   const isResizingVertical = useRef(false);
@@ -113,7 +123,28 @@ export default function QuestionPracticePage() {
     tenantConfig.load().then(setConfig).catch(console.error);
     const savedTheme = localStorage.getItem('orca_practice_theme');
     if (savedTheme) setIsDarkMode(savedTheme === 'dark');
+    
+    // Setup Socket connection
+    const socketUrl = import.meta.env.DEV ? 'http://localhost:4000' : 'https://backend.orcode.in';
+    socketRef.current = io(socketUrl);
+    
+    socketRef.current.on('practice_completion', (data) => {
+      setNotifications(prev => [...prev, data]);
+    });
+
+    return () => {
+      if (socketRef.current) socketRef.current.disconnect();
+    };
   }, []);
+
+  useEffect(() => {
+    if (notifications.length > 0 && !notificationTimerRef.current) {
+        notificationTimerRef.current = setTimeout(() => {
+            setNotifications(prev => prev.slice(1));
+            notificationTimerRef.current = null;
+        }, 5000);
+    }
+  }, [notifications]);
 
   useEffect(() => {
     localStorage.setItem('orca_practice_theme', isDarkMode ? 'dark' : 'light');
@@ -197,6 +228,10 @@ export default function QuestionPracticePage() {
     const results = allTC.map((tc, i) => ({ index: i+1, status: 'Running', type: tc.isPublic ? 'Public' : 'Hidden' }));
     setSubmitResults(results);
 
+    let totalCpuTime = 0;
+    let maxMemory = 0;
+    let failCount = 0;
+
     for (let i = 0; i < allTC.length; i++) {
        try {
          const result = await submitCode(code, langMeta[language].id, allTC[i].input?.value || allTC[i].input);
@@ -204,11 +239,58 @@ export default function QuestionPracticePage() {
          const expected = (allTC[i].output?.value || allTC[i].output)?.toString().trim();
          const passed = userOut === expected && result.status.id === 3;
          results[i] = { ...results[i], status: passed ? 'Passed' : 'Failed', passed };
+         
+         if (!passed) failCount++;
+         
+         totalCpuTime += (result.time || 0);
+         maxMemory = Math.max(maxMemory, result.memory || 0);
+
        } catch (err) {
          results[i] = { ...results[i], status: 'Error', passed: false };
+         failCount++;
        }
        setSubmitResults([...results]);
     }
+    
+    const finalStats = {
+        runtime: totalCpuTime.toFixed(2),
+        memory: (maxMemory / 1024).toFixed(2),
+        avgTime: (totalCpuTime / allTC.length).toFixed(3),
+        coinsEarned: 0
+    };
+
+    // Mark as completed in backend
+    try {
+      const apiUrl = import.meta.env.DEV ? 'http://localhost:4000/api' : (config?.apiEndpoint || 'https://backend.orcode.in/api');
+      const response = await fetch(`${apiUrl}/practice-submissions/submit`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${user?.token}`
+        },
+        body: JSON.stringify({
+          questionId: id,
+          topicId: question.topicId || id, // Fallback if not direct
+          subTopicId: question.subTopicId || id,
+          code,
+          language,
+          status: failCount === 0 ? 'accepted' : 'wrong_answer',
+          passedTests: allTC.length - failCount,
+          totalTests: allTC.length,
+          executionTime: totalCpuTime,
+          memoryUsed: maxMemory
+        })
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        finalStats.coinsEarned = data.coinsEarned || 0;
+      }
+    } catch (err) {
+      console.error('Submission persistence failed:', err);
+    }
+    
+    setSubmitStats(finalStats);
     setIsSubmitting(false);
   };
 
@@ -257,6 +339,11 @@ export default function QuestionPracticePage() {
     }
   };
 
+  const passedCount = submitResults.filter(r => r.passed).length;
+  const totalCount = submitResults.length;
+  const accuracyRate = totalCount > 0 ? Math.round((passedCount / totalCount) * 100) : 0;
+  const isAllPassed = passedCount === totalCount && totalCount > 0;
+
   return (
     <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column', bgcolor: t.bg, overflow: 'hidden', position: 'relative' }}>
       {isDarkMode && <StarryBackground />}
@@ -264,21 +351,43 @@ export default function QuestionPracticePage() {
       {/* ── Top Header ── */}
       <Box sx={{ 
         height: 64, px: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        borderBottom: `1px solid ${t.border}`, backdropFilter: 'blur(20px)', zIndex: 1000,
+        borderBottom: `1px solid ${t.border}`, backdropFilter: 'blur(30px)', zIndex: 1000,
         background: t.headerBg, position: 'relative'
       }}>
         <Stack direction="row" spacing={3} alignItems="center">
           <IconButton onClick={() => navigate(-1)} sx={{ color: isDarkMode ? 'rgba(255,255,255,0.7)' : '#64748b', '&:hover': { color: isDarkMode ? '#fff' : '#1e293b', bgcolor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)' } }}>
             <ArrowBack />
           </IconButton>
-          <Breadcrumbs separator={<Typography sx={{ color: t.textMuted }}>/</Typography>}>
-            <Link component="button" variant="body2" onClick={() => navigate('/practice/programming')} sx={{ color: t.textSecondary, textDecoration: 'none', fontWeight: 600, '&:hover': { color: '#6366f1' } }}>
-              Practice Center
-            </Link>
-            <Typography variant="body2" sx={{ color: t.text, fontWeight: 800 }}>
-              {question.title}
-            </Typography>
-          </Breadcrumbs>
+          
+          {/* Real-time Achievement Marquee */}
+          <Box sx={{ flex: 1, px: 4, position: 'relative', overflow: 'hidden', height: 40 }}>
+             <AnimatePresence mode="wait">
+                {notifications.length > 0 && (
+                   <MotionBox 
+                     key={notifications[0].username + notifications[0].problemTitle}
+                     initial={{ x: '100%', opacity: 0 }}
+                     animate={{ x: 0, opacity: 1 }}
+                     exit={{ x: '-100%', opacity: 0 }}
+                     transition={{ duration: 0.8, ease: "easeOut" }}
+                     sx={{ 
+                        display: 'flex', alignItems: 'center', gap: 2, height: '100%',
+                        bgcolor: isDarkMode ? 'rgba(52, 211, 153, 0.12)' : 'rgba(52, 211, 153, 0.08)',
+                        px: 3, borderRadius: '20px', border: '1px solid rgba(52, 211, 153, 0.2)'
+                     }}
+                   >
+                     <Avatar sx={{ width: 24, height: 24, bgcolor: '#34d399', fontSize: 12 }}>{notifications[0].username?.[0]}</Avatar>
+                     <Typography sx={{ color: t.text, fontWeight: 700, fontSize: '0.85rem' }}>
+                        <Box component="span" sx={{ color: '#34d399' }}>{notifications[0].username}</Box> just solved 
+                        <Box component="span" sx={{ color: '#818cf8', ml: 1 }}>{notifications[0].problemTitle}</Box>
+                     </Typography>
+                     <Stack direction="row" spacing={0.5} alignItems="center">
+                        <Stars sx={{ fontSize: 16, color: '#fbbf24' }} />
+                        <Typography sx={{ color: '#fbbf24', fontWeight: 900, fontSize: '0.9rem' }}>+{notifications[0].coins}</Typography>
+                     </Stack>
+                   </MotionBox>
+                )}
+             </AnimatePresence>
+          </Box>
         </Stack>
 
         <Stack direction="row" spacing={2} alignItems="center">
@@ -585,76 +694,166 @@ export default function QuestionPracticePage() {
         </Box>
       </Box>
 
-      {/* ── Submission Modal ── */}
-      <Dialog 
-        open={showSubmitModal} maxWidth="md" fullWidth 
-        PaperProps={{ sx: { bgcolor: isDarkMode ? '#0c0e1a' : '#ffffff', color: t.text, borderRadius: '32px', border: `1px solid ${t.border}`, backdropFilter: 'blur(50px)', zIndex: 2000 } }}
-        disableEscapeKeyDown={isSubmitting}
-      >
-        <DialogTitle sx={{ py: 4, px: 5, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Stack spacing={0.5}>
-            <Typography variant="h3" sx={{ fontWeight: 900, letterSpacing: '-0.02em', color: t.text }}>Final Submission</Typography>
-            <Typography variant="body2" sx={{ color: t.textMuted, fontWeight: 600 }}>{isSubmitting ? 'Evaluating your solution against all hidden benchmarks...' : 'Benchmarking complete'}</Typography>
-          </Stack>
-          {!isSubmitting && <IconButton onClick={() => setShowSubmitModal(false)} sx={{ bgcolor: isDarkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)', '&:hover': { bgcolor: isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)' } }}><Close sx={{ color: t.text }} /></IconButton>}
-        </DialogTitle>
-        <DialogContent sx={{ px: 5, pb: 5 }}>
-          <Stack spacing={3}>
-            <Box sx={{ 
-                p: 3, borderRadius: '20px', bgcolor: 'rgba(99, 102, 241, 0.05)', 
-                border: '1px solid rgba(99, 102, 241, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' 
-            }}>
-              <Stack direction="row" spacing={3} divider={<Box sx={{ width: 1, height: 24, bgcolor: t.border }} />}>
-                 <Box>
-                    <Typography variant="caption" sx={{ color: t.textMuted, fontWeight: 900, textTransform: 'uppercase', display: 'block' }}>Total Cases</Typography>
-                    <Typography variant="h4" sx={{ fontWeight: 900, color: t.text }}>{submitResults.length}</Typography>
-                 </Box>
-                 <Box>
-                    <Typography variant="caption" sx={{ color: '#34d399', fontWeight: 900, textTransform: 'uppercase', display: 'block' }}>Passed</Typography>
-                    <Typography variant="h4" sx={{ fontWeight: 900, color: '#34d399' }}>{submitResults.filter(r => r.passed).length}</Typography>
-                 </Box>
-              </Stack>
-              <Box sx={{ textAlign: 'right' }}>
-                 <Typography variant="caption" sx={{ color: t.textMuted, fontWeight: 900, textTransform: 'uppercase', display: 'block' }}>Accuracy Rate</Typography>
-                 <Typography variant="h4" sx={{ fontWeight: 900, color: '#818cf8', fontFamily: 'monospace' }}>
-                    {submitResults.length > 0 ? Math.round((submitResults.filter(r => r.passed).length / submitResults.length) * 100) : 0}%
-                 </Typography>
-              </Box>
-            </Box>
+      {/* ── HIGH PREMIUM SUBMISSION MODAL ── */}
+      <AnimatePresence>
+        {showSubmitModal && (
+          <Dialog 
+            open={true} 
+            maxWidth="md" 
+            fullWidth 
+            TransitionComponent={motion.div}
+            PaperProps={{ 
+              component: motion.div,
+              initial: { opacity: 0, scale: 0.9, y: 40 },
+              animate: { opacity: 1, scale: 1, y: 0 },
+              exit: { opacity: 0, scale: 0.9, y: 40 },
+              sx: { 
+                bgcolor: isDarkMode ? 'rgba(12, 14, 26, 0.92)' : '#ffffff', 
+                color: t.text, 
+                borderRadius: '44px', 
+                border: isDarkMode ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.05)',
+                backdropFilter: 'blur(100px)', 
+                zIndex: 2000,
+                boxShadow: isDarkMode ? '0 24px 80px rgba(0,0,0,0.9), 0 0 50px rgba(99, 102, 241, 0.15)' : '0 24px 60px rgba(0,0,0,0.12)',
+                overflow: 'hidden'
+              } 
+            }}
+            disableEscapeKeyDown={isSubmitting}
+          >
+            {/* Modal Ambient Glow */}
+            {isAllPassed && !isSubmitting && (
+                <Box sx={{ position: 'absolute', top: -150, right: -150, width: 400, height: 400, borderRadius: '50%', bgcolor: 'rgba(52, 211, 153, 0.12)', filter: 'blur(100px)', pointerEvents: 'none' }} />
+            )}
+
+            <DialogTitle sx={{ p: 6, pb: 2, textAlign: 'center', position: 'relative' }}>
+               <AnimatePresence mode="wait">
+                 {isSubmitting ? (
+                    <MotionBox key="submitting" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                        <CircularProgress size={80} thickness={2} sx={{ mb: 4, color: '#6366f1' }} />
+                        <Typography variant="h3" sx={{ fontWeight: 950, mb: 1.5, letterSpacing: '-0.04em' }}>Authenticating Code...</Typography>
+                        <Typography variant="body1" sx={{ color: t.textSecondary, fontWeight: 600, maxWidth: 400, mx: 'auto' }}>Validating your solution against our high-concurrency hidden benchmarks.</Typography>
+                    </MotionBox>
+                 ) : (
+                    <MotionBox key="results" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'spring', damping: 15 }}>
+                        <Typography variant="h2" sx={{ fontWeight: 950, mb: 1, letterSpacing: '-0.05em', color: isAllPassed ? '#34d399' : '#f87171' }}>
+                            {isAllPassed ? 'ACCEPTED' : 'WRONG ANSWER'}
+                        </Typography>
+                        <Typography variant="h6" sx={{ color: t.textSecondary, fontWeight: 700, mb: 5 }}>
+                            {isAllPassed ? "Perfect! You've mastered this challenge." : `Your code failed on ${totalCount - passedCount} critical test cases.`}
+                        </Typography>
+
+                        {/* Premium Stats Row */}
+                        <Box sx={{ 
+                            display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 0, 
+                            bgcolor: isDarkMode ? 'rgba(255,255,255,0.03)' : '#f8fafc', 
+                            borderRadius: '32px', border: `1px solid ${t.border}`, mb: 6, overflow: 'hidden'
+                        }}>
+                             <Box sx={{ p: 4, borderRight: `1px solid ${t.border}`, textAlign: 'center' }}>
+                                <Typography variant="caption" sx={{ color: t.textMuted, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', mb: 1 }}>Total Cases</Typography>
+                                <Typography variant="h3" sx={{ fontWeight: 950, color: t.text }}>{totalCount}</Typography>
+                             </Box>
+                             <Box sx={{ p: 4, borderRight: `1px solid ${t.border}`, textAlign: 'center' }}>
+                                <Typography variant="caption" sx={{ color: '#34d399', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', mb: 1 }}>Passed</Typography>
+                                <Typography variant="h3" sx={{ fontWeight: 950, color: '#34d399' }}>{passedCount}</Typography>
+                             </Box>
+                             <Box sx={{ p: 4, textAlign: 'center' }}>
+                                <Typography variant="caption" sx={{ color: '#818cf8', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', mb: 1 }}>Accuracy Rate</Typography>
+                                <Typography variant="h3" sx={{ fontWeight: 950, color: '#818cf8' }}>{accuracyRate}%</Typography>
+                             </Box>
+                        </Box>
+
+                        <Stack spacing={4} sx={{ textAlign: 'left' }}>
+                            {/* Performance Cards */}
+                            <Box>
+                                <Typography variant="overline" sx={{ color: t.textMuted, fontWeight: 900, mb: 2, display: 'block' }}>Performance Overview</Typography>
+                                <Stack direction="row" spacing={2}>
+                                    <Box sx={{ flex: 1, p: 2, borderRadius: '16px', bgcolor: isDarkMode ? 'rgba(255,255,255,0.02)' : '#ffffff', border: `1px solid ${t.border}`, display: 'flex', alignItems: 'center', gap: 2 }}>
+                                        <Speed sx={{ color: '#818cf8' }} />
+                                        <Box>
+                                            <Typography variant="caption" sx={{ color: t.textMuted, fontWeight: 800 }}>CPU Runtime</Typography>
+                                            <Typography variant="body2" sx={{ fontWeight: 800, color: t.text }}>{submitStats.runtime} seconds</Typography>
+                                        </Box>
+                                    </Box>
+                                    <Box sx={{ flex: 1, p: 2, borderRadius: '16px', bgcolor: isDarkMode ? 'rgba(255,255,255,0.02)' : '#ffffff', border: `1px solid ${t.border}`, display: 'flex', alignItems: 'center', gap: 2 }}>
+                                        <SignalCellularAlt sx={{ color: '#34d399' }} />
+                                        <Box>
+                                            <Typography variant="caption" sx={{ color: t.textMuted, fontWeight: 800 }}>Memory Usage</Typography>
+                                            <Typography variant="body2" sx={{ fontWeight: 800, color: t.text }}>{submitStats.memory} MB</Typography>
+                                        </Box>
+                                    </Box>
+                                    <Box sx={{ flex: 1, p: 2, borderRadius: '16px', bgcolor: isDarkMode ? 'rgba(255,255,255,0.02)' : '#ffffff', border: `1px solid ${t.border}`, display: 'flex', alignItems: 'center', gap: 2 }}>
+                                        <Stars sx={{ color: '#fbbf24' }} />
+                                        <Box>
+                                            <Typography variant="caption" sx={{ color: t.textMuted, fontWeight: 800 }}>Coins Earned</Typography>
+                                            <Typography variant="body2" sx={{ fontWeight: 800, color: '#fbbf24' }}>+{submitStats.coinsEarned}</Typography>
+                                        </Box>
+                                    </Box>
+                                </Stack>
+                            </Box>
+
+                            {/* Test Case Breakdown */}
+                            <Box>
+                                <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
+                                    <Typography variant="overline" sx={{ color: t.textMuted, fontWeight: 900, display: 'block' }}>Complete Test Case Breakdown</Typography>
+                                    <Typography variant="caption" sx={{ color: t.textMuted, fontWeight: 600 }}>{passedCount} / {totalCount} Passed</Typography>
+                                </Stack>
+                                <Box sx={{ 
+                                    display: 'flex', flexWrap: 'wrap', gap: 1.5, p: 3, 
+                                    borderRadius: '24px', bgcolor: isDarkMode ? 'rgba(0,0,0,0.2)' : '#f8fafc',
+                                    border: `1px solid ${t.border}`
+                                }}>
+                                    {submitResults.map((r, i) => (
+                                        <Tooltip key={i} title={`Test Case ${i+1}: ${r.status}`}>
+                                            <Box sx={{ 
+                                                width: 48, height: 48, borderRadius: '14px', 
+                                                bgcolor: r.passed ? 'rgba(52, 211, 153, 0.1)' : 'rgba(248, 113, 113, 0.1)',
+                                                border: `2px solid ${r.passed ? '#34d399' : '#f87171'}`,
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                transition: 'all 0.2s', '&:hover': { transform: 'scale(1.1)', boxShadow: r.passed ? '0 0 10px rgba(52, 211, 153, 0.3)' : '0 0 10px rgba(248, 113, 113, 0.3)' }
+                                            }}>
+                                                {r.passed ? <Check sx={{ color: '#34d399', fontSize: 22 }} /> : <Close sx={{ color: '#f87171', fontSize: 22 }} />}
+                                            </Box>
+                                        </Tooltip>
+                                    ))}
+                                </Box>
+                            </Box>
+                        </Stack>
+                    </MotionBox>
+                 )}
+               </AnimatePresence>
+            </DialogTitle>
             
-            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 2.5 }}>
-              {submitResults.map((r, i) => (
-                <Box 
-                  key={i} 
-                  sx={{ 
-                    p: 2.5, borderRadius: '20px', border: '1px solid', 
-                    borderColor: r.passed === true ? 'rgba(52, 211, 153, 0.2)' : r.passed === false ? 'rgba(248, 113, 113, 0.2)' : t.border,
-                    bgcolor: r.passed === true ? 'rgba(52, 211, 153, 0.03)' : r.passed === false ? 'rgba(248, 113, 113, 0.03)' : isDarkMode ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.01)',
-                    transition: 'all 0.3s ease'
-                  }}
-                >
-                  <Stack spacing={1.5} alignItems="center">
-                    <Typography variant="caption" sx={{ color: t.textMuted, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em' }}>TC {r.index}</Typography>
-                    <AnimatePresence mode="wait">
-                        {r.status === 'Running' ? (
-                            <MotionBox initial={{ scale: 0.8 }} animate={{ scale: 1 }}><CircularProgress size={24} sx={{ color: '#6366f1' }} /></MotionBox>
-                        ) : (
-                            <MotionBox initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', damping: 10 }}>
-                                {r.passed ? <CheckCircle sx={{ fontSize: 32, color: '#34d399' }} /> : <Close sx={{ fontSize: 32, color: '#f87171' }} />}
-                            </MotionBox>
-                        )}
-                    </AnimatePresence>
-                    <Chip label={r.type} size="small" sx={{ height: 20, bgcolor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)', color: t.textMuted, fontWeight: 800, fontSize: '0.65rem' }} />
+            <DialogActions sx={{ p: 6, pt: 2, bgcolor: isDarkMode ? 'rgba(255,255,255,0.01)' : '#ffffff' }}>
+               {!isSubmitting && (
+                  <Stack direction="row" spacing={3} sx={{ width: '100%' }}>
+                     <Button 
+                        fullWidth 
+                        variant="outlined" 
+                        onClick={() => setShowSubmitModal(false)}
+                        startIcon={<Replay />}
+                        sx={{ py: 2.2, borderRadius: '22px', fontWeight: 900, fontSize: '0.95rem', border: `2px solid ${t.border}`, color: t.text, textTransform: 'none', '&:hover': { border: `2px solid ${t.text}`, bgcolor: isDarkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)' } }}
+                    >
+                        Try Again
+                     </Button>
+                     {isAllPassed && (
+                       <Button 
+                          fullWidth 
+                          variant="contained" 
+                          onClick={() => navigate('/practice/programming')}
+                          sx={{ 
+                              py: 2.2, borderRadius: '22px', fontWeight: 900, fontSize: '0.95rem', bgcolor: '#34d399', color: '#fff', textTransform: 'none',
+                              boxShadow: '0 12px 36px rgba(52, 211, 153, 0.45)', '&:hover': { bgcolor: '#22c55e', transform: 'translateY(-2px)' }
+                          }}
+                      >
+                          Done
+                       </Button>
+                     )}
                   </Stack>
-                </Box>
-              ))}
-            </Box>
-          </Stack>
-        </DialogContent>
-        <DialogActions sx={{ px: 5, pb: 5 }}>
-           {!isSubmitting && <Button variant="contained" fullWidth onClick={() => setShowSubmitModal(false)} sx={{ bgcolor: '#6366f1', color: '#fff', fontWeight: 900, py: 2, borderRadius: '16px', fontSize: '1rem', textTransform: 'none', boxShadow: isDarkMode ? '0 8px 30px rgba(99, 102, 241, 0.3)' : 'none', '&:hover': { bgcolor: '#4f46e5' } }}>Back to Workspace</Button>}
-        </DialogActions>
-      </Dialog>
+               )}
+            </DialogActions>
+          </Dialog>
+        )}
+      </AnimatePresence>
     </Box>
   );
 }

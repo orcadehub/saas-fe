@@ -235,7 +235,7 @@ export default function QuestionPracticePage() {
     headerBg: isDarkMode ? 'linear-gradient(to right, rgba(15,17,30,0.8), rgba(12,14,26,0.8))' : '#ffffff',
     cardBg: isDarkMode ? 'rgba(0,0,0,0.3)' : '#ffffff',
     codeBg: isDarkMode ? '#0c0e1a' : '#ffffff',
-    testCaseBg: isDarkMode ? '#fbfcfe' : '#ffffff'
+    testCaseBg: isDarkMode ? 'rgba(12,14,26,0.95)' : '#ffffff'
   };
 
   const selectMenuStyle = {
@@ -511,7 +511,7 @@ export default function QuestionPracticePage() {
           />
 
           {/* Console / Output Section */}
-          <Box sx={{ position: 'relative', zIndex: 100, flex: 1, display: 'flex', flexDirection: 'column', bgcolor: t.testCaseBg, overflow: 'hidden' }}>
+          <Box sx={{ position: 'relative', zIndex: 100, flex: 1, display: 'flex', flexDirection: 'column', bgcolor: t.testCaseBg, backdropFilter: isDarkMode ? 'blur(20px)' : 'none', overflow: 'hidden' }}>
             <Box sx={{ height: 48, borderBottom: `1px solid ${t.border}`, display: 'flex', alignItems: 'center', px: 2, bgcolor: isDarkMode ? 'rgba(15, 17, 30, 0.4)' : '#ffffff', zIndex: 10 }}>
                <Tabs 
                  value={currentTestCaseTab} onChange={(e, v) => setCurrentTestCaseTab(v)}

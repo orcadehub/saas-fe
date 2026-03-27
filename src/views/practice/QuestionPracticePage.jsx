@@ -446,14 +446,19 @@ export default function QuestionPracticePage() {
                   size="small" value={language} onChange={(e) => setLanguage(e.target.value)} 
                   MenuProps={{ sx: selectMenuStyle }}
                   sx={{ 
-                    height: 32, color: '#818cf8', fontSize: '0.8rem', fontWeight: 800, borderRadius: '8px',
+                    height: 32, 
+                    color: isDarkMode ? '#ffffff' : '#818cf8', 
+                    fontSize: '0.8rem', 
+                    fontWeight: 800, 
+                    borderRadius: '8px',
                     bgcolor: isDarkMode ? 'rgba(99, 102, 241, 0.05)' : 'rgba(99, 102, 241, 0.03)',
+                    '& .MuiSelect-select': { color: isDarkMode ? '#ffffff' : '#818cf8' },
                     '& .MuiOutlinedInput-notchedOutline': { border: isDarkMode ? '1px solid rgba(99, 102, 241, 0.1)' : '1px solid rgba(99, 102, 241, 0.2)' },
                     '&:hover': { bgcolor: 'rgba(99, 102, 241, 0.1)' },
-                    '.MuiSvgIcon-root': { color: '#818cf8' }
+                    '.MuiSvgIcon-root': { color: isDarkMode ? '#ffffff' : '#818cf8' }
                   }}
                 >
-                  {Object.keys(langMeta).map(l => <MenuItem key={l} value={l} sx={{ fontWeight: 700, fontSize: '0.85rem' }}>{langMeta[l].label}</MenuItem>)}
+                  {Object.keys(langMeta).map(l => <MenuItem key={l} value={l} sx={{ fontWeight: 700, fontSize: '0.85rem', color: isDarkMode ? '#ffffff' : 'inherit' }}>{langMeta[l].label}</MenuItem>)}
                 </Select>
               </Stack>
               

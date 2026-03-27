@@ -4,7 +4,7 @@ import {
   Box, Typography, Button, IconButton, Tabs, Tab, 
   Select, MenuItem, FormControl, InputLabel, CircularProgress, 
   Dialog, DialogTitle, DialogContent, DialogActions, 
-  Chip, Stack, Tooltip, Breadcrumbs, Link, LinearProgress, Avatar
+  Chip, Stack, Tooltip, Breadcrumbs, Link, LinearProgress
 } from '@mui/material';
 import { 
   ArrowBack, PlayArrow, CheckCircle, Close, Add, Remove, 
@@ -12,7 +12,7 @@ import {
   Lightbulb, Timer, Storage, Check, LightMode, DarkMode,
   EmojiEvents, Speed, SignalCellularAlt, History, Replay, Launch,
   InfoOutlined, HelpOutline, Stars, ErrorOutline,
-  AssignmentTurnedIn, TrendingUp, Analytics, WorkspacePremium, Notifications
+  AssignmentTurnedIn, TrendingUp, Analytics, WorkspacePremium
 } from '@mui/icons-material';
 import Editor from '@monaco-editor/react';
 import { submitCode } from 'services/pistonService';
@@ -20,7 +20,6 @@ import tenantConfig from 'config/tenantConfig';
 import { useAuth } from 'contexts/AuthContext';
 import StarryBackground from 'components/StarryBackground';
 import { motion, AnimatePresence } from 'framer-motion';
-import { io } from 'socket.io-client';
 
 const MotionBox = motion.create(Box);
 
@@ -61,11 +60,6 @@ export default function QuestionPracticePage() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
   
-  // Real-time notifications queue
-  const [notifications, setNotifications] = useState([]);
-  const socketRef = useRef(null);
-  const notificationTimerRef = useRef(null);
-
   const containerRef = useRef(null);
   const isResizing = useRef(false);
   const isResizingVertical = useRef(false);
@@ -123,28 +117,7 @@ export default function QuestionPracticePage() {
     tenantConfig.load().then(setConfig).catch(console.error);
     const savedTheme = localStorage.getItem('orca_practice_theme');
     if (savedTheme) setIsDarkMode(savedTheme === 'dark');
-    
-    // Setup Socket connection
-    const socketUrl = import.meta.env.DEV ? 'http://localhost:4000' : 'https://backend.orcode.in';
-    socketRef.current = io(socketUrl);
-    
-    socketRef.current.on('practice_completion', (data) => {
-      setNotifications(prev => [...prev, data]);
-    });
-
-    return () => {
-      if (socketRef.current) socketRef.current.disconnect();
-    };
   }, []);
-
-  useEffect(() => {
-    if (notifications.length > 0 && !notificationTimerRef.current) {
-        notificationTimerRef.current = setTimeout(() => {
-            setNotifications(prev => prev.slice(1));
-            notificationTimerRef.current = null;
-        }, 5000);
-    }
-  }, [notifications]);
 
   useEffect(() => {
     localStorage.setItem('orca_practice_theme', isDarkMode ? 'dark' : 'light');
@@ -270,7 +243,7 @@ export default function QuestionPracticePage() {
         },
         body: JSON.stringify({
           questionId: id,
-          topicId: question.topicId || id, // Fallback if not direct
+          topicId: question.topicId || id,
           subTopicId: question.subTopicId || id,
           code,
           language,
@@ -358,36 +331,14 @@ export default function QuestionPracticePage() {
           <IconButton onClick={() => navigate(-1)} sx={{ color: isDarkMode ? 'rgba(255,255,255,0.7)' : '#64748b', '&:hover': { color: isDarkMode ? '#fff' : '#1e293b', bgcolor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)' } }}>
             <ArrowBack />
           </IconButton>
-          
-          {/* Real-time Achievement Marquee */}
-          <Box sx={{ flex: 1, px: 4, position: 'relative', overflow: 'hidden', height: 40 }}>
-             <AnimatePresence mode="wait">
-                {notifications.length > 0 && (
-                   <MotionBox 
-                     key={notifications[0].username + notifications[0].problemTitle}
-                     initial={{ x: '100%', opacity: 0 }}
-                     animate={{ x: 0, opacity: 1 }}
-                     exit={{ x: '-100%', opacity: 0 }}
-                     transition={{ duration: 0.8, ease: "easeOut" }}
-                     sx={{ 
-                        display: 'flex', alignItems: 'center', gap: 2, height: '100%',
-                        bgcolor: isDarkMode ? 'rgba(52, 211, 153, 0.12)' : 'rgba(52, 211, 153, 0.08)',
-                        px: 3, borderRadius: '20px', border: '1px solid rgba(52, 211, 153, 0.2)'
-                     }}
-                   >
-                     <Avatar sx={{ width: 24, height: 24, bgcolor: '#34d399', fontSize: 12 }}>{notifications[0].username?.[0]}</Avatar>
-                     <Typography sx={{ color: t.text, fontWeight: 700, fontSize: '0.85rem' }}>
-                        <Box component="span" sx={{ color: '#34d399' }}>{notifications[0].username}</Box> just solved 
-                        <Box component="span" sx={{ color: '#818cf8', ml: 1 }}>{notifications[0].problemTitle}</Box>
-                     </Typography>
-                     <Stack direction="row" spacing={0.5} alignItems="center">
-                        <Stars sx={{ fontSize: 16, color: '#fbbf24' }} />
-                        <Typography sx={{ color: '#fbbf24', fontWeight: 900, fontSize: '0.9rem' }}>+{notifications[0].coins}</Typography>
-                     </Stack>
-                   </MotionBox>
-                )}
-             </AnimatePresence>
-          </Box>
+          <Breadcrumbs separator={<Typography sx={{ color: t.textMuted }}>/</Typography>}>
+            <Link component="button" variant="body2" onClick={() => navigate('/practice/programming')} sx={{ color: t.textSecondary, textDecoration: 'none', fontWeight: 600, '&:hover': { color: '#6366f1' } }}>
+              Practice Center
+            </Link>
+            <Typography variant="body2" sx={{ color: t.text, fontWeight: 800 }}>
+              {question.title}
+            </Typography>
+          </Breadcrumbs>
         </Stack>
 
         <Stack direction="row" spacing={2} alignItems="center">

@@ -1,10 +1,11 @@
 // material-ui
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
+import Stack from '@mui/material/Stack';
 
 // project imports
 import LogoSection from '../LogoSection';
@@ -15,6 +16,11 @@ import { handlerDrawerOpen, useGetMenuMaster } from 'api/menu';
 
 // assets
 import { IconChevronLeft, IconChevronRight, IconUsers } from '@tabler/icons-react';
+import { Stars } from '@mui/icons-material';
+import { motion, AnimatePresence } from 'framer-motion';
+import { io } from 'socket.io-client';
+
+const MotionBox = motion.create(Box);
 
 // ==============================|| MAIN NAVBAR / HEADER ||============================== //
 
@@ -25,6 +31,11 @@ export default function Header() {
   const { menuMaster } = useGetMenuMaster();
   const drawerOpen = menuMaster.isDashboardDrawerOpened;
   const [activeCount, setActiveCount] = useState(0);
+  
+  // Real-time notifications queue
+  const [notifications, setNotifications] = useState([]);
+  const socketRef = useRef(null);
+  const notificationTimerRef = useRef(null);
 
   useEffect(() => {
     const token = localStorage.getItem('studentToken');
@@ -44,8 +55,29 @@ export default function Header() {
 
     fetchCount();
     const intervalId = setInterval(fetchCount, 60000);
-    return () => clearInterval(intervalId);
+
+    // Setup Socket connection for global achievements
+    const socketUrl = import.meta.env.DEV ? 'http://localhost:4000' : 'https://backend.orcode.in';
+    socketRef.current = io(socketUrl);
+    
+    socketRef.current.on('practice_completion', (data) => {
+      setNotifications(prev => [...prev, data]);
+    });
+
+    return () => {
+      clearInterval(intervalId);
+      if (socketRef.current) socketRef.current.disconnect();
+    };
   }, []);
+
+  useEffect(() => {
+    if (notifications.length > 0 && !notificationTimerRef.current) {
+        notificationTimerRef.current = setTimeout(() => {
+            setNotifications(prev => prev.slice(1));
+            notificationTimerRef.current = null;
+        }, 5000);
+    }
+  }, [notifications]);
 
   return (
     <>
@@ -56,11 +88,43 @@ export default function Header() {
         </Box>
       </Box>
 
-      {/* header search / active count */}
-      <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', px: 2 }}>
+      {/* Real-time Achievement Marquee (Global) */}
+      <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', px: 2, overflow: 'hidden', height: 40 }}>
+         <AnimatePresence mode="wait">
+            {notifications.length > 0 && (
+               <MotionBox 
+                 key={notifications[0].username + notifications[0].problemTitle + notifications[0].timestamp}
+                 initial={{ y: 20, opacity: 0 }}
+                 animate={{ y: 0, opacity: 1 }}
+                 exit={{ y: -20, opacity: 0 }}
+                 transition={{ duration: 0.5, ease: "easeOut" }}
+                 sx={{ 
+                    display: 'flex', alignItems: 'center', gap: 1.5,
+                    bgcolor: 'rgba(52, 211, 153, 0.12)',
+                    px: 3, py: 0.5, borderRadius: '25px', 
+                    border: '1px solid rgba(52, 211, 153, 0.25)',
+                    boxShadow: '0 4px 15px rgba(52, 211, 153, 0.1)'
+                 }}
+               >
+                 <Avatar sx={{ width: 22, height: 22, bgcolor: '#34d399', fontSize: 10, fontWeight: 800 }}>{notifications[0].username?.[0]}</Avatar>
+                 <Typography variant="body2" sx={{ fontWeight: 700, color: '#1e293b' }}>
+                    <Box component="span" sx={{ color: '#10b981' }}>{notifications[0].username}</Box> mastered 
+                    <Box component="span" sx={{ color: '#6366f1', ml: 0.5 }}>{notifications[0].problemTitle}</Box>
+                 </Typography>
+                 <Stack direction="row" spacing={0.5} alignItems="center">
+                    <Stars sx={{ fontSize: 16, color: '#fbbf24' }} />
+                    <Typography sx={{ color: '#f59e0b', fontWeight: 900, fontSize: '0.85rem' }}>+{notifications[0].coins}</Typography>
+                 </Stack>
+               </MotionBox>
+            )}
+         </AnimatePresence>
+      </Box>
+
+      {/* active count & profile */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
         {activeCount > 0 && (
           <Box sx={{ 
-            display: 'flex', 
+            display: { xs: 'none', sm: 'flex' }, 
             alignItems: 'center', 
             gap: 1, 
             bgcolor: 'rgba(16, 185, 129, 0.1)', 
@@ -72,7 +136,7 @@ export default function Header() {
           }}>
             <IconUsers size={18} />
             <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-              {activeCount} Active {activeCount === 1 ? 'Student' : 'Students'}
+              {activeCount} {activeCount === 1 ? 'Student' : 'Students'}
             </Typography>
             <Box sx={{
               width: 8, height: 8, borderRadius: '50%', bgcolor: '#10b981', ml: 0.5,
@@ -85,10 +149,8 @@ export default function Header() {
             }} />
           </Box>
         )}
+        <ProfileSection />
       </Box>
-
-      {/* profile */}
-      <ProfileSection />
     </>
   );
 }

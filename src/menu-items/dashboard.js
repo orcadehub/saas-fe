@@ -1,5 +1,4 @@
-// assets
-import { IconDashboard, IconClipboardList, IconTrophy, IconCode, IconBrain, IconRobot, IconDeviceGamepad2, IconBook, IconBooks, IconSparkles } from '@tabler/icons-react';
+import { IconDashboard, IconClipboardList, IconTrophy, IconCode, IconBrain, IconRobot, IconDeviceGamepad2, IconBook, IconBooks, IconSparkles, IconCertificate } from '@tabler/icons-react';
 
 // constant
 const icons = { 
@@ -12,7 +11,8 @@ const icons = {
   IconDeviceGamepad2,
   IconBook,
   IconBooks,
-  IconSparkles
+  IconSparkles,
+  IconCertificate
 };
 
 // ==============================|| DASHBOARD MENU ITEMS ||============================== //
@@ -101,6 +101,14 @@ const dashboard = {
       type: 'item',
       url: '/genai',
       icon: icons.IconSparkles,
+      breadcrumbs: false
+    },
+    {
+      id: 'certificates',
+      title: 'Certificates',
+      type: 'item',
+      url: '/certificates',
+      icon: icons.IconCertificate,
       breadcrumbs: false
     }
   ]

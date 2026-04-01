@@ -60,6 +60,8 @@ const InterviewPage = Loadable(lazy(() => import('views/ai-mock/InterviewPage'))
 const CodeInterviewPage = Loadable(lazy(() => import('views/ai-mock/CodeInterviewPage')));
 const ResultPage = Loadable(lazy(() => import('views/ai-mock/ResultPage')));
 const GenAIPlayground = Loadable(lazy(() => import('views/genai')));
+const Certificates = Loadable(lazy(() => import('views/certificates/StudentCertificates')));
+const CertificateView = Loadable(lazy(() => import('views/certificates/CertificateView')));
 
 // ==============================|| MAIN ROUTING ||============================== //
 
@@ -276,6 +278,14 @@ const MainRoutes = {
         {
           path: 'genai',
           element: <GenAIPlayground />
+        },
+        {
+          path: 'certificates',
+          element: <Certificates />
+        },
+        {
+          path: 'certificates/:id',
+          element: <CertificateView />
         }
       ]
     }

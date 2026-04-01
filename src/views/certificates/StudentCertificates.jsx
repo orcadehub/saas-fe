@@ -28,6 +28,7 @@ import {
 } from '@mui/icons-material';
 
 import { useNavigate } from 'react-router-dom';
+import apiService from 'services/apiService';
 
 const StudentCertificates = () => {
   const theme = useTheme();
@@ -43,18 +44,8 @@ const StudentCertificates = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('studentToken');
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api'}/certificates/my-certificates`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setCertificates(data);
-      } else {
-        throw new Error('Failed to fetch');
-      }
+      const data = await apiService.getMyCertificates(token);
+      setCertificates(data);
     } catch (error) {
       console.error('Error fetching certificates:', error);
     } finally {

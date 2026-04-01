@@ -22,6 +22,7 @@ import {
 } from '@mui/icons-material';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import apiService from 'services/apiService';
 
 const CertificateView = () => {
   const theme = useTheme();
@@ -41,18 +42,13 @@ const CertificateView = () => {
     try {
       setLoading(true);
       setErrorNotFound(false);
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api'}/certificates/view/${id}`);
-      
-      if (response.ok) {
-        const data = await response.json();
-        setCertificate(data);
-      } else if (response.status === 404) {
-        setErrorNotFound(true);
-      } else {
-        throw new Error('Failed to fetch certificate');
-      }
+      const data = await apiService.getCertificateByStringId(id);
+      setCertificate(data);
     } catch (error) {
       console.error('Error fetching certificate view:', error);
+      if (error.response?.status === 404) {
+        setErrorNotFound(true);
+      }
     } finally {
       setLoading(false);
     }

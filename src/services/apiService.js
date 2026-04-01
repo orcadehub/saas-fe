@@ -261,5 +261,19 @@ class ApiService {
     );
     return response.data;
   }
+
+  // Certificate: Get my certificates (student)
+  async getMyCertificates(token) {
+    const response = await this.client.get('/certificates/my-certificates', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
+  }
+
+  // Certificate: Get certificate by string ID (public)
+  async getCertificateByStringId(certificateId) {
+    const response = await this.client.get(`/certificates/view/${certificateId}`);
+    return response.data;
+  }
 }
 export default new ApiService();

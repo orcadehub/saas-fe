@@ -31,7 +31,7 @@ export default function AssessmentTaking() {
   const [questions, setQuestions] = useState([]);
   const [isDataReady, setIsDataReady] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [showPartB, setShowPartB] = useState(false);
+  const [tabValue, setTabValue] = useState(0);
   const [showFullscreenPrompt, setShowFullscreenPrompt] = useState(false);
   const [answers, setAnswers] = useState({});
   const [leftWidth, setLeftWidth] = useState(50);
@@ -592,7 +592,7 @@ export default function AssessmentTaking() {
         window.removeEventListener('resize', checkScroll);
       };
     }
-  }, [questions, currentQuestionIndex, showPartB]);
+  }, [questions, currentQuestionIndex]);
 
   useEffect(() => {
     const handleMouseMove = (e) => {
@@ -676,21 +676,26 @@ export default function AssessmentTaking() {
         
         setQuestions(shuffledQuestions);
         
-        // Auto-select Part A and first quiz question
+        // Auto-select first available question type's first question
         const firstQuizIndex = shuffledQuestions.findIndex(q => q.type === 'quiz');
         const firstFrontendIndex = shuffledQuestions.findIndex(q => q.type === 'frontend');
+        const firstMongoDBIndex = shuffledQuestions.findIndex(q => q.type === 'mongodb');
+        const firstSQLIndex = shuffledQuestions.findIndex(q => q.type === 'sql');
         const firstProgrammingIndex = shuffledQuestions.findIndex(q => q.type === 'programming');
         
         if (firstQuizIndex !== -1) {
-          setShowPartB(false);
           setCurrentQuestionIndex(firstQuizIndex);
           setVisitedQuestions(new Set([firstQuizIndex]));
         } else if (firstFrontendIndex !== -1) {
-          setShowPartB(false);
           setCurrentQuestionIndex(firstFrontendIndex);
           setVisitedQuestions(new Set([firstFrontendIndex]));
+        } else if (firstMongoDBIndex !== -1) {
+          setCurrentQuestionIndex(firstMongoDBIndex);
+          setVisitedQuestions(new Set([firstMongoDBIndex]));
+        } else if (firstSQLIndex !== -1) {
+          setCurrentQuestionIndex(firstSQLIndex);
+          setVisitedQuestions(new Set([firstSQLIndex]));
         } else if (firstProgrammingIndex !== -1) {
-          setShowPartB(true);
           setCurrentQuestionIndex(firstProgrammingIndex);
           setVisitedQuestions(new Set([firstProgrammingIndex]));
         }
@@ -911,7 +916,7 @@ export default function AssessmentTaking() {
           setTourSteps(quizTourSteps);
           setTimeout(() => setRunTour(true), 1000);
         }
-      } else if (questionType === 'programming' && showPartB) {
+      } else if (questionType === 'programming') {
         const tourKey = `assessment_tour_${id}_programming`;
         const tourData = localStorage.getItem(tourKey);
         
@@ -929,7 +934,7 @@ export default function AssessmentTaking() {
         }
       }
     }
-  }, [showPreparation, loading, questions, currentQuestionIndex, showPartB, id]);
+  }, [showPreparation, loading, questions, currentQuestionIndex, id]);
 
   useEffect(() => {
     // Set initial time from assessment start time + duration

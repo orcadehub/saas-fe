@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Box, Typography, Button, IconButton, Chip, Skeleton } from '@mui/material';
-import { ArrowBack, Fullscreen, FullscreenExit } from '@mui/icons-material';
+import { Box, Typography, Button, IconButton, Chip, Skeleton, Card } from '@mui/material';
+import { ArrowBack, Fullscreen, FullscreenExit, Lock } from '@mui/icons-material';
 import tenantConfig from 'config/tenantConfig';
 import apiService from 'services/apiService';
 import FrontendEditor from './components/FrontendEditor';
@@ -16,6 +16,7 @@ export default function FrontendPractice() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [leftWidth, setLeftWidth] = useState(40);
+  const [timeToUnlock, setTimeToUnlock] = useState(null);
   const containerRef = useRef(null);
   const isResizing = useRef(false);
 
@@ -86,6 +87,20 @@ export default function FrontendPractice() {
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
 
+  // Live countdown timer for expiry guard
+  useEffect(() => {
+    if (!assessment) return;
+    const startTime = new Date(assessment.startTime).getTime();
+    const endTime = startTime + (assessment.duration * 60 * 1000);
+    const tick = () => {
+      const now = Date.now();
+      setTimeToUnlock(now >= endTime ? 0 : endTime - now);
+    };
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, [assessment]);
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#fbfcfe' }}>
@@ -102,6 +117,29 @@ export default function FrontendPractice() {
             <Skeleton variant="rectangular" height="100%" sx={{ borderRadius: '16px' }} />
           </Box>
         </Box>
+      </Box>
+    );
+  }
+
+  // Guard: Block practice if assessment is still live
+  if (timeToUnlock > 0) {
+    const hours = Math.floor(timeToUnlock / (1000 * 60 * 60));
+    const minutes = Math.floor((timeToUnlock % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((timeToUnlock % (1000 * 60)) / 1000);
+    return (
+      <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 3, bgcolor: '#f8fafc' }}>
+        <Card sx={{ maxWidth: 550, textAlign: 'center', p: 6, borderRadius: '40px', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', border: '1px solid #f1f5f9' }}>
+          <Box sx={{ width: 100, height: 100, bgcolor: '#fef2f2', borderRadius: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', mx: 'auto', mb: 4 }}>
+            <Lock sx={{ fontSize: 50, color: '#ef4444' }} />
+          </Box>
+          <Typography variant="h2" gutterBottom sx={{ fontWeight: 900, color: '#0f172a', fontSize: '2.25rem' }}>Practice Locked</Typography>
+          <Typography variant="body1" sx={{ color: '#64748b', mb: 5, fontSize: '1.1rem', fontWeight: 500 }}>Practice mode will be available after the assessment window expires.</Typography>
+          <Box sx={{ bgcolor: '#6366f1', color: 'white', borderRadius: '24px', p: 3, mb: 4 }}>
+            <Typography variant="h2" sx={{ fontWeight: 900, fontFamily: "'JetBrains Mono', monospace" }}>{hours > 0 ? `${hours}h ` : ''}{minutes}m {seconds}s</Typography>
+            <Typography variant="caption" sx={{ fontWeight: 700, textTransform: 'uppercase', opacity: 0.8 }}>Time Until Practice Unlocks</Typography>
+          </Box>
+          <Button startIcon={<ArrowBack />} onClick={() => navigate('/assessments')} sx={{ fontWeight: 800, color: '#6366f1' }}>Return to Assessments</Button>
+        </Card>
       </Box>
     );
   }

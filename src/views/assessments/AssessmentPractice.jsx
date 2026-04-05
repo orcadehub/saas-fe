@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Box, Typography, Button, IconButton, Tabs, Tab, Select, MenuItem, FormControl, InputLabel, CircularProgress, Dialog, DialogTitle, DialogContent, DialogActions, Card, CardContent, Chip, Skeleton, Stack } from '@mui/material';
-import { ArrowBack, PlayArrow, CheckCircle, Close, Add, Remove, Fullscreen, FullscreenExit } from '@mui/icons-material';
-import Editor from '@monaco-editor/react';
-import { submitCode } from 'services/pistonService';
+import { Box, Typography, Button, IconButton, Chip, Skeleton, Card } from '@mui/material';
+import { ArrowBack, Fullscreen, FullscreenExit, Lock, Timer } from '@mui/icons-material';
 import tenantConfig from 'config/tenantConfig';
 import apiService from 'services/apiService';
+import ProgrammingEditor from './components/ProgrammingEditor';
+import FrontendEditor from './components/FrontendEditor';
+import MongoDBPlaygroundEditor from './components/MongoDBPlaygroundEditor';
+import SQLPlaygroundEditor from './components/SQLPlaygroundEditor';
 
 export default function AssessmentPractice() {
   const { id } = useParams();
@@ -15,10 +17,9 @@ export default function AssessmentPractice() {
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [language, setLanguage] = useState('');
-  const [code, setCode] = useState('');
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [leftWidth, setLeftWidth] = useState(40);
+  const [timeToUnlock, setTimeToUnlock] = useState(null);
   const containerRef = useRef(null);
   const isResizing = useRef(false);
 
@@ -45,17 +46,6 @@ export default function AssessmentPractice() {
     document.body.style.cursor = 'default';
     document.body.style.userSelect = 'auto';
   };
-  const [fontSize, setFontSize] = useState(18);
-  const [currentTestCaseTab, setCurrentTestCaseTab] = useState(0);
-  const [isRunning, setIsRunning] = useState(false);
-  const [testCaseResults, setTestCaseResults] = useState({});
-  const [showSubmitModal, setShowSubmitModal] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitResults, setSubmitResults] = useState([]);
-  const [compilerSplit, setCompilerSplit] = useState(60);
-  const [isCompilerDragging, setIsCompilerDragging] = useState(false);
-  const editorRef = useRef(null);
-
 
   useEffect(() => {
     tenantConfig.load().then(setConfig).catch(console.error);
@@ -73,10 +63,8 @@ export default function AssessmentPractice() {
       const assessmentData = await apiService.getAssessmentDetails(token, id);
       setAssessment(assessmentData);
       
-      // Fetch full question data
       const questionsData = await apiService.getAssessmentQuestions(token, id);
       
-      // Combine all question types for practice mode
       const allQuestions = [
         ...(questionsData.programmingQuestions || []),
         ...(questionsData.quizQuestions || []),
@@ -86,168 +74,11 @@ export default function AssessmentPractice() {
       ];
       
       setQuestions(allQuestions);
-      if (allQuestions.length > 0) {
-        setLanguage(assessmentData.allowedLanguages?.[0] || 'python');
-      }
     } catch (error) {
       console.error('Error fetching assessment:', error);
     } finally {
       setLoading(false);
     }
-  };
-
-  const getLanguageTemplate = (lang) => {
-    switch (lang) {
-      case 'python': return `# Write your code here\n`;
-      case 'cpp': return `#include <iostream>\nusing namespace std;\n\nint main() {\n    // Write your code here\n    return 0;\n}`;
-      case 'java': return `import java.util.*;\n\npublic class Main {\n    public static void main(String[] args) {\n        // Write your code here\n    }\n}`;
-      case 'c': return `#include <stdio.h>\n\nint main() {\n    // Write your code here\n    return 0;\n}`;
-      default: return '// Write your code here';
-    }
-  };
-
-  const getMonacoLanguage = (lang) => {
-    switch (lang) {
-      case 'cpp': return 'cpp';
-      case 'java': return 'java';
-      case 'python': return 'python';
-      case 'c': return 'c';
-      default: return 'plaintext';
-    }
-  };
-
-  const getLanguageId = (lang) => {
-    switch (lang) {
-      case 'python': return 71;
-      case 'cpp': return 54;
-      case 'java': return 62;
-      case 'c': return 50;
-      default: return 71;
-    }
-  };
-
-  useEffect(() => {
-    if (questions[currentQuestionIndex]?._id && language) {
-      const question = questions[currentQuestionIndex];
-      const storageKey = `practice_assessment_${id}_question_${question._id}_${language}`;
-      const savedCode = localStorage.getItem(storageKey);
-      
-      const defaultCode = question.starterCode || getLanguageTemplate(language);
-      setCode(savedCode || defaultCode);
-    }
-  }, [currentQuestionIndex, language, questions, id]);
-
-  useEffect(() => {
-    if (questions[currentQuestionIndex]?._id && language && code) {
-      const storageKey = `practice_assessment_${id}_question_${questions[currentQuestionIndex]._id}_${language}`;
-      localStorage.setItem(storageKey, code);
-    }
-  }, [code, currentQuestionIndex, language, questions, id]);
-
-  const handleRunCode = async () => {
-    if (!code.trim() || !language) return;
-    
-    setIsRunning(true);
-    setTestCaseResults({});
-    
-    const publicTestCases = questions[currentQuestionIndex]?.testCases?.filter(tc => tc.isPublic) || [];
-    const languageId = getLanguageId(language);
-    
-    for (let i = 0; i < publicTestCases.length; i++) {
-      const testCase = publicTestCases[i];
-      
-      setTestCaseResults(prev => ({
-        ...prev,
-        [i]: { loading: true }
-      }));
-      
-      try {
-        const result = await submitCode(code, languageId, testCase.input?.value || testCase.input);
-        
-        if (result.status.id === 3) {
-          const userOutput = result.stdout ? result.stdout.trim() : '';
-          setTestCaseResults(prev => ({
-            ...prev,
-            [i]: { loading: false, output: userOutput, error: null }
-          }));
-        } else {
-          let errorOutput = result.stderr || 'Execution Error';
-          if (errorOutput.includes('fatal signal')) {
-            errorOutput = 'Error: Program exceeded time/memory limits';
-          }
-          setTestCaseResults(prev => ({
-            ...prev,
-            [i]: { loading: false, output: null, error: errorOutput }
-          }));
-        }
-      } catch (error) {
-        setTestCaseResults(prev => ({
-          ...prev,
-          [i]: { loading: false, output: null, error: error.message }
-        }));
-      }
-    }
-    
-    setIsRunning(false);
-  };
-
-  const handleSubmit = async () => {
-    if (!code.trim() || !language) return;
-    
-    const allTestCases = questions[currentQuestionIndex]?.testCases || [];
-    
-    const initialResults = allTestCases.map((tc, i) => ({
-      index: i + 1,
-      type: tc.isPublic ? 'Public' : 'Private',
-      status: 'Pending',
-      passed: null
-    }));
-    
-    setSubmitResults(initialResults);
-    setShowSubmitModal(true);
-    setIsSubmitting(true);
-    
-    const languageId = getLanguageId(language);
-    const results = [...initialResults];
-    
-    for (let i = 0; i < allTestCases.length; i++) {
-      const testCase = allTestCases[i];
-      
-      results[i] = { ...results[i], status: 'Running' };
-      setSubmitResults([...results]);
-      
-      try {
-        const result = await submitCode(code, languageId, testCase.input?.value || testCase.input);
-        
-        if (result.status.id === 3) {
-          const userOutput = result.stdout ? result.stdout.trim() : '';
-          const expectedOutput = (testCase.output?.value || testCase.output)?.toString().trim();
-          const passed = userOutput === expectedOutput;
-          
-          results[i] = {
-            ...results[i],
-            status: passed ? 'Passed' : 'Failed',
-            passed
-          };
-        } else {
-          results[i] = {
-            ...results[i],
-            status: 'Error',
-            passed: false
-          };
-        }
-      } catch (error) {
-        results[i] = {
-          ...results[i],
-          status: 'Error',
-          passed: false
-        };
-      }
-      
-      setSubmitResults([...results]);
-    }
-    
-    setIsSubmitting(false);
   };
 
   const toggleFullscreen = () => {
@@ -268,31 +99,24 @@ export default function AssessmentPractice() {
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
 
+  // Live countdown timer for expiry guard
   useEffect(() => {
-    if (isCompilerDragging) {
-      const handleMouseMove = (e) => {
-        const container = document.querySelector('[data-compiler-container]');
-        if (!container) return;
-        const rect = container.getBoundingClientRect();
-        const newPosition = ((e.clientY - rect.top) / rect.height) * 100;
-        if (newPosition >= 20 && newPosition <= 85) {
-          setCompilerSplit(newPosition);
-        }
-      };
-
-      const handleMouseUp = () => {
-        setIsCompilerDragging(false);
-      };
-
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-
-      return () => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
-      };
-    }
-  }, [isCompilerDragging]);
+    if (!assessment) return;
+    const startTime = new Date(assessment.startTime).getTime();
+    const endTime = startTime + (assessment.duration * 60 * 1000);
+    
+    const tick = () => {
+      const now = Date.now();
+      if (now >= endTime) {
+        setTimeToUnlock(0);
+      } else {
+        setTimeToUnlock(endTime - now);
+      }
+    };
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, [assessment]);
 
   if (loading) {
     return (
@@ -317,6 +141,38 @@ export default function AssessmentPractice() {
     );
   }
 
+  // Guard: Block practice if assessment is still live
+  if (timeToUnlock > 0) {
+    const hours = Math.floor(timeToUnlock / (1000 * 60 * 60));
+    const minutes = Math.floor((timeToUnlock % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((timeToUnlock % (1000 * 60)) / 1000);
+    
+    return (
+      <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 3, bgcolor: '#f8fafc' }}>
+        <Card sx={{ 
+          maxWidth: 550, textAlign: 'center', p: 6, borderRadius: '40px',
+          boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)',
+          border: '1px solid #f1f5f9'
+        }}>
+          <Box sx={{ width: 100, height: 100, bgcolor: '#fef2f2', borderRadius: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', mx: 'auto', mb: 4 }}>
+            <Lock sx={{ fontSize: 50, color: '#ef4444' }} />
+          </Box>
+          <Typography variant="h2" gutterBottom sx={{ fontWeight: 900, color: '#0f172a', fontSize: '2.25rem' }}>Practice Locked</Typography>
+          <Typography variant="body1" sx={{ color: '#64748b', mb: 5, fontSize: '1.1rem', fontWeight: 500 }}>
+            Practice mode will be available after the assessment window expires. Please complete the assessment first.
+          </Typography>
+          <Box sx={{ bgcolor: '#6366f1', color: 'white', borderRadius: '24px', p: 3, mb: 4 }}>
+            <Typography variant="h2" sx={{ fontWeight: 900, fontFamily: "'JetBrains Mono', monospace" }}>
+              {hours > 0 ? `${hours}h ` : ''}{minutes}m {seconds}s
+            </Typography>
+            <Typography variant="caption" sx={{ fontWeight: 700, textTransform: 'uppercase', opacity: 0.8 }}>Time Until Practice Unlocks</Typography>
+          </Box>
+          <Button startIcon={<ArrowBack />} onClick={() => navigate('/assessments')} sx={{ fontWeight: 800, color: '#6366f1' }}>Return to Assessments</Button>
+        </Card>
+      </Box>
+    );
+  }
+
   if (!assessment || questions.length === 0) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', flexDirection: 'column', gap: 2 }}>
@@ -327,6 +183,21 @@ export default function AssessmentPractice() {
   }
 
   const currentQuestion = questions[currentQuestionIndex];
+
+  // Render the appropriate editor based on question type - same pattern as AssessmentTaking.jsx
+  const renderEditor = () => {
+    if (!currentQuestion) return null;
+    const commonProps = { assessment, question: currentQuestion, attemptId: null, onTestComplete: () => {} };
+    const qType = currentQuestion?.assessmentType || currentQuestion?.type;
+
+    switch (qType) {
+      case 'frontend': return <FrontendEditor {...commonProps} />;
+      case 'mongodb_playground': return <MongoDBPlaygroundEditor {...commonProps} />;
+      case 'sql': return <SQLPlaygroundEditor {...commonProps} />;
+      case 'programming':
+      default: return <ProgrammingEditor {...commonProps} assessmentId={id} isPractice={true} />;
+    }
+  };
 
   return (
     <Box ref={containerRef} sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#fbfcfe' }}>
@@ -364,7 +235,7 @@ export default function AssessmentPractice() {
       )}
 
       <Box sx={{ display: 'grid', gridTemplateColumns: `${leftWidth}% 4px 1fr`, flexGrow: 1, height: '100%', overflow: 'hidden' }}>
-        {/* Problem Statement */}
+        {/* Problem Statement - Left Panel */}
         <Box sx={{ overflow: 'auto', height: '100%', bgcolor: '#fff', borderRight: '1px solid rgba(226, 232, 240, 0.8)' }}>
           {/* Question Navigation */}
           <Box sx={{ p: 2, borderBottom: '1px solid rgba(226, 232, 240, 0.6)', bgcolor: 'rgba(248, 250, 252, 0.8)', backdropFilter: 'blur(5px)', position: 'sticky', top: 0, zIndex: 10 }}>
@@ -393,6 +264,11 @@ export default function AssessmentPractice() {
                   {index + 1}
                 </Button>
               ))}
+              {isFullscreen && (
+                <IconButton onClick={toggleFullscreen} sx={{ ml: 'auto', color: '#64748b' }}>
+                  <FullscreenExit />
+                </IconButton>
+              )}
             </Box>
           </Box>
 
@@ -587,6 +463,7 @@ export default function AssessmentPractice() {
           </Box>
         </Box>
 
+        {/* Resizable Divider */}
         <Box 
           onMouseDown={startResizing}
           sx={{ 
@@ -600,249 +477,11 @@ export default function AssessmentPractice() {
           }} 
         />
 
-        {/* Code Editor */}
-        <Box sx={{ bgcolor: '#fff', display: 'flex', flexDirection: 'column', height: '100%', minWidth: 0 }} data-compiler-container>
-          <Box sx={{ height: `${compilerSplit}%`, display: 'flex', flexDirection: 'column', borderBottom: '1px solid rgba(226, 232, 240, 0.8)', overflow: 'hidden' }}>
-            <Box sx={{ 
-              p: 1.5, 
-              borderBottom: '1px solid rgba(226, 232, 240, 0.8)', 
-              bgcolor: '#fcfdfe', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'space-between',
-              gap: 2,
-              overflowX: 'auto',
-              minHeight: '64px',
-              pb: 0.5,
-              '&::-webkit-scrollbar': { height: '6px' },
-              '&::-webkit-scrollbar-track': { bgcolor: 'transparent' },
-              '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(99, 102, 241, 0.2)', borderRadius: '10px' },
-              '&:hover::-webkit-scrollbar-thumb': { bgcolor: 'rgba(99, 102, 241, 0.4)' }
-            }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
-                <FormControl size="small" sx={{ minWidth: 140 }}>
-                  <InputLabel sx={{ fontWeight: 700, color: '#64748b' }}>Language</InputLabel>
-                  <Select 
-                    value={language} 
-                    label="Language" 
-                    onChange={(e) => setLanguage(e.target.value)}
-                    sx={{ 
-                      borderRadius: '10px',
-                      '& .MuiSelect-select': { fontWeight: 700, color: '#1e293b' }
-                    }}
-                  >
-                    {(assessment?.allowedLanguages || ['python', 'cpp', 'java', 'c']).map((lang) => (
-                      <MenuItem key={lang} value={lang} sx={{ fontWeight: 600 }}>
-                        {lang === 'cpp' ? 'C++' : lang.charAt(0).toUpperCase() + lang.slice(1)}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, bgcolor: 'rgba(0,0,0,0.03)', px: 1, borderRadius: '8px' }}>
-                  <IconButton size="small" onClick={() => setFontSize(prev => Math.max(12, prev - 2))} sx={{ color: '#64748b' }}>
-                    <Remove fontSize="small" />
-                  </IconButton>
-                  <Typography variant="body2" sx={{ minWidth: '30px', textAlign: 'center', fontWeight: 800, color: '#1e293b' }}>
-                    {fontSize}
-                  </Typography>
-                  <IconButton size="small" onClick={() => setFontSize(prev => Math.min(32, prev + 2))} sx={{ color: '#64748b' }}>
-                    <Add fontSize="small" />
-                  </IconButton>
-                </Box>
-              </Box>
-
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexShrink: 0 }}>
-                <Button 
-                  variant="outlined" 
-                  size="small"
-                  startIcon={isRunning ? <CircularProgress size={16} color="inherit" /> : <PlayArrow />} 
-                  onClick={handleRunCode} 
-                  disabled={!code.trim() || isRunning}
-                  sx={{ 
-                    borderRadius: '10px', 
-                    fontWeight: 800, 
-                    textTransform: 'none',
-                    borderColor: 'rgba(99, 102, 241, 0.2)',
-                    color: '#6366f1',
-                    '&:hover': { bgcolor: 'rgba(99, 102, 241, 0.04)', borderColor: '#6366f1' }
-                  }}
-                >
-                  {isRunning ? 'Running...' : 'Run Code'}
-                </Button>
-                <Button 
-                  variant="contained" 
-                  size="small"
-                  onClick={handleSubmit} 
-                  disabled={!code.trim() || isSubmitting}
-                  sx={{ 
-                    borderRadius: '10px', 
-                    fontWeight: 800, 
-                    textTransform: 'none',
-                    bgcolor: '#6366f1',
-                    boxShadow: '0 4px 12px rgba(99, 102, 241, 0.2)',
-                    '&:hover': { bgcolor: '#4f46e5', boxShadow: '0 6px 16px rgba(99, 102, 241, 0.3)' }
-                  }}
-                >
-                  {isSubmitting ? <CircularProgress size={16} color="inherit" sx={{ mr: 1 }} /> : null}
-                  Submit Solutions
-                </Button>
-                {isFullscreen && (
-                  <IconButton onClick={toggleFullscreen} sx={{ ml: 1, color: '#64748b' }}>
-                    <FullscreenExit />
-                  </IconButton>
-                )}
-              </Box>
-            </Box>
-
-            <Box sx={{ p: 0, flexGrow: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden' }}>
-              {language ? (
-                <Box sx={{ flexGrow: 1, minHeight: 0, overflow: 'hidden' }}>
-                  <Editor
-                    height="100%"
-                    language={getMonacoLanguage(language)}
-                    value={code}
-                    theme="vs-dark"
-                    onChange={(value) => setCode(value || '')}
-                    onMount={(editor) => { editorRef.current = editor; }}
-                    options={{
-                      fontSize: fontSize,
-                      minimap: { enabled: false },
-                      scrollBeyondLastLine: false,
-                      wordWrap: 'on',
-                      padding: { top: 20 },
-                      fontFamily: "'JetBrains Mono', 'Fira Code', monospace"
-                    }}
-                  />
-                </Box>
-              ) : (
-                <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', p: 4 }}>
-                  <Typography variant="body1" sx={{ color: '#94a3b8', fontWeight: 600 }}>
-                    Select a language to activate the editor
-                  </Typography>
-                </Box>
-              )}
-            </Box>
-          </Box>
-
-          <Box 
-            sx={{ 
-              height: '8px', 
-              cursor: 'row-resize', 
-              bgcolor: 'rgba(226, 232, 240, 0.5)', 
-              '&:hover': { bgcolor: '#6366f1' },
-              transition: 'background 0.2s',
-              zIndex: 10
-            }} 
-            onMouseDown={() => setIsCompilerDragging(true)} 
-          />
-
-          <Box sx={{ height: `${100 - compilerSplit}%`, display: 'flex', flexDirection: 'column', minHeight: 0, bgcolor: '#fff' }}>
-            <Box sx={{ borderBottom: '1px solid rgba(226, 232, 240, 0.8)', bgcolor: '#fcfdfe' }}>
-              <Tabs 
-                value={currentTestCaseTab} 
-                onChange={(e, newValue) => setCurrentTestCaseTab(newValue)} 
-                variant="scrollable" 
-                scrollButtons="auto"
-                sx={{
-                  minHeight: 44,
-                  '& .MuiTabs-indicator': { bgcolor: '#6366f1', height: 3 },
-                  '& .MuiTab-root': { textTransform: 'none', fontWeight: 700, fontSize: '0.8rem', color: '#64748b', minHeight: 44 }
-                }}
-              >
-                {(currentQuestion.testCases?.filter(tc => tc.isPublic) || []).map((tc, index) => {
-                  const result = testCaseResults[index];
-                  const isPassed = result && !result.loading && !result.error && result.output?.trim() === (tc.output?.value || tc.output)?.toString().trim();
-                  const isFailed = result && !result.loading && (result.error || result.output?.trim() !== (tc.output?.value || tc.output)?.toString().trim());
-                  
-                  return (
-                    <Tab 
-                      key={index} 
-                      label={
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          Test Case {index + 1}
-                          {result?.loading && <CircularProgress size={12} sx={{ color: '#6366f1' }} />}
-                          {isPassed && <CheckCircle sx={{ fontSize: 14, color: '#22c55e' }} />}
-                          {isFailed && <Close sx={{ fontSize: 14, color: '#ef4444' }} />}
-                        </Box>
-                      } 
-                    />
-                  );
-                })}
-              </Tabs>
-            </Box>
-
-            <Box sx={{ p: 4, flexGrow: 1, overflow: 'auto', bgcolor: '#fff' }}>
-              {currentQuestion.testCases?.filter(tc => tc.isPublic)[currentTestCaseTab] && (
-                <Stack spacing={3}>
-                  <Box>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#64748b', mb: 1, textTransform: 'uppercase', fontSize: '0.7rem' }}>Input</Typography>
-                    <Box sx={{ bgcolor: '#f8fafc', border: '1px solid #f1f5f9', p: 2, borderRadius: '12px', fontFamily: "'JetBrains Mono', monospace", fontSize: '0.85rem', color: '#1e293b' }}>
-                      {currentQuestion.testCases.filter(tc => tc.isPublic)[currentTestCaseTab].input?.value || currentQuestion.testCases.filter(tc => tc.isPublic)[currentTestCaseTab].input}
-                    </Box>
-                  </Box>
-
-                  {testCaseResults[currentTestCaseTab] && (
-                    <Box>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#64748b', mb: 1, textTransform: 'uppercase', fontSize: '0.7rem' }}>Your Output</Typography>
-                      <Box sx={{ 
-                        bgcolor: testCaseResults[currentTestCaseTab].error ? 'rgba(239, 68, 68, 0.02)' : 'rgba(34, 197, 94, 0.02)', 
-                        border: '1px solid', 
-                        borderColor: testCaseResults[currentTestCaseTab].error ? 'rgba(239, 68, 68, 0.2)' : 'rgba(34, 197, 94, 0.2)', 
-                        p: 2, borderRadius: '12px', 
-                        fontFamily: "'JetBrains Mono', monospace", fontSize: '0.85rem',
-                        color: testCaseResults[currentTestCaseTab].error ? '#ef4444' : '#1e293b'
-                      }}>
-                        {testCaseResults[currentTestCaseTab].loading ? <CircularProgress size={20} /> : testCaseResults[currentTestCaseTab].error || testCaseResults[currentTestCaseTab].output || 'No output collected'}
-                      </Box>
-                    </Box>
-                  )}
-
-                  <Box>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#64748b', mb: 1, textTransform: 'uppercase', fontSize: '0.7rem' }}>Expected Output</Typography>
-                    <Box sx={{ bgcolor: '#f8fafc', border: '1px solid #f1f5f9', p: 2, borderRadius: '12px', fontFamily: "'JetBrains Mono', monospace", fontSize: '0.85rem', color: '#1e293b' }}>
-                      {currentQuestion.testCases.filter(tc => tc.isPublic)[currentTestCaseTab].output?.value || currentQuestion.testCases.filter(tc => tc.isPublic)[currentTestCaseTab].output}
-                    </Box>
-                  </Box>
-                </Stack>
-              )}
-            </Box>
-          </Box>
+        {/* Right Panel - Editor Component (delegated, just like FrontendPractice) */}
+        <Box sx={{ bgcolor: '#fff', height: '100%', minWidth: 0 }}>
+          {renderEditor()}
         </Box>
       </Box>
-
-      <Dialog open={showSubmitModal} maxWidth="lg" fullWidth disableEscapeKeyDown={isSubmitting}>
-        <DialogTitle>Test Case Execution Results</DialogTitle>
-        <DialogContent sx={{ p: 3 }}>
-          <Typography variant="body1" sx={{ mb: 3, color: 'text.secondary' }}>
-            {isSubmitting ? 'Executing test cases...' : 'All test cases executed'}
-          </Typography>
-          
-          <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))' }}>
-            {submitResults.map((result) => (
-              <Card key={result.index} sx={{ border: '1px solid', borderColor: result.passed === true ? 'success.main' : result.passed === false ? 'error.main' : '#e0e0e0' }}>
-                <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                      <Typography variant="h6" sx={{ fontWeight: 600 }}>Test Case {result.index}</Typography>
-                      <Chip label={result.type} size="small" sx={{ bgcolor: result.type === 'Public' ? '#e3f2fd' : '#f3e5f5', color: result.type === 'Public' ? '#1976d2' : '#9c27b0' }} />
-                    </Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      {result.passed === true && <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'success.main' }}><CheckCircle /><Typography variant="body2" sx={{ fontWeight: 600 }}>PASSED</Typography></Box>}
-                      {result.passed === false && <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'error.main' }}><Close /><Typography variant="body2" sx={{ fontWeight: 600 }}>FAILED</Typography></Box>}
-                      {result.passed === null && result.status === 'Running' && <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><CircularProgress size={20} /><Typography variant="body2" sx={{ fontWeight: 600 }}>Running</Typography></Box>}
-                      {result.passed === null && result.status === 'Pending' && <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.secondary' }}>Pending</Typography>}
-                    </Box>
-                  </Box>
-                </CardContent>
-              </Card>
-            ))}
-          </Box>
-        </DialogContent>
-        <DialogActions sx={{ p: 3 }}>
-          {!isSubmitting && <Button onClick={() => setShowSubmitModal(false)} variant="outlined">Close</Button>}
-        </DialogActions>
-      </Dialog>
     </Box>
   );
 }

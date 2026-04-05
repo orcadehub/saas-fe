@@ -13,6 +13,7 @@ import { submitCode } from 'services/pistonService';
 import FrontendEditor from './components/FrontendEditor';
 import MongoDBPlaygroundEditor from './components/MongoDBPlaygroundEditor';
 import SQLPlaygroundEditor from './components/SQLPlaygroundEditor';
+import ProgrammingEditor from './components/ProgrammingEditor';
 
 export default function AssessmentTaking() {
   const isProduction = import.meta.env.MODE === 'production';
@@ -39,16 +40,7 @@ export default function AssessmentTaking() {
   const [showLeftScroll, setShowLeftScroll] = useState(false);
   const [showRightScroll, setShowRightScroll] = useState(false);
   const [currentTestCaseTab, setCurrentTestCaseTab] = useState(0);
-  const [language, setLanguage] = useState('');
-  const [code, setCode] = useState('');
-  const editorRef = useRef(null);
-  const [compilerSplit, setCompilerSplit] = useState(60);
-  const [isCompilerDragging, setIsCompilerDragging] = useState(false);
-  const [isRunning, setIsRunning] = useState(false);
-  const [testCaseResults, setTestCaseResults] = useState({});
-  const [showSubmitModal, setShowSubmitModal] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitResults, setSubmitResults] = useState([]);
+  const [execCounter, setExecCounter] = useState(0);
   const [attemptId, setAttemptId] = useState(null);
   const [tabSwitchCount, setTabSwitchCount] = useState(0);
   const [showTabSwitchWarning, setShowTabSwitchWarning] = useState(false);
@@ -72,7 +64,6 @@ export default function AssessmentTaking() {
   const [showAddCustomInput, setShowAddCustomInput] = useState(false);
   const [customInput, setCustomInput] = useState('');
   const [editingCustomIndex, setEditingCustomIndex] = useState(null);
-  const [execCounter, setExecCounter] = useState(0);
   const [runTour, setRunTour] = useState(false);
   const [tourSteps, setTourSteps] = useState([]);
   
@@ -123,350 +114,6 @@ export default function AssessmentTaking() {
       placement: 'bottom'
     }
   ];
-
-  const getLanguageTemplate = (lang) => {
-    switch (lang) {
-      case 'python':
-        return `# Write your code here\n`;
-      case 'cpp':
-        return `#include <iostream>\nusing namespace std;\n\nint main() {\n    // Write your code here\n    return 0;\n}`;
-      case 'java':
-        return `import java.util.*;\n\npublic class Main {\n    public static void main(String[] args) {\n        // Write your code here\n    }\n}`;
-      case 'c':
-        return `#include <stdio.h>\n\nint main() {\n    // Write your code here\n    return 0;\n}`;
-      default:
-        return '// Write your code here';
-    }
-  };
-
-  const getMonacoLanguage = (lang) => {
-    switch (lang) {
-      case 'cpp': return 'cpp';
-      case 'java': return 'java';
-      case 'python': return 'python';
-      case 'c': return 'c';
-      default: return 'plaintext';
-    }
-  };
-
-  const getLanguageId = (lang) => {
-    switch (lang) {
-      case 'python': return 71;
-      case 'cpp': return 54;
-      case 'java': return 62;
-      case 'c': return 50;
-      default: return 71;
-    }
-  };
-
-  const recoverFullSession = async (token, currentAttemptId, questionsList, initialAttemptData = null) => {
-    if (!token || !currentAttemptId || !questionsList) return;
-    
-    try {
-      let response = initialAttemptData;
-      if (!response) {
-        response = await apiService.getLastExecutedCode(token, currentAttemptId);
-      }
-      
-      const { lastExecutedCode, successfulCodes, lastExecutedFrontendCode, lastExecutedMongoDBQuery, lastExecutedMongoDBQueries, lastExecutedSQLQuery, lastExecutedQuizAnswers, quizAnswers } = response;
-      
-      // Combined Logic Codes (Programming)
-      const progCodes = lastExecutedCode || successfulCodes;
-      if (progCodes) {
-        Object.keys(progCodes).forEach(questionId => {
-          const codeEntry = progCodes[questionId];
-          if (typeof codeEntry === 'object' && codeEntry !== null) {
-            Object.keys(codeEntry).forEach(lang => {
-              const storageKey = `assessment_${id}_question_${questionId}_${lang}`;
-              if (codeEntry[lang]) {
-                sessionStorage.setItem(storageKey, codeEntry[lang]);
-              }
-            });
-          }
-        });
-      }
-      
-      // Recover Frontend Codes
-      if (lastExecutedFrontendCode) {
-        Object.keys(lastExecutedFrontendCode).forEach(questionId => {
-          const storageKey = `frontend_${currentAttemptId}_${questionId}`;
-          localStorage.setItem(storageKey, JSON.stringify(lastExecutedFrontendCode[questionId]));
-        });
-      }
-      
-      // Recover MongoDB Queries
-      const mongoQueries = lastExecutedMongoDBQuery || lastExecutedMongoDBQueries || successfulCodes;
-      if (mongoQueries) {
-        Object.keys(mongoQueries).forEach(questionId => {
-          // Verify if it's a mongodb question to avoid overwriting programming codes
-          const question = questionsList.find(q => q._id === questionId);
-          if (question?.type === 'mongodb') {
-            const storageKey = `mongodb_query_${questionId}`;
-            const queryData = mongoQueries[questionId];
-            localStorage.setItem(storageKey, typeof queryData === 'string' ? queryData : (queryData.query || ''));
-          }
-        });
-      }
-
-      // Recover SQL Queries
-      if (lastExecutedSQLQuery) {
-        Object.keys(lastExecutedSQLQuery).forEach(questionId => {
-          const question = questionsList.find(q => q._id === questionId);
-          if (question?.type === 'sql') {
-            const storageKey = `sql_query_${questionId}`;
-            localStorage.setItem(storageKey, lastExecutedSQLQuery[questionId]);
-          }
-        });
-      }
-
-      // Recover Quiz Answers
-      const qAnswers = lastExecutedQuizAnswers || quizAnswers;
-      if (qAnswers) {
-        const newAnswers = { ...answers };
-        Object.keys(qAnswers).forEach(questionId => {
-          const data = qAnswers[questionId];
-          const savedOptionIndex = typeof data === 'object' ? data.selectedAnswer : data;
-          newAnswers[questionId] = savedOptionIndex.toString();
-        });
-        setAnswers(newAnswers);
-      }
-      
-      // Update current code state if needed
-      const currentQ = questionsList[currentQuestionIndex];
-      if (currentQ?.type === 'programming' && language) {
-        const storageKey = `assessment_${id}_question_${currentQ._id}_${language}`;
-        const savedCode = sessionStorage.getItem(storageKey);
-        if (savedCode) {
-          setCode(savedCode);
-        }
-      }
-      
-      if (!initialAttemptData) {
-        setToastMessage('Session data synchronized with your latest submissions');
-        setToastSeverity('success');
-        setShowToast(true);
-      }
-      
-      // Force refresh for child components
-      setExecCounter(prev => prev + 1);
-      
-    } catch (error) {
-      console.error('Error recovering session:', error);
-    }
-  };
-
-  // Load code from session storage when question or language changes
-  useEffect(() => {
-    if (questions[currentQuestionIndex]?._id && language) {
-      const storageKey = `assessment_${id}_question_${questions[currentQuestionIndex]._id}_${language}`;
-      const savedCode = sessionStorage.getItem(storageKey);
-      setCode(savedCode || getLanguageTemplate(language));
-    }
-  }, [currentQuestionIndex, language, questions, id, execCounter]);
-
-  // Set initial editor height to 40% when language is first selected
-  useEffect(() => {
-    if (language && compilerSplit === 60) {
-      setCompilerSplit(40);
-    }
-  }, [language, compilerSplit]);
-
-  // Ensure compiler split stays within bounds (max 85% to keep test cases visible)
-  useEffect(() => {
-    if (compilerSplit > 85) {
-      setCompilerSplit(85);
-    }
-  }, [compilerSplit]);
-
-  // Save code to session storage when it changes
-  useEffect(() => {
-    if (questions[currentQuestionIndex]?._id && language && code) {
-      const storageKey = `assessment_${id}_question_${questions[currentQuestionIndex]._id}_${language}`;
-      sessionStorage.setItem(storageKey, code);
-    }
-  }, [code, currentQuestionIndex, language, questions, id]);
-
-  const handleRunCode = async () => {
-    if (!code.trim() || !language) return;
-    
-    setIsRunning(true);
-    setTestCaseResults({});
-    
-    const publicTestCases = questions[currentQuestionIndex]?.testCases?.filter(tc => tc.isPublic) || [];
-    const allTestCases = [...publicTestCases, ...customTestCases];
-    const languageId = getLanguageId(language);
-    
-    for (let i = 0; i < allTestCases.length; i++) {
-      const testCase = allTestCases[i];
-      
-      setTestCaseResults(prev => ({
-        ...prev,
-        [i]: { loading: true }
-      }));
-      
-      try {
-        const result = await submitCode(code, languageId, testCase.input);
-        
-        if (result.status.id === 3) {
-          const userOutput = result.stdout ? result.stdout.trim() : '';
-          setTestCaseResults(prev => ({
-            ...prev,
-            [i]: { loading: false, output: userOutput, error: null }
-          }));
-        } else {
-          let errorOutput = result.stderr || 'Execution Error';
-          if (errorOutput.includes('fatal signal')) {
-            errorOutput = 'Error: Program exceeded time/memory limits';
-          }
-          setTestCaseResults(prev => ({
-            ...prev,
-            [i]: { loading: false, output: null, error: errorOutput }
-          }));
-        }
-      } catch (error) {
-        setTestCaseResults(prev => ({
-          ...prev,
-          [i]: { loading: false, output: null, error: error.message }
-        }));
-      }
-    }
-    
-    setIsRunning(false);
-    
-    // Save code to backend after running
-    if (attemptId && questions[currentQuestionIndex]?._id) {
-      try {
-        const token = localStorage.getItem('studentToken');
-        await apiService.saveAssessmentCode(
-          token,
-          attemptId,
-          questions[currentQuestionIndex]._id,
-          language,
-          code,
-          false
-        );
-      } catch (error) {
-        console.error('Error saving code:', error);
-      }
-    }
-  };
-
-  const handleSubmit = async () => {
-    if (!code.trim() || !language) return;
-    
-    const allTestCases = questions[currentQuestionIndex]?.testCases || [];
-    
-    // Initialize all test cases first
-    const initialResults = allTestCases.map((tc, i) => ({
-      index: i + 1,
-      type: tc.isPublic ? 'Public' : 'Private',
-      status: 'Pending',
-      passed: null
-    }));
-    
-    setSubmitResults(initialResults);
-    setShowSubmitModal(true);
-    setIsSubmitting(true);
-    
-    const languageId = getLanguageId(language);
-    const results = [...initialResults];
-    
-    for (let i = 0; i < allTestCases.length; i++) {
-      const testCase = allTestCases[i];
-      
-      results[i] = { ...results[i], status: 'Running' };
-      setSubmitResults([...results]);
-      
-      try {
-        const result = await submitCode(code, languageId, testCase.input);
-        
-        if (result.status.id === 3) {
-          const userOutput = result.stdout ? result.stdout.trim() : '';
-          const expectedOutput = (testCase.expectedOutput || testCase.output)?.toString().trim();
-          const passed = userOutput === expectedOutput;
-          
-          results[i] = {
-            ...results[i],
-            status: passed ? 'Passed' : 'Failed',
-            passed
-          };
-        } else {
-          results[i] = {
-            ...results[i],
-            status: 'Error',
-            passed: false
-          };
-        }
-      } catch (error) {
-        results[i] = {
-          ...results[i],
-          status: 'Error',
-          passed: false
-        };
-      }
-      
-      setSubmitResults([...results]);
-    }
-    
-    setIsSubmitting(false);
-    
-    // Save code to backend after submission
-    const allPassed = results.every(r => r.passed === true);
-    if (attemptId && questions[currentQuestionIndex]?._id) {
-      try {
-        const token = localStorage.getItem('studentToken');
-        await apiService.saveAssessmentCode(
-          token,
-          attemptId,
-          questions[currentQuestionIndex]._id,
-          language,
-          code,
-          allPassed,
-          results
-        );
-        
-        // Mark as saved to update percentage
-        if (allPassed) {
-          setSavedQuestions(prev => new Set([...prev, currentQuestionIndex]));
-        }
-      } catch (error) {
-        console.error('Error saving code:', error);
-      }
-    }
-  };
-
-  useEffect(() => {
-    if (isCompilerDragging) {
-      const handleMouseMove = (e) => {
-        const container = document.querySelector('[data-compiler-container]');
-        if (!container) return;
-        const rect = container.getBoundingClientRect();
-        const newPosition = ((e.clientY - rect.top) / rect.height) * 100;
-        if (newPosition >= 20 && newPosition <= 85) {
-          setCompilerSplit(newPosition);
-        }
-      };
-
-      const handleMouseUp = () => {
-        setIsCompilerDragging(false);
-      };
-
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-
-      return () => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
-      };
-    }
-  }, [isCompilerDragging]);
-
-  // Ensure compiler split stays within bounds
-  useEffect(() => {
-    if (compilerSplit > 85) {
-      setCompilerSplit(85);
-    }
-  }, [compilerSplit]);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -569,8 +216,6 @@ export default function AssessmentTaking() {
   useEffect(() => {
     // Reset test case tab and results when question changes
     setCurrentTestCaseTab(0);
-    setTestCaseResults({});
-    setCustomTestCases([]);
   }, [currentQuestionIndex]);
 
   useEffect(() => {
@@ -618,6 +263,34 @@ export default function AssessmentTaking() {
       document.removeEventListener('mouseup', handleMouseUp);
     };
   }, [isDragging]);
+
+  const recoverFullSession = (token, currentAttemptId, questionsList, recoveredAttemptData) => {
+    if (!recoveredAttemptData) return;
+
+    // 1. Recover Quiz Answers
+    if (recoveredAttemptData.answers) {
+      const recoveredAnswers = {};
+      Object.entries(recoveredAttemptData.answers).forEach(([qId, answer]) => {
+        recoveredAnswers[qId] = answer.toString();
+      });
+      setAnswers(recoveredAnswers);
+
+      // Mark answered questions as saved
+      const answeredIndices = new Set();
+      questionsList.forEach((q, idx) => {
+        if (recoveredAttemptData.answers[q._id] !== undefined) {
+          answeredIndices.add(idx);
+        }
+      });
+      setSavedQuestions(answeredIndices);
+    }
+
+    // 2. Recover Question-specific progress (Done for non-programming types)
+    // Note: ProgrammingEditor handles its own recovery via handleRecover internally or on-load
+    
+    // 3. Set data ready
+    setIsDataReady(true);
+  };
 
   useEffect(() => {
     tenantConfig.load().then(setConfig).catch(console.error);
@@ -1377,7 +1050,7 @@ export default function AssessmentTaking() {
                   color: 'white',
                   boxShadow: '0 8px 24px -4px rgba(220,38,38,0.35)',
                   '&:hover': {
-                    background: 'linear-gradient(135deg, #b91c1c 0%, #991b1b 100%)',
+                    background: 'linear-gradient(135deg, #b91c1c 0%, #991b1c 100%)',
                     transform: 'translateY(-1px)',
                     boxShadow: '0 12px 28px -4px rgba(220,38,38,0.45)'
                   },
@@ -2194,423 +1867,25 @@ export default function AssessmentTaking() {
               }}
             />
           ) : (
-            <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }} data-compiler-container>
-              {/* Code Editor Section */}
-              <Box sx={{ 
-                height: `${compilerSplit}%`, 
-                display: 'flex', 
-                flexDirection: 'column', 
-                borderBottom: '1px solid', 
-                borderColor: '#f1f5f9', 
-                bgcolor: '#ffffff',
-                overflow: 'hidden'
-              }}>
-                {/* Editor Header */}
-                <Box sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'space-between',
-                  gap: 2, 
-                  px: 2.5, 
-                  py: 1, 
-                  bgcolor: '#ffffff', 
-                  borderBottom: '1px solid #f1f5f9',
-                  overflowX: 'auto',
-                  minHeight: '68px',
-                  '&::-webkit-scrollbar': { height: '4px' },
-                  '&::-webkit-scrollbar-thumb': { bgcolor: '#e2e8f0', borderRadius: '4px' }
-                }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    {/* Language Selector */}
-                    <FormControl size="small" className="language-selector" sx={{ minWidth: 130 }}>
-                      <InputLabel sx={{ fontWeight: 700 }}>Language</InputLabel>
-                      <Select
-                        value={language}
-                        label="Language"
-                        onChange={(e) => setLanguage(e.target.value)}
-                        sx={{
-                          borderRadius: '12px',
-                          fontWeight: 800,
-                          fontSize: '0.85rem',
-                          '& .MuiOutlinedInput-notchedOutline': { borderColor: '#e2e8f0' },
-                          '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#cbd5e1' },
-                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#6366f1' }
-                        }}
-                      >
-                        {(assessment?.allowedLanguages || ['python', 'cpp', 'java', 'c']).map((lang) => (
-                          <MenuItem key={lang} value={lang}>
-                            {lang === 'cpp' ? 'C++' : lang.charAt(0).toUpperCase() + lang.slice(1)}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-
-                    {/* Font Size Control */}
-                    <Box sx={{ 
-                      display: 'flex', alignItems: 'center', gap: 0.5, 
-                      bgcolor: '#f8fafc', px: 1, py: 0.5, borderRadius: '12px',
-                      border: '1px solid #f1f5f9'
-                    }}>
-                      <IconButton size="small" onClick={() => setFontSize(prev => Math.max(12, prev - 2))} sx={{ color: '#64748b' }}>
-                        <Remove fontSize="small" />
-                      </IconButton>
-                      <Typography variant="body2" sx={{ minWidth: '32px', textAlign: 'center', fontWeight: 900, color: '#0f172a', fontFamily: 'JetBrains Mono' }}>
-                        {fontSize}px
-                      </Typography>
-                      <IconButton size="small" onClick={() => setFontSize(prev => Math.min(32, prev + 2))} sx={{ color: '#64748b' }}>
-                        <Add fontSize="small" />
-                      </IconButton>
-                    </Box>
-
-                    {/* Last Code Button */}
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      className="last-code-button"
-                      onClick={() => recoverFullSession(localStorage.getItem('studentToken'), attemptId, questions)}
-                      disabled={!attemptId}
-                      sx={{
-                        textTransform: 'none',
-                        borderRadius: '12px',
-                        fontWeight: 800,
-                        px: 2,
-                        borderColor: '#e2e8f0',
-                        color: '#475569',
-                        '&:hover': { bgcolor: '#f8fafc', borderColor: '#cbd5e1' },
-                        '&.Mui-disabled': { borderColor: '#f1f5f9', color: '#cbd5e1' }
-                      }}
-                    >
-                      Recover Session
-                    </Button>
-                  </Box>
-
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    {/* Run Code Button */}
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      startIcon={isRunning ? <CircularProgress size={16} sx={{ color: '#6366f1' }} /> : <PlayArrow />}
-                      onClick={handleRunCode}
-                      disabled={!code.trim() || isRunning}
-                      sx={{
-                        textTransform: 'none',
-                        borderRadius: '12px',
-                        fontWeight: 800,
-                        px: 2.5,
-                        py: 0.8,
-                        borderColor: '#e2e8f0',
-                        color: '#475569',
-                        '&:hover': { bgcolor: '#f8fafc', borderColor: '#6366f1', color: '#6366f1' },
-                        '&.Mui-disabled': { borderColor: '#f1f5f9', color: '#cbd5e1' }
-                      }}
-                    >
-                      {isRunning ? 'Running...' : 'Run Code'}
-                    </Button>
-
-                    {/* Submit Button */}
-                    <Button
-                      variant="contained"
-                      size="small"
-                      startIcon={<PlayArrow />}
-                      onClick={handleSubmit}
-                      disabled={!code.trim() || isSubmitting}
-                      sx={{
-                        textTransform: 'none',
-                        borderRadius: '12px',
-                        fontWeight: 900,
-                        px: 3,
-                        py: 1,
-                        bgcolor: '#6366f1',
-                        boxShadow: '0 10px 15px -3px rgba(99, 102, 241, 0.3)',
-                        '&:hover': { bgcolor: '#4f46e5', boxShadow: '0 12px 20px -5px rgba(99, 102, 241, 0.4)' }
-                      }}
-                    >
-                      Submit Code
-                    </Button>
-                  </Box>
-                </Box>
-                
-                {/* Editor Area */}
-                <Box sx={{ flexGrow: 1, position: 'relative', overflow: 'hidden', bgcolor: '#1e1e1e' }}>
-                  {language ? (
-                    <Editor
-                      height="100%"
-                      language={getMonacoLanguage(language)}
-                      value={code}
-                      theme="vs-dark"
-                      onChange={(value) => setCode(value || '')}
-                      onMount={(editor) => { editorRef.current = editor; }}
-                      options={{
-                        fontSize: fontSize,
-                        minimap: { enabled: false },
-                        scrollBeyondLastLine: false,
-                        wordWrap: 'on',
-                        lineNumbers: 'on',
-                        folding: true,
-                        autoIndent: 'full',
-                        formatOnPaste: true,
-                        formatOnType: true,
-                        padding: { top: 24 },
-                        fontFamily: "'JetBrains Mono', monospace",
-                        fontLigatures: true,
-                        cursorSmoothCaretAnimation: 'on',
-                        smoothScrolling: true,
-                        lineHeight: 1.6
-                      }}
-                    />
-                  ) : (
-                    <Box sx={{ 
-                      height: '100%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      bgcolor: '#f8fafc'
-                    }}>
-                      <Typography sx={{ color: '#94a3b8', fontWeight: 600, fontSize: '0.95rem' }}>
-                        Select a programming language to start coding
-                      </Typography>
-                    </Box>
-                  )}
-                </Box>
-              </Box>
-              
-              {/* Resizable Divider */}
-              <Box
-                sx={{
-                  height: '3px',
-                  cursor: 'row-resize',
-                  bgcolor: '#e2e8f0',
-                  position: 'relative',
-                  zIndex: 200,
-                  transition: 'background 0.2s',
-                  '&:hover': {
-                    bgcolor: '#6366f1'
-                  }
-                }}
-                onMouseDown={() => setIsCompilerDragging(true)}
-              />
-              
-              {/* Test Cases Section */}
-              <Box sx={{ height: `${100 - compilerSplit}%`, display: 'flex', flexDirection: 'column', zIndex: 100, position: 'relative', bgcolor: '#ffffff', minHeight: 0, overflow: 'hidden', maxHeight: `${100 - compilerSplit}%` }}>
-                {(() => {
-                  const publicTestCases = questions[currentQuestionIndex]?.testCases?.filter(tc => tc.isPublic) || [];
-                  const allTestCases = [...publicTestCases, ...customTestCases];
-                  const canAddMore = publicTestCases.length >= 3 && customTestCases.length < 4;
-                  
-                  return (
-                    <>
-                      <Box sx={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        gap: 1.5, 
-                        px: 2,
-                        py: 1.25, 
-                        bgcolor: '#f8fafc', 
-                        borderBottom: '1px solid #f1f5f9', 
-                        overflowX: 'auto', 
-                        minHeight: '52px',
-                        flexShrink: 0,
-                        '&::-webkit-scrollbar': { height: '3px' },
-                        '&::-webkit-scrollbar-thumb': { bgcolor: '#e2e8f0' }
-                      }}>
-                        {allTestCases.map((tc, index) => {
-                          const result = testCaseResults[index];
-                          const isCustom = index >= publicTestCases.length;
-                          const isPassed = !isCustom && result && !result.loading && !result.error && 
-                            result.output?.trim() === (tc.expectedOutput || tc.output)?.toString().trim();
-                          const isFailed = !isCustom && result && !result.loading && (result.error || 
-                            result.output?.trim() !== (tc.expectedOutput || tc.output)?.toString().trim());
-                          const isActive = index === currentTestCaseTab;
-                          
-                          return (
-                            <Box
-                              key={index}
-                              onClick={() => setCurrentTestCaseTab(index)}
-                              sx={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 1,
-                                px: 2,
-                                py: 0.75,
-                                bgcolor: isActive ? '#ffffff' : 'transparent',
-                                color: isActive ? '#0f172a' : '#64748b',
-                                cursor: 'pointer',
-                                borderRadius: '8px',
-                                border: '1px solid',
-                                borderColor: isActive 
-                                  ? (isPassed ? '#bbf7d0' : isFailed ? '#fecaca' : '#e2e8f0')
-                                  : 'transparent',
-                                boxShadow: isActive ? '0 2px 4px rgba(0,0,0,0.04)' : 'none',
-                                transition: 'all 0.15s ease',
-                                whiteSpace: 'nowrap',
-                                '&:hover': { bgcolor: isActive ? '#ffffff' : 'rgba(0,0,0,0.03)' }
-                              }}
-                            >
-                              {isPassed && <CheckCircle sx={{ fontSize: 14, color: '#10b981' }} />}
-                              {isFailed && <Close sx={{ fontSize: 14, color: '#ef4444' }} />}
-                              <Typography variant="body2" sx={{ fontWeight: isActive ? 800 : 700, fontSize: '0.8rem', letterSpacing: '-0.01em' }}>
-                                {isCustom ? `Custom ${index - publicTestCases.length + 1}` : `Case ${index + 1}`}
-                              </Typography>
-                              {result?.loading && <CircularProgress size={14} sx={{ color: '#6366f1' }} />}
-                            </Box>
-                          );
-                        })}
-                        {canAddMore && (
-                          <Box
-                            onClick={() => setShowAddCustomInput(true)}
-                            sx={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 0.5,
-                              px: 2,
-                              py: 0.75,
-                              cursor: 'pointer',
-                              borderRadius: '8px',
-                              color: '#6366f1',
-                              fontWeight: 800,
-                              fontSize: '0.8rem',
-                              transition: 'all 0.15s ease',
-                              '&:hover': { bgcolor: '#f5f3ff' }
-                            }}
-                          >
-                            <Add sx={{ fontSize: 16 }} />
-                            <Typography variant="body2" sx={{ fontWeight: 800, fontSize: '0.8rem' }}>Custom</Typography>
-                          </Box>
-                        )}
-                      </Box>
-                      
-                      <Box sx={{ p: 3, flexGrow: 1, flexShrink: 1, overflowY: 'auto', pb: 8, bgcolor: '#ffffff', minHeight: 0, maxHeight: '100%', '&::-webkit-scrollbar': { width: '6px' }, '&::-webkit-scrollbar-thumb': { bgcolor: '#e2e8f0', borderRadius: '4px' } }}>
-                        {allTestCases.length > 0 && allTestCases[currentTestCaseTab] ? (
-                          <>
-                            <Box sx={{ mb: 3 }}>
-                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
-                                <Typography sx={{ fontWeight: 800, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.75rem' }}>
-                                  Input
-                                </Typography>
-                                {currentTestCaseTab >= publicTestCases.length && (
-                                  <Box
-                                    onClick={() => {
-                                      const customIndex = currentTestCaseTab - publicTestCases.length;
-                                      setCustomInput(customTestCases[customIndex].input);
-                                      setEditingCustomIndex(customIndex);
-                                      setShowAddCustomInput(true);
-                                    }}
-                                    sx={{ 
-                                      display: 'flex', 
-                                      alignItems: 'center', 
-                                      gap: 0.5, 
-                                      color: 'secondary.main',
-                                      cursor: 'pointer',
-                                      '&:hover': { opacity: 0.8 }
-                                    }}
-                                  >
-                                    <Edit fontSize="small" />
-                                    <Typography variant="body2" sx={{ fontWeight: 600 }}>Edit</Typography>
-                                  </Box>
-                                )}
-                              </Box>
-                              <Box sx={{ 
-                                bgcolor: '#f8fafc',
-                                border: '1px solid #f1f5f9',
-                                p: 2.5,
-                                borderRadius: '12px',
-                                fontFamily: "'JetBrains Mono', monospace",
-                                whiteSpace: 'pre-wrap',
-                                fontSize: '0.9rem',
-                                color: '#1e293b',
-                                lineHeight: 1.6
-                              }}>
-                                {allTestCases[currentTestCaseTab].input}
-                              </Box>
-                            </Box>
-                            
-                            {testCaseResults[currentTestCaseTab] && (
-                              <Box sx={{ mb: 3 }}>
-                                <Typography sx={{ fontWeight: 800, mb: 1.5, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.75rem' }}>
-                                  Your Output
-                                </Typography>
-                                <Box sx={{ 
-                                  bgcolor: testCaseResults[currentTestCaseTab].error ? '#fef2f2' : (currentTestCaseTab >= publicTestCases.length ? '#f8fafc' : '#f0fdf4'),
-                                  border: '1px solid',
-                                  borderColor: testCaseResults[currentTestCaseTab].error ? '#fecaca' : (currentTestCaseTab >= publicTestCases.length ? '#f1f5f9' : '#bbf7d0'),
-                                  p: 2.5,
-                                  borderRadius: '12px',
-                                  fontFamily: "'JetBrains Mono', monospace",
-                                  fontSize: '0.9rem',
-                                  color: '#1e293b',
-                                  whiteSpace: 'pre',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: testCaseResults[currentTestCaseTab].loading ? 'center' : 'flex-start',
-                                  minHeight: '60px',
-                                  lineHeight: 1.6
-                                }}>
-                                  {testCaseResults[currentTestCaseTab].loading ? (
-                                    <CircularProgress size={24} sx={{ color: '#6366f1' }} />
-                                  ) : testCaseResults[currentTestCaseTab].error ? (
-                                    <Typography sx={{ color: '#dc2626', whiteSpace: 'pre-wrap', fontFamily: "'JetBrains Mono', monospace", fontSize: '0.85rem' }}>
-                                      {testCaseResults[currentTestCaseTab].error}
-                                    </Typography>
-                                  ) : (
-                                    testCaseResults[currentTestCaseTab].output || 'No output'
-                                  )}
-                                </Box>
-                              </Box>
-                            )}
-                            
-                            {currentTestCaseTab < publicTestCases.length && (
-                              <Box sx={{ mb: 3 }}>
-                                <Typography sx={{ fontWeight: 800, mb: 1.5, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.75rem' }}>
-                                  Expected Output
-                                </Typography>
-                                <Box sx={{ 
-                                  bgcolor: '#f8fafc',
-                                  border: '1px solid #f1f5f9',
-                                  p: 2.5,
-                                  borderRadius: '12px',
-                                  fontFamily: "'JetBrains Mono', monospace",
-                                  fontSize: '0.9rem',
-                                  color: '#1e293b',
-                                  whiteSpace: 'pre',
-                                  lineHeight: 1.6
-                                }}>
-                                  {typeof (allTestCases[currentTestCaseTab].expectedOutput || allTestCases[currentTestCaseTab].output) === 'object' 
-                                    ? JSON.stringify(allTestCases[currentTestCaseTab].expectedOutput || allTestCases[currentTestCaseTab].output, null, 2)
-                                    : (allTestCases[currentTestCaseTab].expectedOutput || allTestCases[currentTestCaseTab].output)}
-                                </Box>
-                              </Box>
-                            )}
-                            
-                            {allTestCases[currentTestCaseTab].explanation && (
-                              <Box sx={{ mb: 3 }}>
-                                <Typography sx={{ fontWeight: 800, mb: 1.5, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.75rem' }}>
-                                  Explanation
-                                </Typography>
-                                <Box sx={{ 
-                                  bgcolor: '#f8fafc',
-                                  border: '1px solid #f1f5f9',
-                                  p: 2.5,
-                                  borderRadius: '12px',
-                                  fontSize: '0.9rem',
-                                  color: '#1e293b',
-                                  lineHeight: 1.6
-                                }}>
-                                  {allTestCases[currentTestCaseTab].explanation}
-                                </Box>
-                              </Box>
-                            )}
-                          </>
-                        ) : (
-                          <Typography sx={{ color: '#94a3b8', textAlign: 'center', mt: 4, fontWeight: 600, fontSize: '0.9rem' }}>
-                            No public test cases available
-                          </Typography>
-                        )}
-                      </Box>
-                    </>
-                  );
-                })()}
-              </Box>
-            </Box>
+            <ProgrammingEditor 
+              key={`prog-${currentQuestionIndex}-${execCounter}`}
+              assessment={assessment} 
+              question={questions[currentQuestionIndex]} 
+              attemptId={attemptId}
+              assessmentId={id}
+              isPractice={false}
+              onTestComplete={(passed, total) => {
+                if (passed === total && total > 0) {
+                  setSavedQuestions(prev => new Set([...prev, currentQuestionIndex]));
+                } else {
+                  setSavedQuestions(prev => {
+                    const newSet = new Set(prev);
+                    newSet.delete(currentQuestionIndex);
+                    return newSet;
+                  });
+                }
+              }}
+            />
           )}
         </Box>
       </Box>
@@ -2867,138 +2142,6 @@ export default function AssessmentTaking() {
         </Box>
       </Dialog>
 
-      {/* Submit Results Modal */}
-      <Dialog 
-        open={showSubmitModal} 
-        onClose={!isSubmitting ? () => setShowSubmitModal(false) : undefined}
-        maxWidth="md" 
-        fullWidth 
-        disableEscapeKeyDown={isSubmitting}
-        PaperProps={{ sx: { borderRadius: '32px', border: '1px solid #f1f5f9', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.15)' } }}
-      >
-        <DialogTitle sx={{ p: 4, pb: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Typography sx={{ fontWeight: 900, color: '#0f172a', letterSpacing: '-0.02em', fontSize: '1.75rem' }}>
-              Execution Summary
-            </Typography>
-            {!isSubmitting && (
-              <IconButton onClick={() => setShowSubmitModal(false)} sx={{ color: '#94a3b8' }}>
-                <Close />
-              </IconButton>
-            )}
-          </Box>
-        </DialogTitle>
-
-        <DialogContent sx={{ p: 4, bgcolor: '#ffffff' }}>
-          {isSubmitting ? (
-            <Box sx={{ textAlign: 'center', py: 10 }}>
-              <CircularProgress size={48} sx={{ color: '#6366f1', mb: 3 }} />
-              <Typography sx={{ color: '#64748b', fontWeight: 600, fontSize: '1.1rem' }}>Executing test cases...</Typography>
-            </Box>
-          ) : (
-            <Box>
-              {/* Summary Cards */}
-              <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 3, mb: 5 }}>
-                <Box sx={{ p: 3, borderRadius: '24px', bgcolor: '#f8fafc', border: '1px solid #f1f5f9' }}>
-                  <Typography sx={{ color: '#94a3b8', fontWeight: 800, textTransform: 'uppercase', fontSize: '0.7rem', letterSpacing: '0.1em', mb: 1 }}>Test Results</Typography>
-                  <Typography sx={{ fontWeight: 900, color: '#0f172a', fontSize: '2rem' }}>
-                    {submitResults.filter(r => r.passed === true).length}{' '}
-                    <Typography component="span" sx={{ fontSize: '1rem', color: '#64748b', fontWeight: 700 }}>out of</Typography>{' '}
-                    {submitResults.length}
-                  </Typography>
-                  <Typography sx={{ color: '#64748b', fontWeight: 600, fontSize: '0.85rem', mt: 0.5 }}>Test Cases Passed</Typography>
-                </Box>
-
-                {(() => {
-                  const passRate = submitResults.length > 0 ? Math.round((submitResults.filter(r => r.passed === true).length / submitResults.length) * 100) : 0;
-                  return (
-                    <Box sx={{ p: 3, borderRadius: '24px', bgcolor: passRate >= 70 ? '#f0fdf4' : '#fef2f2', border: '1px solid', borderColor: passRate >= 70 ? '#dcfce7' : '#fee2e2' }}>
-                      <Typography sx={{ color: passRate >= 70 ? '#22c55e' : '#ef4444', fontWeight: 800, textTransform: 'uppercase', fontSize: '0.7rem', letterSpacing: '0.1em', mb: 1 }}>Pass Rate</Typography>
-                      <Typography sx={{ fontWeight: 900, color: passRate >= 70 ? '#14532d' : '#991b1b', fontSize: '2rem' }}>
-                        {passRate}%
-                      </Typography>
-                      <Box sx={{ width: '100%', height: 6, bgcolor: 'rgba(255,255,255,0.5)', borderRadius: 3, mt: 1.5, overflow: 'hidden' }}>
-                        <Box sx={{ width: `${passRate}%`, height: '100%', bgcolor: passRate >= 70 ? '#22c55e' : '#ef4444', transition: 'width 0.5s ease' }} />
-                      </Box>
-                    </Box>
-                  );
-                })()}
-              </Box>
-
-              {/* Test Case List */}
-              <Typography sx={{ fontWeight: 800, color: '#0f172a', mb: 2.5, fontSize: '1.15rem' }}>Test Case Diagnostics</Typography>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                {submitResults.map((result) => (
-                  <Box key={result.index} sx={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: 2.5, 
-                    p: 2.5, 
-                    bgcolor: '#f8fafc',
-                    borderRadius: '20px',
-                    border: '1px solid #f1f5f9',
-                    transition: 'all 0.2s',
-                    '&:hover': { transform: 'translateX(8px)', borderColor: '#cbd5e1' }
-                  }}>
-                    <Box sx={{ 
-                      width: 40, height: 40, borderRadius: '14px', flexShrink: 0,
-                      bgcolor: result.passed === true ? '#dcfce7' : result.passed === false ? '#fee2e2' : '#f1f5f9',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center'
-                    }}>
-                      {result.passed === true && <CheckCircle sx={{ color: '#22c55e', fontSize: 20 }} />}
-                      {result.passed === false && <Close sx={{ color: '#ef4444', fontSize: 20 }} />}
-                      {result.passed === null && result.status === 'Running' && <CircularProgress size={18} sx={{ color: '#6366f1' }} />}
-                      {result.passed === null && result.status === 'Pending' && <AccessTime sx={{ color: '#94a3b8', fontSize: 20 }} />}
-                    </Box>
-                    <Box sx={{ flex: 1 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                        <Typography sx={{ fontWeight: 800, color: '#1e293b', fontSize: '0.95rem' }}>Test Case {result.index}</Typography>
-                        <Box sx={{
-                          px: 1.5, py: 0.25, borderRadius: '8px', fontSize: '0.7rem', fontWeight: 800,
-                          bgcolor: result.type === 'Public' ? '#eef2ff' : '#faf5ff',
-                          color: result.type === 'Public' ? '#6366f1' : '#8b5cf6',
-                          letterSpacing: '0.05em'
-                        }}>
-                          {result.type}
-                        </Box>
-                      </Box>
-                      <Typography sx={{ color: '#64748b', fontWeight: 600, fontSize: '0.8rem', mt: 0.25 }}>
-                        {result.passed === true ? 'Scenario verified successfully' : result.passed === false ? 'Output mismatch detected' : result.status}
-                      </Typography>
-                    </Box>
-                    <Typography sx={{ 
-                      fontWeight: 800, fontSize: '0.8rem',
-                      color: result.passed === true ? '#10b981' : result.passed === false ? '#ef4444' : '#94a3b8'
-                    }}>
-                      {result.passed === true ? 'PASSED' : result.passed === false ? 'FAILED' : result.status?.toUpperCase()}
-                    </Typography>
-                  </Box>
-                ))}
-              </Box>
-            </Box>
-          )}
-        </DialogContent>
-        {!isSubmitting && (
-          <DialogActions sx={{ p: 4, pt: 2 }}>
-            <Button 
-              onClick={() => setShowSubmitModal(false)} 
-              variant="contained"
-              fullWidth
-              sx={{ 
-                borderRadius: '16px', 
-                py: 2, 
-                fontWeight: 900,
-                fontSize: '1rem',
-                textTransform: 'none',
-                bgcolor: '#0f172a',
-                '&:hover': { bgcolor: '#1e293b' } 
-              }}
-            >
-              Return to Editor
-            </Button>
-          </DialogActions>
-        )}
-      </Dialog>
 
       {/* Final Submit Modal — Light Theme */}
       <Dialog

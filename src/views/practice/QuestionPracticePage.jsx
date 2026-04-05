@@ -3,7 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { 
   Box, Typography, Button, IconButton, Tabs, Tab, 
   Select, MenuItem, CircularProgress, 
-  Chip, Stack, Tooltip, Breadcrumbs, Link, LinearProgress
+  Chip, Stack, Tooltip, Breadcrumbs, Link, LinearProgress,
+  Dialog, DialogTitle, DialogContent, DialogActions, TextField
 } from '@mui/material';
 import { 
   ArrowBack, PlayArrow, CheckCircle, Close, Add, Remove, 
@@ -51,6 +52,10 @@ export default function QuestionPracticePage() {
   const [testCaseResults, setTestCaseResults] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitResults, setSubmitResults] = useState([]);
+  const [customTestCases, setCustomTestCases] = useState([]);
+  const [showAddCustom, setShowAddCustom] = useState(false);
+  const [customInput, setCustomInput] = useState('');
+  const [editingCustomIndex, setEditingCustomIndex] = useState(null);
   const [submitStats, setSubmitStats] = useState({ runtime: 0, memory: 0, avgTime: 0, coinsEarned: 0 });
   const [leftWidth, setLeftWidth] = useState(45);
   const [compilerSplit, setCompilerSplit] = useState(65);
@@ -158,13 +163,16 @@ export default function QuestionPracticePage() {
     if (!code.trim() || isRunning) return;
     setIsRunning(true);
     setTestCaseResults({});
+    
     const publicTC = question.testCases.filter(tc => tc.isPublic);
-    for (let i = 0; i < publicTC.length; i++) {
+    const allRunTC = [...publicTC, ...customTestCases];
+    
+    for (let i = 0; i < allRunTC.length; i++) {
       setTestCaseResults(prev => ({ ...prev, [i]: { loading: true } }));
       try {
-        const result = await submitCode(code, langMeta[language].id, publicTC[i].input?.value || publicTC[i].input);
+        const result = await submitCode(code, langMeta[language].id, allRunTC[i].input?.value || allRunTC[i].input);
         const userOut = result.stdout?.trim() || '';
-        const expected = (publicTC[i].output?.value || publicTC[i].output)?.toString().trim();
+        const expected = (allRunTC[i].output?.value || allRunTC[i].output)?.toString().trim();
         setTestCaseResults(prev => ({ 
           ...prev, 
           [i]: { 
@@ -229,6 +237,13 @@ export default function QuestionPracticePage() {
     setIsSubmitting(false);
   };
 
+  const handleAddCustom = () => {
+    if (!customInput.trim()) return;
+    setCustomTestCases(prev => [...prev, { input: customInput, output: 'N/A' }]);
+    setCustomInput('');
+    setShowAddCustom(false);
+  };
+
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) { document.documentElement.requestFullscreen(); setIsFullscreen(true); } 
     else { document.exitFullscreen(); setIsFullscreen(false); }
@@ -280,37 +295,11 @@ export default function QuestionPracticePage() {
 
         <Stack direction="row" spacing={2} alignItems="center">
           <IconButton onClick={() => setIsDarkMode(!isDarkMode)} sx={{ color: t.textMuted }}>
-                {isDarkMode ? <LightMode /> : <DarkMode />}
+            {isDarkMode ? <LightMode /> : <DarkMode />}
           </IconButton>
           <IconButton onClick={toggleFullscreen} sx={{ color: t.textMuted }}>
-              {isFullscreen ? <FullscreenExit /> : <Fullscreen />}
+            {isFullscreen ? <FullscreenExit /> : <Fullscreen />}
           </IconButton>
-          <Button 
-            variant="contained" 
-            startIcon={isRunning ? <CircularProgress size={16} sx={{ color: isDarkMode ? '#fff' : '#6366f1' }} /> : <PlayArrow />}
-            onClick={handleRun}
-            disabled={isRunning || !code.trim()}
-            sx={{ 
-              bgcolor: isDarkMode ? 'rgba(99, 102, 241, 0.1)' : 'rgba(99, 102, 241, 0.05)', 
-              color: '#818cf8', fontWeight: 800, textTransform: 'none',
-              px: { xs: 1.5, sm: 3 }, borderRadius: '8px', border: '1px solid rgba(99, 102, 241, 0.2)',
-              '&:hover': { bgcolor: 'rgba(99, 102, 241, 0.2)', borderColor: '#818cf8' }
-            }}
-          >
-            Run
-          </Button>
-          <Button 
-            variant="contained" 
-            onClick={handleSubmit}
-            disabled={isSubmitting || !code.trim()}
-            sx={{ 
-              bgcolor: '#6366f1', color: '#fff', fontWeight: 800, textTransform: 'none',
-              px: { xs: 1.5, sm: 3 }, borderRadius: '8px', boxShadow: isDarkMode ? '0 4px 14px rgba(99, 102, 241, 0.4)' : 'none',
-              '&:hover': { bgcolor: '#4f46e5', transform: 'translateY(-1px)' }
-            }}
-          >
-            Submit
-          </Button>
         </Stack>
       </Box>
 
@@ -457,74 +446,137 @@ export default function QuestionPracticePage() {
                     exit={{ opacity: 0, x: -20 }} 
                     sx={{ flex: 1, p: 4, overflow: 'auto' }}
                 >
-                   <Typography variant="h3" sx={{ color: t.text, fontWeight: 950, mb: 1, letterSpacing: '-0.03em' }}>{question.title}</Typography>
-                   <Stack direction="row" spacing={1} mb={4}>
-                      <Chip label={question.difficulty} size="small" sx={{ fontWeight: 900, bgcolor: 'rgba(16, 185, 129, 0.12)', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.2)' }} />
-                      <Chip label={topic || 'Core'} size="small" sx={{ fontWeight: 900, bgcolor: 'rgba(99, 102, 241, 0.12)', color: '#818cf8', border: '1px solid rgba(99, 102, 241, 0.2)' }} />
+                   <Typography variant="h2" sx={{ 
+                      fontWeight: 950, mb: 1.5, color: t.text, 
+                      fontSize: { xs: '1.75rem', md: '2.5rem' }, 
+                      letterSpacing: '-0.025em',
+                      lineHeight: 1.2
+                   }}>
+                      {question.title}
+                   </Typography>
+                   
+                   <Stack direction="row" spacing={1.25} flexWrap="wrap" mb={4.5}>
+                      <Chip label={question.difficulty} size="small" sx={{ fontWeight: 800, bgcolor: 'rgba(16, 185, 129, 0.1)', color: '#10b981', borderRadius: '8px' }} />
+                      <Chip label={topic || 'Core'} size="small" sx={{ fontWeight: 800, bgcolor: isDarkMode ? 'rgba(99, 102, 241, 0.15)' : '#f1f5f9', color: isDarkMode ? '#818cf8' : '#475569', borderRadius: '8px' }} />
                    </Stack>
                    
-                   <Box sx={{ mb: 5 }}>
-                      <Typography sx={{ color: t.textMuted, fontSize: '0.75rem', fontWeight: 900, textTransform: 'uppercase', mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Description sx={{ fontSize: 18, color: '#6366f1' }} /> Problem Statement
-                      </Typography>
-                      <Typography sx={{ color: t.textSecondary, lineHeight: 1.8, fontSize: '1.05rem', fontWeight: 500 }}>
-                        {question.description}
-                      </Typography>
-                   </Box>
-                   
-                   {question.example && (
-                     <Box sx={{ mb: 5 }}>
-                        <Typography sx={{ color: t.textMuted, fontSize: '0.75rem', fontWeight: 900, textTransform: 'uppercase', mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Lightbulb sx={{ color: '#fbbf24', fontSize: 18 }} /> Example Case
+                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                      {/* Problem Statement */}
+                      <Box>
+                        <Typography sx={{ 
+                          fontWeight: 950, color: '#6366f1', textTransform: 'uppercase', 
+                          fontSize: '0.75rem', letterSpacing: '0.1em', mb: 2.5,
+                          display: 'flex', alignItems: 'center', gap: 1.5
+                        }}>
+                          <Box sx={{ width: 4, height: 16, bgcolor: '#6366f1', borderRadius: 1 }} />
+                          Context & Requirements
                         </Typography>
-                        <Box sx={{ p: 4, borderRadius: '24px', bgcolor: isDarkMode ? 'rgba(0,0,0,0.4)' : '#ffffff', border: `1px solid ${t.border}`, boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
-                           <Typography variant="overline" sx={{ color: '#818cf8', fontWeight: 900, mb: 1, display: 'block' }}>Input</Typography>
-                           <Typography sx={{ color: t.text, fontFamily: "'JetBrains Mono', monospace", bgcolor: isDarkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)', p: 1.5, borderRadius: '8px', mb: 3 }}>{question.example.input}</Typography>
-                           <Typography variant="overline" sx={{ color: '#10b981', fontWeight: 900, mb: 1, display: 'block' }}>Output</Typography>
-                           <Typography sx={{ color: t.text, fontFamily: "'JetBrains Mono', monospace", bgcolor: isDarkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)', p: 1.5, borderRadius: '8px', mb: 2 }}>{question.example.output}</Typography>
-                           {question.example.explanation && (
-                              <Typography sx={{ color: t.textMuted, fontSize: '0.9rem', fontStyle: 'italic', mt: 2 }}>{question.example.explanation}</Typography>
-                           )}
+                        <Box sx={{ 
+                          p: 4, borderRadius: '24px', bgcolor: isDarkMode ? 'rgba(255,255,255,0.02)' : '#f8fafc', 
+                          border: `1px solid ${t.border}`,
+                          '& p': { m: 0, lineHeight: 1.8, color: t.textSecondary, fontWeight: 600, fontSize: '1.1rem' },
+                          '& div': { lineHeight: 1.8, color: t.textSecondary, fontWeight: 600, fontSize: '1.1rem' }
+                        }}>
+                          <div dangerouslySetInnerHTML={{ __html: question.problemStatement || question.description }} />
                         </Box>
-                     </Box>
-                   )}
-                   
-                   {question.constraints && (
-                      <Box sx={{ mb: 5 }}>
-                        <Typography variant="overline" sx={{ color: t.textMuted, fontWeight: 900, mb: 2, display: 'block' }}>Constraints & Specs</Typography>
-                        <Stack spacing={1.5}>
-                           {(Array.isArray(question.constraints) ? question.constraints : [question.constraints]).map((c, i) => (
-                              <Typography key={i} sx={{ color: t.textSecondary, display: 'flex', alignItems: 'center', gap: 1.5, fontSize: '0.95rem', fontWeight: 500 }}>
-                                 <Box sx={{ width: 8, height: 8, borderRadius: '2px', bgcolor: '#6366f1', transform: 'rotate(45deg)' }} /> {c}
-                              </Typography>
-                           ))}
-                        </Stack>
                       </Box>
-                   )}
 
-                   {question.intuition && (
-                      <MotionBox 
-                        initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                        sx={{ mt: 6, p: 4, borderRadius: '24px', bgcolor: isDarkMode ? 'rgba(99, 102, 241, 0.05)' : 'rgba(99, 102, 241, 0.02)', border: '1px solid rgba(99, 102, 241, 0.15)' }}
-                      >
-                         <Typography variant="h6" sx={{ color: '#818cf8', fontWeight: 950, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}><Storage sx={{ fontSize: 20 }} /> Algorithmic Insight</Typography>
-                         <Typography sx={{ color: t.textSecondary, fontSize: '1rem', lineHeight: 1.7, fontWeight: 500, mb: 3 }}>{question.intuition.approach}</Typography>
-                         <Stack direction="row" spacing={4}>
-                            {question.intuition.timeComplexity && (
-                                <Box>
-                                    <Typography variant="caption" sx={{ color: t.textMuted, fontWeight: 900, display: 'block', mb: 0.5 }}>Time</Typography>
-                                    <Typography sx={{ color: t.text, fontWeight: 800, fontFamily: 'monospace' }}>{question.intuition.timeComplexity}</Typography>
+                      {/* Example Scenarios */}
+                      {question.example && (
+                        <Box>
+                          <Typography sx={{ 
+                            fontWeight: 950, color: '#6366f1', textTransform: 'uppercase', 
+                            fontSize: '0.75rem', letterSpacing: '0.1em', mb: 2.5,
+                            display: 'flex', alignItems: 'center', gap: 1.5
+                          }}>
+                            <Box sx={{ width: 4, height: 16, bgcolor: '#6366f1', borderRadius: 1 }} />
+                            Example Scenario
+                          </Typography>
+                          <Box sx={{ 
+                            p: 3.5, borderRadius: '24px', bgcolor: isDarkMode ? 'rgba(0,0,0,0.3)' : '#fafafa', border: `1px solid ${t.border}`, 
+                            display: 'flex', flexDirection: 'column', gap: 2.5
+                          }}>
+                            {question.example.input && (
+                              <Box>
+                                <Typography sx={{ fontSize: '0.7rem', fontWeight: 900, color: t.textMuted, textTransform: 'uppercase', mb: 1 }}>Input</Typography>
+                                <Box sx={{ p: 2, bgcolor: isDarkMode ? 'rgba(255,255,255,0.03)' : '#ffffff', border: `1px solid ${t.border}`, borderRadius: '12px', fontFamily: "'JetBrains Mono', monospace", color: t.text, fontWeight: 700 }}>
+                                  {question.example.input}
                                 </Box>
+                              </Box>
                             )}
-                            {question.intuition.spaceComplexity && (
-                                <Box>
-                                    <Typography variant="caption" sx={{ color: t.textMuted, fontWeight: 900, display: 'block', mb: 0.5 }}>Space</Typography>
-                                    <Typography sx={{ color: t.text, fontWeight: 800, fontFamily: 'monospace' }}>{question.intuition.spaceComplexity}</Typography>
+                            {question.example.output && (
+                              <Box>
+                                <Typography sx={{ fontSize: '0.7rem', fontWeight: 900, color: '#10b981', textTransform: 'uppercase', mb: 1 }}>Expected Output</Typography>
+                                <Box sx={{ p: 2, bgcolor: isDarkMode ? 'rgba(16, 185, 129, 0.05)' : '#f0fdf4', border: '1px solid rgba(16, 185, 129, 0.2)', borderRadius: '12px', fontFamily: "'JetBrains Mono', monospace", color: isDarkMode ? '#10b981' : '#166534', fontWeight: 700 }}>
+                                  {question.example.output}
                                 </Box>
+                              </Box>
                             )}
-                         </Stack>
-                      </MotionBox>
-                   )}
+                            {question.example.explanation && (
+                              <Box>
+                                <Typography sx={{ fontSize: '0.7rem', fontWeight: 900, color: t.textMuted, textTransform: 'uppercase', mb: 1 }}>Logic Breakdown</Typography>
+                                <Typography sx={{ color: t.textSecondary, fontWeight: 600, lineHeight: 1.7, fontSize: '0.95rem' }}>{question.example.explanation}</Typography>
+                              </Box>
+                            )}
+                          </Box>
+                        </Box>
+                      )}
+
+                      {/* Technical Constraints */}
+                      {question.constraints && (
+                        <Box>
+                          <Typography sx={{ 
+                            fontWeight: 950, color: '#f97316', textTransform: 'uppercase', 
+                            fontSize: '0.75rem', letterSpacing: '0.1em', mb: 2.5,
+                            display: 'flex', alignItems: 'center', gap: 1.5
+                          }}>
+                            <Box sx={{ width: 4, height: 16, bgcolor: '#f97316', borderRadius: 1 }} />
+                            Technical Constraints
+                          </Typography>
+                          <Box sx={{ p: 3, borderRadius: '20px', bgcolor: isDarkMode ? 'rgba(249, 115, 22, 0.05)' : '#fff7ed', border: isDarkMode ? '1px solid rgba(249, 115, 22, 0.2)' : '1px solid #fed7aa' }}>
+                            <Stack spacing={1.5}>
+                              {(Array.isArray(question.constraints) ? question.constraints : [question.constraints]).map((constraint, idx) => (
+                                <Box key={idx} sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                                  <Box sx={{ width: 5, height: 5, borderRadius: '50%', bgcolor: '#f97316', flexShrink: 0 }} />
+                                  <Typography sx={{ color: isDarkMode ? '#f97316' : '#9a3412', fontWeight: 800, fontSize: '0.95rem', fontFamily: "'JetBrains Mono', monospace" }}>{constraint}</Typography>
+                                </Box>
+                              ))}
+                            </Stack>
+                          </Box>
+                        </Box>
+                      )}
+
+                      {/* Strategic Insights */}
+                      {question.intuition && (
+                        <Box>
+                          <Typography sx={{ 
+                            fontWeight: 950, color: '#8b5cf6', textTransform: 'uppercase', 
+                            fontSize: '0.75rem', letterSpacing: '0.1em', mb: 2.5,
+                            display: 'flex', alignItems: 'center', gap: 1.5
+                          }}>
+                            <Box sx={{ width: 4, height: 16, bgcolor: '#8b5cf6', borderRadius: 1 }} />
+                            Strategic Insights
+                          </Typography>
+                          <Box sx={{ p: 4, borderRadius: '24px', bgcolor: isDarkMode ? 'rgba(139, 92, 246, 0.05)' : '#f5f3ff', border: '1px solid rgba(139, 92, 246, 0.15)' }}>
+                             <Typography sx={{ color: t.textSecondary, fontSize: '1rem', lineHeight: 1.7, fontWeight: 600, mb: 3 }}>{question.intuition.approach}</Typography>
+                             <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 3 }}>
+                                {question.intuition.timeComplexity && (
+                                    <Box sx={{ p: 3, borderRadius: '24px', bgcolor: isDarkMode ? 'rgba(0,0,0,0.2)' : '#ffffff', border: `1px solid ${t.border}` }}>
+                                        <Typography sx={{ color: t.textMuted, fontWeight: 800, fontSize: '0.65rem', textTransform: 'uppercase', mb: 1, letterSpacing: '0.1em' }}>Time Complexity</Typography>
+                                        <Typography sx={{ fontWeight: 900, color: t.text, fontSize: '1.25rem', fontFamily: "'JetBrains Mono', monospace" }}>{question.intuition.timeComplexity}</Typography>
+                                    </Box>
+                                )}
+                                {question.intuition.spaceComplexity && (
+                                    <Box sx={{ p: 3, borderRadius: '24px', bgcolor: isDarkMode ? 'rgba(0,0,0,0.2)' : '#ffffff', border: `1px solid ${t.border}` }}>
+                                        <Typography sx={{ color: t.textMuted, fontWeight: 800, fontSize: '0.65rem', textTransform: 'uppercase', mb: 1, letterSpacing: '0.1em' }}>Space Complexity</Typography>
+                                        <Typography sx={{ fontWeight: 900, color: t.text, fontSize: '1.25rem', fontFamily: "'JetBrains Mono', monospace" }}>{question.intuition.spaceComplexity}</Typography>
+                                    </Box>
+                                )}
+                             </Box>
+                          </Box>
+                        </Box>
+                      )}
+                   </Box>
                 </MotionBox>
               )}
            </AnimatePresence>
@@ -545,23 +597,76 @@ export default function QuestionPracticePage() {
            
             {/* ── IDE Workspace ── */}
             <Box sx={{ height: `${compilerSplit}%`, position: 'relative', display: 'flex', flexDirection: 'column' }}>
-                <Box sx={{ px: 3, height: 48, borderBottom: `1px solid ${t.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', bgcolor: isDarkMode ? 'rgba(0,0,0,0.2)' : '#ffffff' }}>
+                <Box sx={{ 
+                    px: 3, 
+                    height: 60, 
+                    borderBottom: `1px solid ${t.border}`, 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'space-between', 
+                    bgcolor: isDarkMode ? 'rgba(0,0,0,0.2)' : '#ffffff',
+                    overflowX: 'auto',
+                    '&::-webkit-scrollbar': { height: '3px' },
+                    '&::-webkit-scrollbar-thumb': { bgcolor: isDarkMode ? 'rgba(255,255,255,0.1)' : '#e2e8f0' }
+                }}>
                     <Stack direction="row" spacing={2} alignItems="center">
                         <Code sx={{ fontSize: 18, color: '#6366f1' }} />
-                        <Typography variant="button" sx={{ color: t.textSecondary, fontWeight: 900, fontSize: '0.75rem', letterSpacing: '0.1em' }}>Editor</Typography>
                         <Select 
                             size="small" 
                             value={language} 
                             onChange={(e) => setLanguage(e.target.value)}
-                            sx={{ color: t.text, fontWeight: 800, fontSize: '0.8rem', height: 28, '& .MuiOutlinedInput-notchedOutline': { border: 'none' } }}
+                            sx={{ 
+                                color: t.text, 
+                                fontWeight: 800, 
+                                fontSize: '0.8rem', 
+                                height: 32, 
+                                borderRadius: '8px',
+                                border: `1px solid ${t.border}`,
+                                '& .MuiOutlinedInput-notchedOutline': { border: 'none' } 
+                            }}
                         >
                             {Object.keys(langMeta).map(l => <MenuItem key={l} value={l}>{langMeta[l].label}</MenuItem>)}
                         </Select>
+                        
+                        <Box sx={{ 
+                            display: 'flex', alignItems: 'center', gap: 0.5, 
+                            bgcolor: isDarkMode ? 'rgba(255,255,255,0.05)' : '#f8fafc', 
+                            px: 1, py: 0.25, borderRadius: '8px',
+                            border: `1px solid ${t.border}`
+                        }}>
+                            <IconButton size="small" onClick={() => setFontSize(Math.max(12, fontSize - 2))} sx={{ color: t.textMuted }}><Remove sx={{ fontSize: 14 }} /></IconButton>
+                            <Typography variant="caption" sx={{ color: t.textSecondary, fontWeight: 900, minWidth: 24, textAlign: 'center' }}>{fontSize}</Typography>
+                            <IconButton size="small" onClick={() => setFontSize(Math.min(30, fontSize + 2))} sx={{ color: t.textMuted }}><Add sx={{ fontSize: 14 }} /></IconButton>
+                        </Box>
                     </Stack>
-                    <Stack direction="row" spacing={1} alignItems="center">
-                        <IconButton size="small" onClick={() => setFontSize(Math.max(12, fontSize - 2))} sx={{ color: t.textMuted }}><Remove sx={{ fontSize: 16 }} /></IconButton>
-                        <Typography variant="caption" sx={{ color: t.textSecondary, fontWeight: 900, minWidth: 24, textAlign: 'center' }}>{fontSize}</Typography>
-                        <IconButton size="small" onClick={() => setFontSize(Math.min(30, fontSize + 2))} sx={{ color: t.textMuted }}><Add sx={{ fontSize: 16 }} /></IconButton>
+                    
+                    <Stack direction="row" spacing={1.5} alignItems="center">
+                        <Button 
+                            variant="contained" 
+                            startIcon={isRunning ? <CircularProgress size={16} sx={{ color: isDarkMode ? '#fff' : '#6366f1' }} /> : <PlayArrow />}
+                            onClick={handleRun}
+                            disabled={isRunning || !code.trim()}
+                            sx={{ 
+                                bgcolor: isDarkMode ? 'rgba(99, 102, 241, 0.1)' : 'rgba(99, 102, 241, 0.05)', 
+                                color: '#818cf8', fontWeight: 800, textTransform: 'none',
+                                px: 2, borderRadius: '8px', border: '1px solid rgba(99, 102, 241, 0.2)',
+                                '&:hover': { bgcolor: 'rgba(99, 102, 241, 0.2)', borderColor: '#818cf8' }
+                            }}
+                        >
+                            Run
+                        </Button>
+                        <Button 
+                            variant="contained" 
+                            onClick={handleSubmit}
+                            disabled={isSubmitting || !code.trim()}
+                            sx={{ 
+                                bgcolor: '#6366f1', color: '#fff', fontWeight: 800, textTransform: 'none',
+                                px: 3, borderRadius: '8px', boxShadow: isDarkMode ? '0 4px 14px rgba(99, 102, 241, 0.4)' : 'none',
+                                '&:hover': { bgcolor: '#4f46e5', transform: 'translateY(-1px)' }
+                            }}
+                        >
+                            Submit
+                        </Button>
                     </Stack>
                 </Box>
                 <Box sx={{ flex: 1 }}>
@@ -571,15 +676,24 @@ export default function QuestionPracticePage() {
                         theme={isDarkMode ? 'vs-dark' : 'light'} 
                         value={code} 
                         onChange={handleCodeChange} 
-                        options={{ 
-                            fontSize, 
-                            minimap: { enabled: false }, 
-                            fontFamily: "'JetBrains Mono', monospace",
-                            padding: { top: 20 },
-                            cursorBlinking: 'smooth',
-                            smoothScrolling: true,
-                            automaticLayout: true
-                        }} 
+                        options={{
+                          fontSize: fontSize,
+                          minimap: { enabled: false },
+                          scrollBeyondLastLine: false,
+                          wordWrap: 'on',
+                          lineNumbers: 'on',
+                          folding: true,
+                          autoIndent: 'full',
+                          formatOnPaste: true,
+                          formatOnType: true,
+                          padding: { top: 24 },
+                          fontFamily: "'JetBrains Mono', monospace",
+                          fontLigatures: true,
+                          cursorSmoothCaretAnimation: 'on',
+                          smoothScrolling: true,
+                          lineHeight: 1.6,
+                          automaticLayout: true
+                        }}
                     />
                 </Box>
             </Box>
@@ -595,65 +709,239 @@ export default function QuestionPracticePage() {
 
            {/* ── Output / Public Test Console ── */}
            <Box sx={{ flex: 1, bgcolor: t.testCaseBg, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-              <Tabs 
-                value={currentTestCaseTab} 
-                onChange={(e, v) => setCurrentTestCaseTab(v)} 
-                sx={{ minHeight: 48, borderBottom: `1px solid ${t.border}`, px: 2 }}
-              >
-                 {question.testCases.filter(tc => tc.isPublic).map((_, i) => (
-                    <Tab 
-                        key={i} 
-                        sx={{ minHeight: 48, fontWeight: 900, fontSize: '0.75rem', color: t.textMuted }} 
-                        label={
-                            <Stack direction="row" spacing={1} alignItems="center">
-                                {testCaseResults[i]?.passed === true ? <CheckCircle sx={{ fontSize: 14, color: '#10b981' }} /> : testCaseResults[i]?.passed === false ? <Close sx={{ fontSize: 14, color: '#ef4444' }} /> : <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: t.border }} />}
-                                <span>Case {i+1}</span>
-                            </Stack>
-                        } 
-                    />
-                 ))}
-              </Tabs>
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: 1.5, 
+                px: 2,
+                py: 1.25, 
+                bgcolor: isDarkMode ? 'rgba(255,255,255,0.03)' : '#f8fafc', 
+                borderBottom: `1px solid ${t.border}`, 
+                overflowX: 'auto', 
+                minHeight: '52px',
+                flexShrink: 0,
+                '&::-webkit-scrollbar': { height: '3px' },
+                '&::-webkit-scrollbar-thumb': { bgcolor: isDarkMode ? 'rgba(255,255,255,0.1)' : '#e2e8f0' }
+              }}>
+                {(() => {
+                  const publicTC = question.testCases.filter(tc => tc.isPublic);
+                  const allTC = [...publicTC, ...customTestCases];
+                  
+                  return allTC.map((tc, index) => {
+                    const isActive = currentTestCaseTab === index;
+                    const result = testCaseResults[index];
+                    const isPassed = result?.passed;
+                    const isFailed = result?.passed === false;
+                    const isCustom = index >= publicTC.length;
+
+                    return (
+                      <Box
+                        key={index}
+                        onClick={() => setCurrentTestCaseTab(index)}
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                          px: 2.5,
+                          py: 0.85,
+                          bgcolor: isActive ? (isDarkMode ? 'rgba(99, 102, 241, 0.15)' : '#ffffff') : 'transparent',
+                          color: isActive ? (isDarkMode ? '#818cf8' : '#0f172a') : t.textMuted,
+                          cursor: 'pointer',
+                          borderRadius: '10px',
+                          border: '1px solid',
+                          borderColor: isActive 
+                            ? (isPassed ? '#10b981' : isFailed ? '#ef4444' : (isDarkMode ? '#6366f1' : '#e2e8f0'))
+                            : 'transparent',
+                          boxShadow: isActive ? '0 4px 12px rgba(0,0,0,0.1)' : 'none',
+                          transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                          whiteSpace: 'nowrap',
+                          '&:hover': { bgcolor: isActive ? (isDarkMode ? 'rgba(99, 102, 241, 0.2)' : '#ffffff') : (isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)') }
+                        }}
+                      >
+                        {isPassed && <CheckCircle sx={{ fontSize: 16, color: '#10b981' }} />}
+                        {isFailed && <Close sx={{ fontSize: 16, color: '#ef4444' }} />}
+                        {!isPassed && !isFailed && !result?.loading && <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: t.border }} />}
+                        {result?.loading && <CircularProgress size={14} sx={{ color: '#6366f1' }} />}
+                        <Typography variant="body2" sx={{ fontWeight: 800, fontSize: '0.8rem', letterSpacing: '-0.01em' }}>
+                          {isCustom ? `Custom ${index - publicTC.length + 1}` : `Case ${index + 1}`}
+                        </Typography>
+                        {isCustom && (
+                          <IconButton size="small" onClick={(e) => { e.stopPropagation(); setCustomTestCases(prev => prev.filter((_, i) => i !== index - publicTC.length)); if (currentTestCaseTab === index) setCurrentTestCaseTab(0); }} sx={{ ml: 0.5, p: 0.2, color: 'inherit', '&:hover': { color: '#ef4444' } }}>
+                            <Close sx={{ fontSize: 12 }} />
+                          </IconButton>
+                        )}
+                      </Box>
+                    );
+                  });
+                })()}
+                
+                <Button
+                  size="small"
+                  onClick={() => setShowAddCustom(true)}
+                  startIcon={<Add sx={{ fontSize: 16 }} />}
+                  sx={{ 
+                    ml: 'auto', color: '#6366f1', fontWeight: 800, textTransform: 'none', px: 2, borderRadius: '8px',
+                    bgcolor: isDarkMode ? 'rgba(99, 102, 241, 0.05)' : 'transparent',
+                    '&:hover': { bgcolor: 'rgba(99, 102, 241, 0.1)' }
+                  }}
+                >
+                  Add Custom
+                </Button>
+              </Box>
               
-              <Box sx={{ flex: 1, p: 4, overflow: 'auto' }}>
-                 {question.testCases.filter(tc => tc.isPublic)[currentTestCaseTab] && (
-                    <Stack spacing={4}>
+              <Box sx={{ flex: 1, p: 3, overflowY: 'auto', bgcolor: isDarkMode ? 'transparent' : '#ffffff' }}>
+                 {(() => {
+                    const publicTC = question.testCases.filter(tc => tc.isPublic);
+                    const allTC = [...publicTC, ...customTestCases];
+                    const tc = allTC[currentTestCaseTab];
+                    
+                    if (!tc) return (
+                      <Typography sx={{ color: t.textMuted, textAlign: 'center', mt: 4, fontWeight: 600 }}>
+                        Select a test case to view details
+                      </Typography>
+                    );
+
+                    return (
+                      <Stack spacing={3}>
+                        {/* Input Section */}
                         <Box>
-                            <Typography sx={{ color: t.textMuted, fontSize: '0.7rem', fontWeight: 900, mb: 1.5, letterSpacing: '0.1em' }}>INPUT</Typography>
-                            <Box sx={{ bgcolor: isDarkMode ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.02)', p: 2, borderRadius: '12px', border: `1px solid ${t.border}` }}>
-                                <Typography sx={{ fontFamily: "'JetBrains Mono', monospace", color: t.text }}>{question.testCases.filter(tc => tc.isPublic)[currentTestCaseTab].input?.value || question.testCases.filter(tc => tc.isPublic)[currentTestCaseTab].input}</Typography>
+                            <Typography sx={{ fontWeight: 800, color: t.text, textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.75rem', mb: 1.5 }}>
+                              Input
+                            </Typography>
+                            <Box sx={{ 
+                              bgcolor: isDarkMode ? 'rgba(0,0,0,0.3)' : '#f8fafc',
+                              border: `1px solid ${t.border}`,
+                              p: 2.5,
+                              borderRadius: '12px',
+                              fontFamily: "'JetBrains Mono', monospace",
+                              whiteSpace: 'pre-wrap',
+                              fontSize: '0.9rem',
+                              color: t.text,
+                              lineHeight: 1.6
+                            }}>
+                              {tc.input?.value || tc.input}
                             </Box>
                         </Box>
                         
-                        <Box>
-                            <Stack direction="row" justifyContent="space-between" mb={1.5}>
-                                <Typography sx={{ color: t.textMuted, fontSize: '0.7rem', fontWeight: 900, letterSpacing: '0.1em' }}>CONSOLE OUTPUT</Typography>
-                                {testCaseResults[currentTestCaseTab]?.loading && <CircularProgress size={14} sx={{ color: '#6366f1' }} />}
-                            </Stack>
-                            <Box sx={{ 
-                                bgcolor: isDarkMode ? 'rgba(0,0,0,0.4)' : '#ffffff', 
-                                p: 2, borderRadius: '12px', 
-                                border: `2px solid`,
-                                borderColor: testCaseResults[currentTestCaseTab]?.passed === true ? 'rgba(16, 185, 129, 0.4)' : testCaseResults[currentTestCaseTab]?.passed === false ? 'rgba(239, 68, 68, 0.4)' : t.border,
-                                minHeight: 60, display: 'flex', alignItems: 'center'
-                            }}>
-                                <Typography sx={{ fontFamily: "'JetBrains Mono', monospace", color: testCaseResults[currentTestCaseTab]?.passed === true ? '#10b981' : testCaseResults[currentTestCaseTab]?.passed === false ? '#ef4444' : t.text, whiteSpace: 'pre-wrap' }}>
-                                    {testCaseResults[currentTestCaseTab]?.loading ? 'Remote kernel executing code...' : (testCaseResults[currentTestCaseTab]?.output || testCaseResults[currentTestCaseTab]?.error || 'Process finished.')}
+                        {/* Your Output Section */}
+                        {testCaseResults[currentTestCaseTab] && (
+                          <Box>
+                              <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1.5}>
+                                <Typography sx={{ fontWeight: 800, color: t.text, textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.75rem' }}>
+                                  Your Output
                                 </Typography>
-                            </Box>
-                        </Box>
+                                {testCaseResults[currentTestCaseTab]?.loading && <CircularProgress size={14} sx={{ color: '#6366f1' }} />}
+                              </Stack>
+                              <Box sx={{ 
+                                  bgcolor: testCaseResults[currentTestCaseTab]?.error ? (isDarkMode ? 'rgba(239, 68, 68, 0.1)' : '#fef2f2') : (isDarkMode ? 'rgba(0,0,0,0.3)' : '#f8fafc'), 
+                                  p: 2.5, borderRadius: '12px', 
+                                  border: `1px solid`,
+                                  borderColor: testCaseResults[currentTestCaseTab]?.passed === true ? '#10b981' : testCaseResults[currentTestCaseTab]?.passed === false ? '#ef4444' : t.border,
+                                  minHeight: '60px', display: 'flex', alignItems: 'center'
+                              }}>
+                                  <Typography sx={{ 
+                                    fontFamily: "'JetBrains Mono', monospace", 
+                                    color: testCaseResults[currentTestCaseTab]?.error ? '#ef4444' : t.text, 
+                                    whiteSpace: 'pre-wrap',
+                                    fontSize: '0.9rem',
+                                    lineHeight: 1.6
+                                  }}>
+                                      {testCaseResults[currentTestCaseTab]?.loading ? 'Remote kernel executing code...' : (testCaseResults[currentTestCaseTab]?.output || testCaseResults[currentTestCaseTab]?.error || 'Process finished.')}
+                                  </Typography>
+                              </Box>
+                          </Box>
+                        )}
 
-                        <Box>
-                            <Typography sx={{ color: t.textMuted, fontSize: '0.7rem', fontWeight: 900, mb: 1.5, letterSpacing: '0.1em' }}>EXPECTED</Typography>
-                            <Box sx={{ bgcolor: isDarkMode ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.02)', p: 2, borderRadius: '12px', border: `1px solid ${t.border}` }}>
-                                <Typography sx={{ fontFamily: "'JetBrains Mono', monospace", color: '#818cf8' }}>{question.testCases.filter(tc => tc.isPublic)[currentTestCaseTab].output?.value || question.testCases.filter(tc => tc.isPublic)[currentTestCaseTab].output}</Typography>
+                        {/* Expected Output Section (Only for Public Cases) */}
+                        {currentTestCaseTab < publicTC.length && (
+                          <Box>
+                              <Typography sx={{ fontWeight: 800, color: t.text, textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.75rem', mb: 1.5 }}>
+                                Expected Output
+                              </Typography>
+                              <Box sx={{ 
+                                bgcolor: isDarkMode ? 'rgba(0,0,0,0.3)' : '#f8fafc',
+                                border: `1px solid ${t.border}`,
+                                p: 2.5,
+                                borderRadius: '12px',
+                                fontFamily: "'JetBrains Mono', monospace",
+                                fontSize: '0.9rem',
+                                color: t.text,
+                                whiteSpace: 'pre-wrap',
+                                lineHeight: 1.6
+                              }}>
+                                  {tc.output?.value || tc.output}
+                              </Box>
+                          </Box>
+                        )}
+
+                        {/* Explanation Section */}
+                        {tc.explanation && (
+                          <Box>
+                            <Typography sx={{ fontWeight: 800, color: t.text, textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.75rem', mb: 1.5 }}>
+                              Explanation
+                            </Typography>
+                            <Box sx={{ 
+                              bgcolor: isDarkMode ? 'rgba(99, 102, 241, 0.05)' : '#f8fafc',
+                              border: `1px solid ${t.border}`,
+                              p: 2.5,
+                              borderRadius: '12px',
+                              fontSize: '0.9rem',
+                              color: t.textSecondary,
+                              lineHeight: 1.6
+                            }}>
+                                {tc.explanation}
                             </Box>
-                        </Box>
-                    </Stack>
-                 )}
+                          </Box>
+                        )}
+                      </Stack>
+                    );
+                 })()}
               </Box>
            </Box>
         </Box>
       </Box>
+
+      {/* Add Custom Test Case Dialog */}
+      <Dialog 
+        open={showAddCustom} 
+        onClose={() => setShowAddCustom(false)}
+        PaperProps={{
+          sx: { borderRadius: '24px', p: 1, minWidth: '400px' }
+        }}
+      >
+        <DialogTitle sx={{ fontWeight: 900, pb: 1 }}>Add Custom Input</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2, fontWeight: 600 }}>
+            Type your test case input exactly as it should be passed to the program.
+          </Typography>
+          <TextField
+            fullWidth
+            multiline
+            rows={4}
+            value={customInput}
+            onChange={(e) => setCustomInput(e.target.value)}
+            placeholder="e.g.\n1 2 3\n4 5 6"
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: '16px',
+                fontFamily: "'JetBrains Mono', monospace",
+                bgcolor: '#f8fafc'
+              }
+            }}
+          />
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setShowAddCustom(false)} sx={{ fontWeight: 800, textTransform: 'none', color: 'text.secondary' }}>Cancel</Button>
+          <Button 
+            onClick={handleAddCustom}
+            variant="contained" 
+            disabled={!customInput.trim()}
+            sx={{ borderRadius: '12px', fontWeight: 900, textTransform: 'none', bgcolor: '#6366f1', px: 3 }}
+          >
+            Add Case
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

@@ -238,18 +238,18 @@ export default function AssessmentResults() {
               </Box>
             </Box>
             
-            {(qCounts.programming > 0 || qCounts.frontend > 0 || qCounts.mongodb > 0) && (
-              <Button
-                variant="contained"
-                onClick={() => {
-                  if (assessment.type === 'frontend') navigate(`/assessments/${id}/practice-frontend`);
-                  else if (assessment.type === 'mongodb') navigate(`/assessments/${id}/practice-mongodb`);
-                  else navigate(`/assessments/${id}/practice`);
-                }}
-                sx={{ borderRadius: '16px', px: 4, py: 1.5, fontWeight: 800, bgcolor: '#6366f1', textTransform: 'none' }}
-              >
-                Launch Practice
-              </Button>
+            {(qCounts.programming > 0 || qCounts.frontend > 0 || qCounts.mongodb > 0) && canViewResults && (
+                <Button
+                  variant="contained"
+                  onClick={() => {
+                    if (assessment.type === 'frontend') navigate(`/assessments/${id}/practice-frontend`);
+                    else if (assessment.type === 'mongodb') navigate(`/assessments/${id}/practice-mongodb`);
+                    else navigate(`/assessments/${id}/practice`);
+                  }}
+                  sx={{ borderRadius: '16px', px: 4, py: 1.5, fontWeight: 800, bgcolor: '#6366f1', textTransform: 'none' }}
+                >
+                  Launch Practice
+                </Button>
             )}
           </Box>
         </Box>

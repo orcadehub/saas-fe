@@ -14,6 +14,7 @@ import { useDashboard } from 'contexts/DashboardContext';
 import { useAuth } from 'contexts/AuthContext';
 import StarryBackground from 'components/StarryBackground';
 import { motion } from 'framer-motion';
+import { IconCode } from '@tabler/icons-react';
 
 const MotionBox = motion.create(Box);
 const MotionRow = motion.create(TableRow);
@@ -79,7 +80,8 @@ export default function PracticeLeaderboard() {
                         <Typography sx={{ color: '#fff', fontWeight: 800 }}>Hall of Fame</Typography>
                     </Breadcrumbs>
                 </Stack>
-                <Typography variant="h1" sx={{ fontWeight: 950, letterSpacing: '-0.04em', fontSize: { xs: '2rem', md: '3.5rem' } }}>
+                <Typography variant="h1" sx={{ fontWeight: 950, letterSpacing: '-0.04em', fontSize: { xs: '2rem', md: '3.5rem' }, display: 'flex', alignItems: 'center', gap: 2, color: '#fff' }}>
+                    <IconCode size={50} style={{ color: '#6366f1' }} />
                     ORCA <Box component="span" sx={{ color: '#6366f1' }}>Leaderboard</Box>
                 </Typography>
                 <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.6)', fontSize: '1.1rem', mt: 1 }}>

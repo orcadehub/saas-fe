@@ -11,12 +11,14 @@ import Stack from '@mui/material/Stack';
 import LogoSection from '../LogoSection';
 import ProfileSection from './ProfileSection';
 import apiService from 'services/apiService';
+import { Link } from 'react-router-dom';
 
 import { handlerDrawerOpen, useGetMenuMaster } from 'api/menu';
 
 // assets
-import { IconChevronLeft, IconChevronRight, IconUsers } from '@tabler/icons-react';
+import { IconChevronLeft, IconChevronRight, IconUsers, IconCode } from '@tabler/icons-react';
 import { Stars } from '@mui/icons-material';
+import Button from '@mui/material/Button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { io } from 'socket.io-client';
 
@@ -85,10 +87,27 @@ export default function Header() {
   return (
     <>
       {/* logo & toggler button */}
-      <Box sx={{ width: downMD ? 'auto' : 260, display: 'flex' }}>
+      <Box sx={{ width: downMD ? 'auto' : 260, display: 'flex', alignItems: 'center' }}>
         <Box component="span" sx={{ display: { xs: 'none', md: 'block' }, flexGrow: 1 }}>
           <LogoSection />
         </Box>
+        <Button 
+          component={Link} 
+          to="/practice/programming"
+          startIcon={<IconCode size={20} />}
+          sx={{ 
+            ml: 2, 
+            fontWeight: 800, 
+            letterSpacing: 1, 
+            color: '#6366f1',
+            borderRadius: '12px',
+            bgcolor: 'rgba(99, 102, 241, 0.05)',
+            '&:hover': { bgcolor: 'rgba(99, 102, 241, 0.12)' },
+            display: { xs: 'none', sm: 'flex' }
+          }}
+        >
+          ORCA
+        </Button>
       </Box>
 
       {/* Real-time Achievement Marquee (Global) */}

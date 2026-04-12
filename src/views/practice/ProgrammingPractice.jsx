@@ -68,7 +68,8 @@ export default function ProgrammingPractice() {
       <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }} sx={{ mb: 6 }} spacing={3}>
         <Box>
            <Stack direction="row" spacing={2} alignItems="center" mb={1}>
-              <Typography variant="h1" sx={{ fontWeight: 950, color: '#1e293b', fontSize: '2.5rem', letterSpacing: '-0.04em' }}>
+              <Typography variant="h1" sx={{ fontWeight: 950, color: '#1e293b', fontSize: '2.5rem', letterSpacing: '-0.04em', display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                <IconCode size={40} style={{ color: '#6366f1' }} />
                 ORCA <Box component="span" sx={{ color: '#6366f1' }}>Practice</Box>
               </Typography>
               <Button 
@@ -116,7 +117,7 @@ export default function ProgrammingPractice() {
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(1, 1fr)', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)', lg: 'repeat(4, 1fr)' }, gap: 3 }}>
           {topics.map((topic, idx) => {
             const theme = getTopicColor(idx);
-            const solvedInTopic = stats.topicStats[topic.topic] || 0;
+            const solvedInTopic = stats.topicStats?.[topic.topic] || 0;
             const totalInTopic = topic.count;
             const isCompleted = solvedInTopic >= totalInTopic && totalInTopic > 0;
             

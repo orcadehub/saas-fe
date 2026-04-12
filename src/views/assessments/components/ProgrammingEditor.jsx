@@ -23,6 +23,7 @@ export default function ProgrammingEditor({ assessment, question, attemptId, onT
   const [customInput, setCustomInput] = useState('');
   const [editingCustomIndex, setEditingCustomIndex] = useState(null);
   const editorRef = useRef(null);
+  const questionIdRef = useRef(question?._id);
 
   const getLanguageTemplate = (lang) => {
     switch (lang) {
@@ -99,6 +100,7 @@ export default function ProgrammingEditor({ assessment, question, attemptId, onT
     setTestCaseResults({});
     setCustomTestCases([]);
     setSubmitResults([]);
+    questionIdRef.current = question?._id;
   }, [question?._id]);
 
   // Split management
@@ -158,6 +160,7 @@ export default function ProgrammingEditor({ assessment, question, attemptId, onT
     const languageId = getLanguageId(language);
     
     for (let i = 0; i < allTestCases.length; i++) {
+      if (questionIdRef.current !== question?._id) break;
       const testCase = allTestCases[i];
       
       setTestCaseResults(prev => ({
@@ -228,6 +231,7 @@ export default function ProgrammingEditor({ assessment, question, attemptId, onT
     const results = [...initialResults];
     
     for (let i = 0; i < allTestCases.length; i++) {
+      if (questionIdRef.current !== question?._id) break;
       const testCase = allTestCases[i];
       results[i] = { ...results[i], status: 'Running' };
       setSubmitResults([...results]);

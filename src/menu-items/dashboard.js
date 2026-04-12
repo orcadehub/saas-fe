@@ -1,4 +1,4 @@
-import { IconDashboard, IconClipboardList, IconTrophy, IconCode, IconBrain, IconRobot, IconDeviceGamepad2, IconBook, IconBooks, IconSparkles, IconCertificate } from '@tabler/icons-react';
+import { IconDashboard, IconClipboardList, IconTrophy, IconCode, IconTerminal2, IconBrain, IconRobot, IconDeviceGamepad2, IconBook, IconBooks, IconSparkles, IconCertificate } from '@tabler/icons-react';
 
 // constant
 const icons = { 
@@ -6,6 +6,7 @@ const icons = {
   IconClipboardList,
   IconTrophy,
   IconCode,
+  IconTerminal2,
   IconBrain,
   IconRobot,
   IconDeviceGamepad2,
@@ -28,6 +29,14 @@ const dashboard = {
       type: 'item',
       url: '/dashboard',
       icon: icons.IconDashboard,
+      breadcrumbs: false
+    },
+    {
+      id: 'orca',
+      title: 'ORCA',
+      type: 'item',
+      url: '/practice/programming',
+      icon: icons.IconCode,
       breadcrumbs: false
     },
     {
@@ -60,15 +69,7 @@ const dashboard = {
       type: 'item',
       url: '/practice',
       excludeFromActive: ['/practice/programming'],
-      icon: icons.IconCode,
-      breadcrumbs: false
-    },
-    {
-      id: 'orca',
-      title: 'ORCA',
-      type: 'item',
-      url: '/practice/programming',
-      icon: icons.IconCode,
+      icon: icons.IconTerminal2,
       breadcrumbs: false
     },
     {

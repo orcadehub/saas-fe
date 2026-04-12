@@ -15,34 +15,62 @@ const languageMap = {
   46: { language: 'bash', version: '5.2.0' },
 };
 
-export const submitCode = async (code, languageId, stdin) => {
+export const submitCode = async (code, languageId, stdin, retries = 2) => {
   const lang = languageMap[languageId] || { language: 'python', version: '3.10.0' };
 
-  const response = await fetch(`${PISTON_API}/api/piston/execute`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      language: lang.language,
-      version: lang.version,
-      files: [{ content: code }],
-      stdin: stdin || ''
-    })
-  });
+  let lastError;
+  for (let i = 0; i <= retries; i++) {
+    try {
+      const response = await fetch(`${PISTON_API}/api/piston/execute`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          language: lang.language,
+          version: lang.version,
+          files: [{ content: code }],
+          stdin: stdin || ''
+        })
+      });
 
-  if (!response.ok) {
-    throw new Error(`Piston API error: ${response.status}`);
+      if (!response.ok) {
+        // If it's a 500 error, it might be a temporary timeout or server issue, so we retry
+        if (response.status >= 500 && i < retries) {
+          console.warn(`Piston execution failed with ${response.status}, retrying (${i + 1}/${retries})...`);
+          await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1))); // Exponential backoff
+          continue;
+        }
+        throw new Error(`Piston API error: ${response.status}`);
+      }
+
+      const result = await response.json();
+      
+      // If result has an error from Piston proxy but not axios (e.g. detailed error JSON)
+      if (result.error && i < retries) {
+        console.warn(`Piston reported error: ${result.error}, retrying...`);
+        await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+        continue;
+      }
+
+      return {
+        token: Date.now().toString(),
+        stdout: result.run?.stdout || null,
+        stderr: result.run?.stderr || null,
+        status: {
+          id: result.run?.code === 0 ? 3 : 12,
+          description: result.run?.code === 0 ? 'Accepted' : 'Runtime Error'
+        },
+        time: result.run?.cpu_time || null,
+        memory: result.run?.memory || null
+      };
+    } catch (error) {
+      lastError = error;
+      if (i < retries) {
+        console.warn(`Piston fetch failed: ${error.message}, retrying...`);
+        await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+        continue;
+      }
+    }
   }
 
-  const result = await response.json();
-  return {
-    token: Date.now().toString(),
-    stdout: result.run?.stdout || null,
-    stderr: result.run?.stderr || null,
-    status: {
-      id: result.run?.code === 0 ? 3 : 12,
-      description: result.run?.code === 0 ? 'Accepted' : 'Runtime Error'
-    },
-    time: result.run?.cpu_time || null,
-    memory: result.run?.memory || null
-  };
+  throw lastError || new Error('Failed to execute code after multiple attempts');
 };

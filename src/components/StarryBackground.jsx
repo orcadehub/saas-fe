@@ -65,11 +65,12 @@ const StarryBackground = () => {
             width: star.size,
             height: star.size,
             borderRadius: '50%',
-            bgcolor: '#ffffff',
-            boxShadow: '0 0 4px #ffffff',
+            bgcolor: '#94a3b8',
+            opacity: 0.3,
             animation: `blink ${star.duration}s ease-in-out ${star.delay}s infinite`,
           }}
         />
+
       ))}
       
       {activeStar && (

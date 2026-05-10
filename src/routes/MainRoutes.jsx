@@ -13,6 +13,8 @@ import { LabsProvider } from 'contexts/LabsContext';
 const Landing = Loadable(lazy(() => import('views/landing')));
 const Services = Loadable(lazy(() => import('views/landing/Services')));
 const Pricing = Loadable(lazy(() => import('views/landing/Pricing')));
+const LoginPage = Loadable(lazy(() => import('views/pages/authentication/Login')));
+const ForgotPassword = Loadable(lazy(() => import('views/pages/authentication/ForgotPassword')));
 const Dashboard = Loadable(lazy(() => import('views/dashboard')));
 const Leaderboard = Loadable(lazy(() => import('views/leaderboard')));
 const Assessments = Loadable(lazy(() => import('views/assessments')));
@@ -62,6 +64,13 @@ const ResultPage = Loadable(lazy(() => import('views/ai-mock/ResultPage')));
 const GenAIPlayground = Loadable(lazy(() => import('views/genai')));
 const Certificates = Loadable(lazy(() => import('views/certificates/StudentCertificates')));
 const CertificateView = Loadable(lazy(() => import('views/certificates/CertificateView')));
+const AccountSettings = Loadable(lazy(() => import('views/pages/user-profile/Settings')));
+const CodingProfiles = Loadable(lazy(() => import('views/pages/user-profile/CodingProfiles')));
+const TestExecutionPage = Loadable(lazy(() => import('views/practice/TestExecutionPage')));
+const MCQPracticePage = Loadable(lazy(() => import('views/practice/MCQPracticePage')));
+const TopicPracticePage = Loadable(lazy(() => import('views/practice/TopicPracticePage')));
+
+import LandingLayout from 'layout/LandingLayout';
 
 // ==============================|| MAIN ROUTING ||============================== //
 
@@ -71,20 +80,35 @@ const MainRoutes = {
   children: [
     {
       path: '/',
-      element: <Landing />
-    },
-    {
-      path: '/services',
-      element: <Services />
-    },
-    {
-      path: '/pricing',
-      element: <Pricing />
+      element: <LandingLayout />,
+      children: [
+        {
+          path: '/',
+          element: <Landing />
+        },
+        {
+          path: '/services',
+          element: <Services />
+        },
+        {
+          path: '/pricing',
+          element: <Pricing />
+        },
+        {
+          path: '/login',
+          element: <LoginPage />
+        },
+        {
+          path: '/forgot-password',
+          element: <ForgotPassword />
+        }
+      ]
     },
     {
       path: '/assessments/:id/take',
       element: <AssessmentTaking />
     },
+
     {
       path: '/',
       element: (
@@ -192,6 +216,18 @@ const MainRoutes = {
           element: <QuestionPracticePage />
         },
         {
+          path: 'practice/mcq/:id',
+          element: <MCQPracticePage />
+        },
+        {
+          path: 'practice/:category/topic/:topic',
+          element: <TopicPracticePage />
+        },
+        {
+          path: 'practice/:category/test-execution',
+          element: <TestExecutionPage />
+        },
+        {
           path: 'practice/aptitude',
           element: <AptitudePractice />
         },
@@ -286,6 +322,14 @@ const MainRoutes = {
         {
           path: 'certificates/:id',
           element: <CertificateView />
+        },
+        {
+          path: 'user/account-settings',
+          element: <AccountSettings />
+        },
+        {
+          path: 'user/coding-profiles',
+          element: <CodingProfiles />
         }
       ]
     }

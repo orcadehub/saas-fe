@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { Box, Avatar, Typography, IconButton, Tooltip, Card, CardContent, Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, CircularProgress, InputAdornment, Snackbar, Alert, Stack, Chip, Paper } from '@mui/material';
+import { Box, Container, Avatar, Typography, IconButton, Tooltip, Card, CardContent, Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, CircularProgress, InputAdornment, Snackbar, Alert, Stack, Chip, Paper } from '@mui/material';
 import { Edit, Link as LinkIcon, Lock, Visibility, VisibilityOff, AutoAwesomeRounded, AccountCircle, TrendingUp, Timeline, Assessment, Quiz as QuizIcon, Extension, CheckCircle } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useAuth } from 'contexts/AuthContext';
@@ -75,7 +75,7 @@ export default function Dashboard() {
   const fileInputRef = useRef(null);
   const [showConnectModal, setShowConnectModal] = useState(false);
   const [connecting, setConnecting] = useState(false);
-  const [usernames, setUsernames] = useState({ leetcode: '', hackerrank: '', codeforces: '' });
+  const [usernames, setUsernames] = useState({ leetcode: '', hackerrank: '', codeforces: '', codechef: '' });
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [passwordData, setPasswordData] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
   const [changingPassword, setChangingPassword] = useState(false);
@@ -110,7 +110,7 @@ export default function Dashboard() {
   const getApiUrl = () => import.meta.env.DEV ? 'http://localhost:4000/api' : 'https://backend.orcode.in/api';
 
   const handleConnectPlatforms = async () => {
-    if (!usernames.leetcode && !usernames.hackerrank && !usernames.codeforces) {
+    if (!usernames.leetcode && !usernames.hackerrank && !usernames.codeforces && !usernames.codechef) {
       setToastMessage('Please enter at least one username');
       setToastSeverity('error'); setShowToast(true); return;
     }
@@ -128,7 +128,8 @@ export default function Dashboard() {
         body: JSON.stringify({
           leetcodeUsername: usernames.leetcode,
           hackerrankUsername: usernames.hackerrank,
-          codeforcesUsername: usernames.codeforces
+          codeforcesUsername: usernames.codeforces,
+          codechefUsername: usernames.codechef
         })
       });
       if (response.ok) {
@@ -136,7 +137,7 @@ export default function Dashboard() {
         setShowConnectModal(false);
         setToastMessage('Platforms connected accurately!');
         setToastSeverity('success'); setShowToast(true);
-        setUsernames({ leetcode: '', hackerrank: '', codeforces: '' });
+        setUsernames({ leetcode: '', hackerrank: '', codeforces: '', codechef: '' });
       } else {
         const data = await response.json();
         setToastMessage(data.message || 'Connection failed');
@@ -153,7 +154,8 @@ export default function Dashboard() {
       setUsernames({
         leetcode: codingProfiles?.leetcode?.username || '',
         hackerrank: codingProfiles?.hackerrank?.username || '',
-        codeforces: codingProfiles?.codeforces?.username || ''
+        codeforces: codingProfiles?.codeforces?.username || '',
+        codechef: codingProfiles?.codechef?.username || ''
       });
     }
   }, [showConnectModal, codingProfiles]);
@@ -163,42 +165,43 @@ export default function Dashboard() {
   return (
     <Box sx={{ 
       minHeight: '100vh', 
-      p: { xs: 2, sm: 3, md: 4.5 }, 
       bgcolor: '#fbfcfe', 
       color: '#1e293b', 
       position: 'relative',
-      overflowX: 'hidden'
+      overflowX: 'hidden',
+      pb: 10
     }}>
       <LightBackground />
       
-      <Box sx={{ position: 'relative', zIndex: 10 }}>
+      <Container maxWidth={false} sx={{ position: 'relative', zIndex: 10, px: { xs: 2, sm: 3, md: 6 }, pt: { xs: 2, sm: 3, md: 5 } }}>
         {/* Profile Header */}
         <MotionBox 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          sx={{ mb: { xs: 3, md: 4 } }}
+          sx={{ mb: { xs: 4, md: 6 } }}
         >
           <Box sx={{ 
             ...whiteGlassSx,
-            p: { xs: 3, sm: 4 },
+            p: { xs: 3, sm: 5 },
             display: 'flex', 
             flexDirection: { xs: 'column', sm: 'row' },
             alignItems: 'center', 
-            gap: { xs: 3, sm: 4 }, 
+            gap: { xs: 3, sm: 5 }, 
             textAlign: { xs: 'center', sm: 'left' }
           }}>
             <Box sx={{ position: 'relative' }}>
               <Avatar 
                 src={user?.profile?.profilePic || user?.profilePic} 
                 sx={{ 
-                  width: { xs: 90, sm: 110 }, 
-                  height: { xs: 90, sm: 110 }, 
+                  width: { xs: 100, sm: 130 }, 
+                  height: { xs: 100, sm: 130 }, 
                   bgcolor: '#6366f1', 
-                  fontSize: { xs: '2rem', sm: '2.5rem' }, 
-                  fontWeight: 800, 
+                  fontSize: { xs: '2.5rem', sm: '3rem' }, 
+                  fontWeight: 900, 
                   color: '#fff',
-                  boxShadow: '0 10px 30px rgba(99, 102, 241, 0.3)'
+                  border: '4px solid #fff',
+                  boxShadow: '0 15px 35px rgba(99, 102, 241, 0.25)'
                 }}
               >
                 {!user?.profile?.profilePic && !user?.profilePic && (user?.name?.charAt(0).toUpperCase() || 'S')}
@@ -207,33 +210,36 @@ export default function Dashboard() {
                 size="small" 
                 onClick={() => fileInputRef.current?.click()}
                 sx={{ 
-                  position: 'absolute', bottom: { xs: 0, sm: 4 }, right: { xs: 0, sm: 4 }, 
+                  position: 'absolute', bottom: 6, right: 6, 
                   bgcolor: '#fff', color: '#6366f1', boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                  '&:hover': { bgcolor: '#f8fafc' } 
+                  border: '2px solid #6366f1',
+                  '&:hover': { bgcolor: '#f8fafc', transform: 'scale(1.1)' },
+                  transition: 'all 0.2s'
                 }}
               >
                 <Edit fontSize="small" />
               </IconButton>
             </Box>
             <Box sx={{ flex: 1 }}>
-              <Typography variant="h2" sx={{ 
-                fontWeight: 800, 
-                mb: 0.5, 
+              <Typography variant="h1" sx={{ 
+                fontWeight: 900, 
+                mb: 0.75, 
                 color: '#1e293b',
-                fontSize: { xs: '1.75rem', sm: '2.25rem' } 
+                letterSpacing: '-1.5px',
+                fontSize: { xs: '2rem', sm: '2.75rem' } 
               }}>
                 {user?.name || 'Student'}
               </Typography>
-              <Typography variant="body1" sx={{ color: '#64748b', mb: 2 }}>{user?.email || 'student@example.com'}</Typography>
+              <Typography variant="h4" sx={{ color: '#64748b', mb: 3, fontWeight: 600 }}>{user?.email || 'student@example.com'}</Typography>
               <Stack 
                 direction="row" 
-                spacing={1.5} 
+                spacing={2} 
                 justifyContent={{ xs: 'center', sm: 'flex-start' }}
                 flexWrap="wrap"
                 useFlexGap
               >
-                <Chip icon={<TrendingUp sx={{ fontSize: '14px !important' }} />} label={`Rank #${stats.rank}`} sx={{ bgcolor: 'rgba(99, 102, 241, 0.08)', color: '#6366f1', fontWeight: 700, borderRadius: '10px' }} />
-                <Chip icon={<CheckCircle sx={{ fontSize: '14px !important' }} />} label={`${stats.appSolved} Solved`} sx={{ bgcolor: 'rgba(34, 197, 94, 0.08)', color: '#22c55e', fontWeight: 700, borderRadius: '10px' }} />
+                <Chip icon={<TrendingUp sx={{ fontSize: '16px !important' }} />} label={`Rank #${stats.rank}`} sx={{ py: 2.2, px: 1, bgcolor: 'rgba(99, 102, 241, 0.08)', color: '#6366f1', fontSize: '0.9rem', fontWeight: 800, borderRadius: '12px' }} />
+                <Chip icon={<CheckCircle sx={{ fontSize: '16px !important' }} />} label={`${stats.appSolved} Solved`} sx={{ py: 2.2, px: 1, bgcolor: 'rgba(34, 197, 94, 0.08)', color: '#22c55e', fontSize: '0.9rem', fontWeight: 800, borderRadius: '12px' }} />
               </Stack>
             </Box>
             <Button
@@ -245,24 +251,27 @@ export default function Dashboard() {
               sx={{ 
                 bgcolor: '#f1f5f9', 
                 color: '#475569', 
-                borderRadius: '12px', 
+                borderRadius: '16px', 
                 textTransform: 'none', 
-                fontWeight: 700,
-                mt: { xs: 1, sm: 0 },
+                fontWeight: 800,
+                py: 1.5, px: 4,
                 '&:hover': { bgcolor: '#e2e8f0' }
               }}
             >
-              Security Hub
+              Secure Access
             </Button>
           </Box>
         </MotionBox>
 
         {/* Stats Grid */}
-        <Box sx={{ mb: { xs: 4, md: 5 } }}>
+        <Box sx={{ mb: { xs: 4, md: 6 } }}>
           <Box sx={{ 
             display: 'grid', 
-            gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(3, 1fr)', md: 'repeat(5, 1fr)' }, 
-            gap: { xs: 2, sm: 3 } 
+            gridTemplateColumns: { 
+              xs: 'repeat(2, 1fr)', 
+              sm: 'repeat(auto-fill, minmax(260px, 1fr))' 
+            }, 
+            gap: { xs: 2.5, sm: 4 } 
           }}>
             {[
               { value: stats.assessments, label: 'Assessments', color: '#6366f1', icon: <Assessment /> },
@@ -277,32 +286,31 @@ export default function Dashboard() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: idx * 0.05 }}
                 sx={{ 
-                  borderRadius: '24px', 
+                  borderRadius: '28px', 
                   bgcolor: '#fff', 
-                  border: '1px solid #f1f5f9',
-                  boxShadow: '0 4px 20px rgba(15, 23, 42, 0.03)',
-                  gridColumn: { xs: idx === 4 ? 'span 2' : 'span 1', sm: 'span 1' },
-                  '&:hover': { transform: 'translateY(-5px)', boxShadow: '0 12px 30px rgba(15, 23, 42, 0.08)' } 
+                  border: '1px solid rgba(226, 232, 240, 0.8)',
+                  boxShadow: '0 4px 25px rgba(15, 23, 42, 0.03)',
+                  '&:hover': { transform: 'translateY(-6px)', boxShadow: '0 15px 35px rgba(15, 23, 42, 0.08)' } 
                 }}
               >
-                <CardContent sx={{ p: { xs: 2, sm: 3 }, textAlign: 'center' }}>
+                <CardContent sx={{ p: { xs: 3, sm: 4 }, textAlign: 'center' }}>
                   <Box sx={{ 
                     display: 'flex', alignItems: 'center', justifyContent: 'center', 
-                    width: { xs: 36, sm: 44 }, height: { xs: 36, sm: 44 }, 
-                    borderRadius: '10px', 
-                    bgcolor: `${stat.color}10`, color: stat.color, mx: 'auto', mb: { xs: 1.5, sm: 2 }
+                    width: 48, height: 48, 
+                    borderRadius: '14px', 
+                    bgcolor: `${stat.color}10`, color: stat.color, mx: 'auto', mb: 2.5
                   }}>
                     {stat.icon}
                   </Box>
-                  <Typography variant="h3" sx={{ 
-                    fontWeight: 800, 
+                  <Typography variant="h2" sx={{ 
+                    fontWeight: 900, 
                     color: '#1e293b', 
-                    mb: 0.5,
-                    fontSize: { xs: '1.25rem', sm: '1.75rem' } 
+                    mb: 1,
+                    fontSize: { xs: '1.5rem', sm: '2rem' } 
                   }}>
                     {stat.value}
                   </Typography>
-                  <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 700, letterSpacing: '0.5px', fontSize: '0.65rem' }}>
+                  <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 800, letterSpacing: '1px', fontSize: '0.7rem' }}>
                     {stat.label.toUpperCase()}
                   </Typography>
                 </CardContent>
@@ -314,61 +322,59 @@ export default function Dashboard() {
         {/* Activity & Platforms */}
         <Box sx={{ 
           display: 'grid', 
-          gridTemplateColumns: { xs: '1fr', lg: '7.5fr 4.5fr' }, 
+          gridTemplateColumns: { xs: '1fr', lg: '1fr 500px' }, 
           gap: 4,
-          width: '100%',
-          '& > div': { minWidth: 0 } // Critical fix for grid overflow
+          width: '100%'
         }}>
           {/* Activity Pulse */}
           <Box sx={{ 
             ...whiteGlassSx, 
-            p: { xs: 3, sm: 4 },
+            p: { xs: 3, sm: 5 },
             display: 'flex',
             flexDirection: 'column',
             width: '100%',
             overflow: 'hidden'
           }}>
-            <Typography variant="h4" sx={{ fontWeight: 800, mb: 1, color: '#1e293b', fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
+            <Typography variant="h3" sx={{ fontWeight: 900, mb: 1, color: '#1e293b', fontSize: { xs: '1.5rem', sm: '2rem' } }}>
               Activity Pulse
             </Typography>
-            <Typography variant="body2" sx={{ color: '#64748b', mb: 4 }}>Metrics tracked over time</Typography>
+            <Typography variant="body1" sx={{ color: '#64748b', mb: 5, fontWeight: 500 }}>Live monitoring of your learning trajectory</Typography>
             
             <Box sx={{ 
               width: '100%',
               overflowX: 'auto', 
               pb: 2,
-              display: 'block',
-              '&::-webkit-scrollbar': { height: 6 },
+              '&::-webkit-scrollbar': { height: 8 },
               '&::-webkit-scrollbar-thumb': { bgcolor: '#e2e8f0', borderRadius: 10 },
               '&::-webkit-scrollbar-track': { bgcolor: 'transparent' }
             }}>
               <Box sx={{ 
                 display: 'flex', 
-                gap: { xs: 3, sm: 4 }, 
+                gap: 5, 
                 minWidth: 'max-content',
-                pr: 2 // Padding to ensure the last item isn't cut off
+                pr: 2
               }}>
-                {Array.from({ length: 6 }).map((_, monthOffset) => {
-                  const monthDate = new Date(); monthDate.setMonth(monthDate.getMonth() - (5 - monthOffset));
+                {Array.from({ length: 4 }).map((_, monthOffset) => {
+                  const monthDate = new Date(); monthDate.setMonth(monthDate.getMonth() - (3 - monthOffset));
                   const monthName = monthDate.toLocaleDateString('en-US', { month: 'short' });
                   const daysInMonth = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0).getDate();
                   const firstDay = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1).getDay();
                   
                   return (
                     <Box key={monthOffset}>
-                      <Typography variant="caption" sx={{ fontWeight: 800, mb: 1.5, display: 'block', color: '#94a3b8' }}>
+                      <Typography variant="caption" sx={{ fontWeight: 900, mb: 2, display: 'block', color: '#94a3b8', letterSpacing: '1px' }}>
                         {monthName.toUpperCase()}
                       </Typography>
-                      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(7, 15px)', gap: 0.6 }}>
-                        {Array.from({ length: firstDay }).map((_, i) => <Box key={`e-${i}`} sx={{ width: 15, height: 15 }} />)}
+                      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(7, 18px)', gap: 0.8 }}>
+                        {Array.from({ length: firstDay }).map((_, i) => <Box key={`e-${i}`} sx={{ width: 18, height: 18 }} />)}
                         {Array.from({ length: daysInMonth }).map((_, day) => {
                           const dateStr = new Date(monthDate.getFullYear(), monthDate.getMonth(), day + 1).toISOString().split('T')[0];
                           const count = activityData[dateStr] || 0;
                           const level = count === 0 ? 0 : count < 3 ? 1 : count < 6 ? 2 : count < 9 ? 3 : 4;
                           const colors = ['#f1f5f9', '#c7d2fe', '#818cf8', '#6366f1', '#4338ca'];
                           return (
-                            <Tooltip key={day} title={`${dateStr}: ${count} actions`} arrow>
-                              <Box sx={{ width: 15, height: 15, bgcolor: colors[level], borderRadius: '3px', cursor: 'pointer' }} />
+                            <Tooltip key={day} title={`${dateStr}: ${count} actions`} arrow placement="top">
+                              <Box sx={{ width: 18, height: 18, bgcolor: colors[level], borderRadius: '4px', cursor: 'pointer', transition: 'transform 0.2s', '&:hover': { transform: 'scale(1.2)', zIndex: 10 } }} />
                             </Tooltip>
                           );
                         })}
@@ -383,59 +389,72 @@ export default function Dashboard() {
           {/* Connect Section */}
           <Box sx={{ 
             ...whiteGlassSx,
-            p: { xs: 3, sm: 4 },
+            p: { xs: 3, sm: 4.5 },
             display: 'flex',
             flexDirection: 'column',
             width: '100%'
           }}>
-            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: { xs: 2.5, sm: 3 } }}>
+            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 4 }}>
               <Box>
-                <Typography variant="h4" sx={{ fontWeight: 800, color: '#1e293b', fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>Orbit Connect</Typography>
-                <Typography variant="body2" sx={{ color: '#64748b' }}>Platform synchronization</Typography>
+                <Typography variant="h3" sx={{ fontWeight: 900, color: '#1e293b', fontSize: '1.5rem' }}>Social Hub</Typography>
+                <Typography variant="body2" sx={{ color: '#64748b', fontWeight: 600 }}>Sync achievements</Typography>
               </Box>
               <IconButton 
-                onClick={() => setShowConnectModal(true)} 
+                onClick={() => navigate('/user/coding-profiles')} 
                 sx={{ 
                   bgcolor: 'rgba(99, 102, 241, 0.08)', 
                   color: '#6366f1', 
-                  borderRadius: '12px',
-                  '&:hover': { bgcolor: 'rgba(99, 102, 241, 0.15)' } 
+                  borderRadius: '14px',
+                  width: 44, height: 44,
+                  '&:hover': { bgcolor: 'rgba(99, 102, 241, 0.15)', transform: 'rotate(15deg)' },
+                  transition: 'all 0.3s'
                 }}
               >
                 <LinkIcon />
               </IconButton>
             </Stack>
             
-            <Stack spacing={2}>
+            <Box sx={{ 
+              display: 'grid', 
+              gridTemplateColumns: {
+                xs: '1fr',
+                sm: 'repeat(auto-fill, minmax(200px, 1fr))',
+                lg: 'repeat(2, 1fr)'
+              },
+              gap: 3
+            }}>
               {[
                 { name: 'LeetCode', user: codingProfiles?.leetcode?.username, status: codingProfiles?.leetcode?.connected, color: '#f59e0b', bg: '#fffbeb' },
-                { name: 'HackerRank', user: codingProfiles?.hackerrank?.username, status: codingProfiles?.hackerrank?.connected, color: '#10b981', bg: '#f0fdf4' },
-                { name: 'Codeforces', user: codingProfiles?.codeforces?.username, status: codingProfiles?.codeforces?.connected, color: '#3b82f6', bg: '#eff6ff' }
+                { name: 'CodeChef', user: codingProfiles?.codechef?.username, status: codingProfiles?.codechef?.connected, color: '#5b4638', bg: '#fbf8f6' },
+                { name: 'Codeforces', user: codingProfiles?.codeforces?.username, status: codingProfiles?.codeforces?.connected, color: '#3b82f6', bg: '#eff6ff' },
+                { name: 'HackerRank', user: codingProfiles?.hackerrank?.username, status: codingProfiles?.hackerrank?.connected, color: '#10b981', bg: '#f0fdf4' }
               ].map(p => (
                 <Box key={p.name} sx={{ 
-                  p: 2, 
-                  borderRadius: '16px', 
+                  p: 2.5, 
+                  borderRadius: '20px', 
                   bgcolor: p.status ? p.bg : '#f8fafc', 
-                  border: `1px solid ${p.status ? 'rgba(0,0,0,0.05)' : '#f1f5f9'}`,
-                  transition: 'all 0.3s ease'
-                }}>
-                  <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 800, fontSize: { xs: '0.9rem', sm: '1rem' }, color: p.status ? p.color : '#1e293b' }}>{p.name}</Typography>
-                    {p.status && <CheckCircle sx={{ fontSize: 16, color: p.color }} />}
+                  border: `1px solid ${p.status ? `${p.color}20` : '#f1f5f9'}`,
+                  transition: 'all 0.3s ease',
+                  cursor: 'pointer',
+                  '&:hover': { transform: 'scale(1.02)', borderColor: p.color, boxShadow: `0 8px 20px ${p.color}10` }
+                }} onClick={() => navigate('/user/coding-profiles')}>
+                  <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.75 }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 900, fontSize: '1.05rem', color: p.status ? p.color : '#1e293b' }}>{p.name}</Typography>
+                    {p.status && <CheckCircle sx={{ fontSize: 18, color: p.color }} />}
                   </Stack>
-                  <Typography variant="body2" sx={{ color: p.status ? '#64748b' : '#94a3b8', fontWeight: 600, fontSize: '0.8rem' }}>
-                    {p.status ? `@${p.user}` : 'Not synchronised'}
+                  <Typography variant="body2" sx={{ color: p.status ? '#64748b' : '#94a3b8', fontWeight: 700, fontSize: '0.85rem' }}>
+                    {p.status ? `@${p.user}` : 'Disconnected'}
                   </Typography>
                 </Box>
               ))}
-            </Stack>
+            </Box>
           </Box>
         </Box>
-      </Box>
+      </Container>
 
       {/* Modals */}
       <Dialog open={showPasswordModal} onClose={() => setShowPasswordModal(false)} maxWidth="sm" fullWidth sx={lightDialogSx}>
-        <DialogTitle>Security Credentials</DialogTitle>
+        <DialogTitle>Update Password</DialogTitle>
         <DialogContent>
           <Stack spacing={3} sx={{ pt: 2 }}>
             <TextField label="Current Password" type={showCurrentPassword?'text':'password'} sx={lightInputSx} value={passwordData.currentPassword} onChange={(e)=>setPasswordData(p=>({...p, currentPassword:e.target.value}))} fullWidth 
@@ -463,10 +482,11 @@ export default function Dashboard() {
       </Dialog>
 
       <Dialog open={showConnectModal} onClose={()=>setShowConnectModal(false)} maxWidth="sm" fullWidth sx={lightDialogSx}>
-        <DialogTitle>Profile Synchronization</DialogTitle>
+        <DialogTitle>Connect Coding Profiles</DialogTitle>
         <DialogContent>
           <Stack spacing={3} sx={{ pt: 2 }}>
             <TextField label="LeetCode Handle" sx={lightInputSx} value={usernames.leetcode} onChange={(e)=>setUsernames(p=>({...p, leetcode:e.target.value}))} fullWidth />
+            <TextField label="CodeChef Username" sx={lightInputSx} value={usernames.codechef} onChange={(e)=>setUsernames(p=>({...p, codechef:e.target.value}))} fullWidth />
             <TextField label="HackerRank ID" sx={lightInputSx} value={usernames.hackerrank} onChange={(e)=>setUsernames(p=>({...p, hackerrank:e.target.value}))} fullWidth />
             <TextField label="Codeforces User" sx={lightInputSx} value={usernames.codeforces} onChange={(e)=>setUsernames(p=>({...p, codeforces:e.target.value}))} fullWidth />
           </Stack>

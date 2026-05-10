@@ -181,13 +181,25 @@ export default function ProfileSection() {
                           '& .MuiListItemButton-root': { mt: 0.5 }
                         }}
                       >
-                        <ListItemButton sx={{ borderRadius: '12px', mb: 0.5, '&:hover': { bgcolor: 'rgba(99, 102, 241, 0.04)' } }}>
+                        <ListItemButton 
+                          sx={{ borderRadius: '12px', mb: 0.5, '&:hover': { bgcolor: 'rgba(99, 102, 241, 0.04)' } }}
+                          onClick={() => {
+                            setOpen(false);
+                            navigate('/user/account-settings');
+                          }}
+                        >
                           <ListItemIcon sx={{ color: '#64748b', minWidth: 40 }}>
                             <IconSettings stroke={2} size="18px" />
                           </ListItemIcon>
                           <ListItemText primary={<Typography sx={{ fontWeight: 700, fontSize: '0.875rem', color: '#1e293b' }}>Account Settings</Typography>} />
                         </ListItemButton>
-                        <ListItemButton sx={{ borderRadius: '12px', mb: 0.5, '&:hover': { bgcolor: 'rgba(99, 102, 241, 0.04)' } }}>
+                        <ListItemButton 
+                          sx={{ borderRadius: '12px', mb: 0.5, '&:hover': { bgcolor: 'rgba(99, 102, 241, 0.04)' } }}
+                          onClick={() => {
+                            setOpen(false);
+                            navigate('/user/coding-profiles');
+                          }}
+                        >
                           <ListItemIcon sx={{ color: '#64748b', minWidth: 40 }}>
                             <IconUser stroke={2} size="18px" />
                           </ListItemIcon>

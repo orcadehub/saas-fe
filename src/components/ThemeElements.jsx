@@ -139,3 +139,47 @@ export const ParticleBackground = () => (
         `}} />
     </Box>
 );
+// --- Letter-by-letter animated text ---
+export const LetterByLetterText = ({ text, delay = 0, sx = {}, variant = "h1" }) => {
+  const letters = React.useMemo(() => text.split(''), [text]);
+
+  return (
+    <Typography
+      variant={variant}
+      sx={{
+        fontWeight: 900,
+        fontSize: { xs: '3rem', sm: '4.5rem', md: '5.5rem', lg: '6.5rem' },
+        lineHeight: 1.05,
+        letterSpacing: '-3px',
+        textAlign: 'center',
+        ...sx,
+      }}
+    >
+      {letters.map((letter, i) => (
+        <motion.span
+          key={i}
+          initial={{ opacity: 0, y: 40, filter: 'blur(8px)' }}
+          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+          transition={{
+            duration: 0.4,
+            delay: delay + i * 0.035,
+            ease: [0.25, 0.46, 0.45, 0.94],
+          }}
+          style={{
+            display: 'inline-block',
+            background: letter === ' '
+              ? 'transparent'
+              : 'linear-gradient(135deg, #0f172a 0%, #1e293b 40%, #334155 70%, #475569 100%)',
+            WebkitBackgroundClip: letter === ' ' ? 'unset' : 'text',
+            WebkitTextFillColor: letter === ' ' ? 'transparent' : 'transparent',
+            backgroundClip: letter === ' ' ? 'unset' : 'text',
+            whiteSpace: letter === ' ' ? 'pre' : 'normal',
+            minWidth: letter === ' ' ? '0.3em' : 'auto',
+          }}
+        >
+          {letter === ' ' ? '\u00A0' : letter}
+        </motion.span>
+      ))}
+    </Typography>
+  );
+};

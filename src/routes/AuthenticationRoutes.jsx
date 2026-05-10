@@ -23,20 +23,7 @@ const AuthenticationRoutes = {
     </DashboardProvider>
   ),
   errorElement: <ErrorBoundary />,
-  children: [
-    {
-      path: '/login',
-      element: <LoginPage />
-    },
-    {
-      path: '/pages/login',
-      element: <LoginPage />
-    },
-    {
-      path: '/forgot-password',
-      element: <ForgotPassword />
-    }
-  ]
+  children: []
 };
 
 export default AuthenticationRoutes;

@@ -21,11 +21,11 @@ const MotionRow = motion.create(TableRow);
 
 const LightBackground = () => (
     <Box sx={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0, overflow: 'hidden', pointerEvents: 'none' }}>
-      <Box sx={{ position: 'absolute', inset: 0, bgcolor: '#0c0e1a' }} />
+      <Box sx={{ position: 'absolute', inset: 0, bgcolor: '#fbfcfe' }} />
       <Box sx={{
         position: 'absolute', top: '5%', left: '10%',
         width: '40vw', height: '40vw',
-        background: 'radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, transparent 70%)',
+        background: 'radial-gradient(circle, rgba(99, 102, 241, 0.05) 0%, transparent 70%)',
         borderRadius: '50%', filter: 'blur(80px)',
       }} />
     </Box>
@@ -62,9 +62,8 @@ export default function PracticeLeaderboard() {
   };
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: '#0c0e1a', color: '#fff', position: 'relative', overflow: 'hidden' }}>
+    <Box sx={{ minHeight: '100vh', bgcolor: '#fbfcfe', color: '#1e293b', position: 'relative', overflow: 'hidden' }}>
       <LightBackground />
-      <StarryBackground />
 
       <Box sx={{ position: 'relative', zIndex: 10, p: { xs: 2.5, sm: 3, md: 5 } }}>
         
@@ -72,19 +71,19 @@ export default function PracticeLeaderboard() {
         <Stack direction="row" justifyContent="space-between" alignItems="center" mb={6}>
             <Box>
                 <Stack direction="row" spacing={2} alignItems="center" mb={2}>
-                    <IconButton onClick={() => navigate('/practice/programming')} sx={{ color: 'rgba(255,255,255,0.7)', bgcolor: 'rgba(255,255,255,0.05)' }}>
+                    <IconButton onClick={() => navigate('/practice/programming')} sx={{ color: '#64748b', bgcolor: '#fff', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
                         <ArrowBack />
                     </IconButton>
-                    <Breadcrumbs separator={<Typography sx={{ color: 'rgba(255,255,255,0.3)' }}>/</Typography>}>
-                        <Link component="button" onClick={() => navigate('/practice/programming')} sx={{ color: 'rgba(255,255,255,0.6)', textDecoration: 'none', fontWeight: 600 }}>Orca Practice</Link>
-                        <Typography sx={{ color: '#fff', fontWeight: 800 }}>Hall of Fame</Typography>
+                    <Breadcrumbs separator={<Typography sx={{ color: '#94a3b8' }}>/</Typography>}>
+                        <Link component="button" onClick={() => navigate('/practice/programming')} sx={{ color: '#64748b', textDecoration: 'none', fontWeight: 600, '&:hover': { color: '#6366f1' } }}>Orca Practice</Link>
+                        <Typography sx={{ color: '#1e293b', fontWeight: 800 }}>Hall of Fame</Typography>
                     </Breadcrumbs>
                 </Stack>
-                <Typography variant="h1" sx={{ fontWeight: 950, letterSpacing: '-0.04em', fontSize: { xs: '2rem', md: '3.5rem' }, display: 'flex', alignItems: 'center', gap: 2, color: '#fff' }}>
+                <Typography variant="h1" sx={{ fontWeight: 950, letterSpacing: '-0.04em', fontSize: { xs: '2rem', md: '3.5rem' }, display: 'flex', alignItems: 'center', gap: 2, color: '#1e293b' }}>
                     <IconCode size={50} style={{ color: '#6366f1' }} />
                     ORCA <Box component="span" sx={{ color: '#6366f1' }}>Leaderboard</Box>
                 </Typography>
-                <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.6)', fontSize: '1.1rem', mt: 1 }}>
+                <Typography variant="body1" sx={{ color: '#64748b', fontSize: '1.1rem', mt: 1, fontWeight: 500 }}>
                     Tracking the top problem-solvers in the Orca ecosystem.
                 </Typography>
             </Box>
@@ -110,9 +109,9 @@ export default function PracticeLeaderboard() {
                             sx={{ 
                                 width: isWinner ? 320 : 280, 
                                 p: 4, borderRadius: '32px', 
-                                bgcolor: 'rgba(255,255,255,0.03)', 
-                                border: '1px solid rgba(255,255,255,0.08)',
-                                backdropFilter: 'blur(10px)',
+                                bgcolor: '#fff', 
+                                border: '1px solid #f1f5f9',
+                                boxShadow: '0 20px 40px rgba(15, 23, 42, 0.05)',
                                 textAlign: 'center',
                                 position: 'relative',
                                 height: isWinner ? 400 : 350,
@@ -124,15 +123,15 @@ export default function PracticeLeaderboard() {
                                     <EmojiEvents sx={{ fontSize: 80, color: '#fbbf24' }} />
                                 </Box>
                             )}
-                            <Avatar sx={{ width: isWinner ? 100 : 80, height: isWinner ? 100 : 80, mb: 3, border: `4px solid ${getRankStyle(idx+1).color}`, bgcolor: 'rgba(99, 102, 241, 0.2)', fontSize: '2rem' }}>
+                            <Avatar sx={{ width: isWinner ? 100 : 80, height: isWinner ? 100 : 80, mb: 3, border: `4px solid ${getRankStyle(idx+1).color}`, bgcolor: 'rgba(99, 102, 241, 0.1)', color: '#6366f1', fontSize: '2rem', fontWeight: 900 }}>
                                 {student.name.charAt(0)}
                             </Avatar>
-                            <Typography variant="h4" sx={{ fontWeight: 900, mb: 1 }}>{student.name}</Typography>
-                            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.5)', mb: 3 }}>{student.email}</Typography>
+                            <Typography variant="h3" sx={{ fontWeight: 900, mb: 0.5, color: '#1e293b' }}>{student.name}</Typography>
+                            <Typography variant="body2" sx={{ color: '#64748b', mb: 3, fontWeight: 600 }}>{student.email}</Typography>
                             
-                            <Box sx={{ p: 2, borderRadius: '20px', bgcolor: 'rgba(99, 102, 241, 0.1)', width: '100%' }}>
-                                <Typography sx={{ color: '#818cf8', fontWeight: 900, fontSize: '1.5rem' }}>{student.appSolved}</Typography>
-                                <Typography sx={{ color: 'rgba(255,255,255,0.4)', fontWeight: 800, fontSize: '0.7rem', textTransform: 'uppercase' }}>Problems Solved</Typography>
+                            <Box sx={{ p: 2, borderRadius: '20px', bgcolor: 'rgba(99, 102, 241, 0.05)', width: '100%', border: '1px solid rgba(99, 102, 241, 0.1)' }}>
+                                <Typography sx={{ color: '#6366f1', fontWeight: 900, fontSize: '1.75rem' }}>{student.appSolved}</Typography>
+                                <Typography sx={{ color: '#64748b', fontWeight: 800, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Problems Solved</Typography>
                             </Box>
                         </MotionBox>
                     );
@@ -147,18 +146,18 @@ export default function PracticeLeaderboard() {
             </Box>
         ) : (
             <TableContainer component={Paper} sx={{ 
-                bgcolor: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(20px)', borderRadius: '32px', 
-                border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+                bgcolor: '#fff', borderRadius: '32px', 
+                border: '1px solid #f1f5f9', boxShadow: '0 20px 60px rgba(15, 23, 42, 0.05)',
                 overflow: 'hidden'
             }}>
                 <Table>
-                    <TableHead sx={{ bgcolor: 'rgba(255,255,255,0.03)' }}>
+                    <TableHead sx={{ bgcolor: '#f8fafc' }}>
                         <TableRow>
-                            <TableCell sx={{ color: 'rgba(255,255,255,0.4)', fontWeight: 800, border: 'none', py: 3, pl: 4 }}>RANK</TableCell>
-                            <TableCell sx={{ color: 'rgba(255,255,255,0.4)', fontWeight: 800, border: 'none', py: 3 }}>STUDENT</TableCell>
-                            <TableCell align="center" sx={{ color: 'rgba(255,255,255,0.4)', fontWeight: 800, border: 'none', py: 3 }}>PROBLEMS SOLVED</TableCell>
-                            <TableCell align="center" sx={{ color: 'rgba(255,255,255,0.4)', fontWeight: 800, border: 'none', py: 3 }}>CURRICULUM MASTERY</TableCell>
-                            <TableCell align="center" sx={{ color: 'rgba(255,255,255,0.4)', fontWeight: 800, border: 'none', py: 3, pr: 4 }}>STATUS</TableCell>
+                            <TableCell sx={{ color: '#64748b', fontWeight: 800, border: 'none', py: 3, pl: 4 }}>RANK</TableCell>
+                            <TableCell sx={{ color: '#64748b', fontWeight: 800, border: 'none', py: 3 }}>STUDENT</TableCell>
+                            <TableCell align="center" sx={{ color: '#64748b', fontWeight: 800, border: 'none', py: 3 }}>PROBLEMS SOLVED</TableCell>
+                            <TableCell align="center" sx={{ color: '#64748b', fontWeight: 800, border: 'none', py: 3 }}>CURRICULUM MASTERY</TableCell>
+                            <TableCell align="center" sx={{ color: '#64748b', fontWeight: 800, border: 'none', py: 3, pr: 4 }}>STATUS</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -174,11 +173,11 @@ export default function PracticeLeaderboard() {
                                     animate={{ opacity: 1, x: 0 }}
                                     transition={{ delay: i * 0.02 }}
                                     sx={{ 
-                                        '&:hover': { bgcolor: 'rgba(255,255,255,0.02)' },
-                                        bgcolor: isMe ? 'rgba(99, 102, 241, 0.05)' : 'transparent'
+                                        '&:hover': { bgcolor: '#fbfcfe' },
+                                        bgcolor: isMe ? 'rgba(99, 102, 241, 0.03)' : 'transparent'
                                     }}
                                 >
-                                    <TableCell sx={{ borderBottom: '1px solid rgba(255,255,255,0.04)', py: 2.5, pl: 4 }}>
+                                    <TableCell sx={{ borderBottom: '1px solid #f1f5f9', py: 2.5, pl: 4 }}>
                                         <Box sx={{ 
                                             width: 40, height: 40, borderRadius: '12px', bgcolor: style.bg, color: style.color, 
                                             display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900,
@@ -187,30 +186,30 @@ export default function PracticeLeaderboard() {
                                             {rank <= 3 ? <EmojiEventsTwoTone sx={{ fontSize: 22 }} /> : rank}
                                         </Box>
                                     </TableCell>
-                                    <TableCell sx={{ borderBottom: '1px solid rgba(255,255,255,0.04)', py: 2.5 }}>
+                                    <TableCell sx={{ borderBottom: '1px solid #f1f5f9', py: 2.5 }}>
                                         <Stack direction="row" spacing={2} alignItems="center">
-                                            <Avatar sx={{ width: 42, height: 42, bgcolor: isMe ? '#6366f1' : 'rgba(255,255,255,0.1)', fontSize: '0.9rem', fontWeight: 900 }}>
+                                            <Avatar sx={{ width: 42, height: 42, bgcolor: isMe ? '#6366f1' : '#f1f5f9', color: isMe ? '#fff' : '#6366f1', fontSize: '0.9rem', fontWeight: 900 }}>
                                                 {student.name.charAt(0)}
                                             </Avatar>
                                             <Box>
-                                                <Typography sx={{ fontWeight: 800, color: '#fff', fontSize: '1rem' }}>{student.name}</Typography>
-                                                <Typography sx={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem' }}>{student.email}</Typography>
+                                                <Typography sx={{ fontWeight: 800, color: '#1e293b', fontSize: '1rem' }}>{student.name}</Typography>
+                                                <Typography sx={{ color: '#64748b', fontSize: '0.75rem', fontWeight: 600 }}>{student.email}</Typography>
                                             </Box>
                                         </Stack>
                                     </TableCell>
-                                    <TableCell align="center" sx={{ borderBottom: '1px solid rgba(255,255,255,0.04)', py: 2.5 }}>
+                                    <TableCell align="center" sx={{ borderBottom: '1px solid #f1f5f9', py: 2.5 }}>
                                         <Typography sx={{ fontWeight: 950, color: '#6366f1', fontSize: '1.25rem' }}>{student.appSolved}</Typography>
                                     </TableCell>
-                                    <TableCell align="center" sx={{ borderBottom: '1px solid rgba(255,255,255,0.04)', py: 2.5, minWidth: 200 }}>
+                                    <TableCell align="center" sx={{ borderBottom: '1px solid #f1f5f9', py: 2.5, minWidth: 200 }}>
                                         <Box sx={{ maxWidth: 180, mx: 'auto' }}>
                                             <LinearProgress 
                                                 variant="determinate" 
                                                 value={Math.min(100, (student.appSolved / 200) * 100)} 
-                                                sx={{ height: 6, borderRadius: 3, bgcolor: 'rgba(255,255,255,0.05)', '& .MuiLinearProgress-bar': { bgcolor: '#6366f1', borderRadius: 3 } }} 
+                                                sx={{ height: 6, borderRadius: 3, bgcolor: '#f1f5f9', '& .MuiLinearProgress-bar': { bgcolor: '#6366f1', borderRadius: 3 } }} 
                                             />
                                         </Box>
                                     </TableCell>
-                                    <TableCell align="center" sx={{ borderBottom: '1px solid rgba(255,255,255,0.04)', py: 2.5, pr: 4 }}>
+                                    <TableCell align="center" sx={{ borderBottom: '1px solid #f1f5f9', py: 2.5, pr: 4 }}>
                                         <Chip 
                                             label={rank <= 10 ? "ELITE" : "ACTIVE"} 
                                             size="small" 

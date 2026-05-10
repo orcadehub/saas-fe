@@ -1,58 +1,11 @@
-import { useState } from 'react';
-import { Card, CardContent, Typography, Box } from '@mui/material';
-import { IconCode, IconTrophy, IconClipboardList, IconBrain, IconBook, IconCalculator, IconBuilding } from '@tabler/icons-react';
+import { useState, useEffect } from 'react';
+import { Card, CardContent, Typography, Box, CircularProgress } from '@mui/material';
+import { IconTrophy, IconClipboardList, IconCode } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import CardSkeleton from 'ui-component/skeletons/CardSkeleton';
+import { useDashboard } from 'contexts/DashboardContext';
 
 const MotionCard = motion.create(Card);
-
-const practiceCategories = [
-  {
-    id: 'gamified',
-    title: 'Gamified',
-    description: 'Learn through interactive games and challenges',
-    icon: IconTrophy,
-    color: '#f59e0b',
-    bg: '#fffbeb'
-  },
-  {
-    id: 'aptitude',
-    title: 'Aptitude',
-    description: 'Strengthen your problem-solving and logical ability',
-    icon: IconClipboardList,
-    color: '#ec4899',
-    bg: '#fdf2f8',
-    questionsCount: '1000+'
-  },
-  {
-    id: 'quantitative',
-    title: 'Quantitative',
-    description: 'Numerical ability and mathematical problem solving',
-    icon: IconCalculator,
-    color: '#06b6d4',
-    bg: '#f0f9ff',
-    questionsCount: '1000+'
-  },
-  {
-    id: 'verbal',
-    title: 'Verbal',
-    description: 'English language skills and reading comprehension',
-    icon: IconBook,
-    color: '#8b5cf6',
-    bg: '#f5f3ff',
-    questionsCount: '1000+'
-  },
-  {
-    id: 'reasoning',
-    title: 'Reasoning',
-    description: 'Logical reasoning and critical thinking patterns',
-    icon: IconBrain,
-    color: '#10b981',
-    bg: '#ecfdf5',
-    questionsCount: '1000+'
-  }
-];
 
 // ── Soft Light Background ──
 const LightBackground = () => (
@@ -75,11 +28,51 @@ const LightBackground = () => (
 
 export default function Practice() {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
+  const { practiceStats, fetchPracticeStats } = useDashboard();
+  const [statsLoading, setStatsLoading] = useState(true);
 
-  const handleCategoryClick = (categoryId) => {
-    navigate(`/practice/${categoryId}`);
-  };
+  useEffect(() => {
+    const load = async () => {
+      setStatsLoading(true);
+      await fetchPracticeStats();
+      setStatsLoading(false);
+    };
+    load();
+  }, []);
+
+  const practiceCategories = [
+    {
+      id: 'gamified',
+      title: 'Gamified Practice',
+      description: 'Learn through interactive games, puzzles and challenges designed to make learning fun.',
+      icon: IconTrophy,
+      color: '#f59e0b',
+      bg: '#fffbeb',
+      route: '/practice/gamified',
+      tags: ['Interactive', 'Game Based']
+    },
+    {
+      id: 'aptitude',
+      title: 'Aptitude Training',
+      description: 'Master quantitative, verbal and logical reasoning through topic-wise MCQ practice sessions.',
+      icon: IconClipboardList,
+      color: '#ec4899',
+      bg: '#fdf2f8',
+      route: '/practice/aptitude',
+      questionsCount: statsLoading ? null : (practiceStats?.aptitudeCount || 0),
+      tags: ['MCQ Based', 'Topic Wise']
+    },
+    {
+      id: 'programming',
+      title: 'Orca Practice',
+      description: 'Solve coding challenges across multiple languages with an integrated IDE and real-time execution.',
+      icon: IconCode,
+      color: '#6366f1',
+      bg: '#f5f3ff',
+      route: '/practice/programming',
+      tags: ['Multi Language', 'IDE']
+    }
+  ];
 
   return (
     <Box sx={{ 
@@ -111,102 +104,118 @@ export default function Practice() {
             }}>
               Practice Center
             </Typography>
-            <Typography variant="body1" sx={{ color: '#64748b', fontSize: { xs: '0.9rem', sm: '1rem' } }}>
+            <Typography variant="body1" sx={{ color: '#64748b', fontSize: { xs: '0.9rem', sm: '1rem' }, fontWeight: 500 }}>
               Sharpen your skills through interactive challenges and coding practice.
             </Typography>
           </Box>
         </Box>
 
-        {loading ? (
-          <Box>
-            <CardSkeleton count={4} />
-          </Box>
-        ) : (
-          <Box
-            sx={{
-              display: 'grid',
-              gridTemplateColumns: {
-                xs: 'repeat(1, 1fr)',
-                sm: 'repeat(2, 1fr)',
-                md: 'repeat(3, 1fr)',
-                lg: 'repeat(4, 1fr)'
-              },
-              gap: 3
-            }}
-          >
-            {practiceCategories.map((category, idx) => {
-              const Icon = category.icon;
-              return (
-                <MotionCard
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: idx * 0.05 }}
-                  key={category.id}
-                  onClick={() => handleCategoryClick(category.id)}
-                  sx={{
-                    cursor: 'pointer',
-                    borderRadius: '24px',
-                    bgcolor: '#fff',
-                    border: '1px solid #f1f5f9',
-                    boxShadow: '0 4px 20px rgba(15, 23, 42, 0.03)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    height: '100%',
-                    '&:hover': { 
-                      transform: 'translateY(-5px)', 
-                      boxShadow: '0 12px 30px rgba(15, 23, 42, 0.08)' 
-                    }
-                  }}
-                >
-                  <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', p: { xs: 2.5, sm: 3 }, position: 'relative' }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: {
+              xs: 'repeat(1, 1fr)',
+              sm: 'repeat(2, 1fr)',
+              md: 'repeat(3, 1fr)',
+              lg: 'repeat(4, 1fr)'
+            },
+            gap: 3
+          }}
+        >
+          {practiceCategories.map((category, idx) => {
+            const Icon = category.icon;
+            return (
+              <MotionCard
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: idx * 0.1 }}
+                key={category.id}
+                onClick={() => navigate(category.route)}
+                sx={{
+                  cursor: 'pointer',
+                  borderRadius: '24px',
+                  bgcolor: '#fff',
+                  border: '1px solid #f1f5f9',
+                  boxShadow: '0 4px 20px rgba(15, 23, 42, 0.03)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  height: '100%',
+                  '&:hover': { 
+                    transform: 'translateY(-5px)', 
+                    boxShadow: '0 12px 30px rgba(15, 23, 42, 0.08)' 
+                  }
+                }}
+              >
+                <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', p: { xs: 2.5, sm: 3 }, position: 'relative' }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                       <Box sx={{ 
                         display: 'flex', alignItems: 'center', justifyContent: 'center', 
                         width: { xs: 44, sm: 52 }, height: { xs: 44, sm: 52 }, 
                         borderRadius: '12px', 
-                        bgcolor: category.bg || 'rgba(99, 102, 241, 0.1)', 
-                        color: category.color || '#6366f1'
+                        bgcolor: category.bg, 
+                        color: category.color 
                       }}>
                         <Icon size={28} />
                       </Box>
-                      {category.questionsCount && (
-                        <Box sx={{ 
-                          bgcolor: category.bg, 
-                          color: category.color, 
-                          px: 1.5, py: 0.5, 
-                          borderRadius: '10px', 
-                          fontSize: '0.75rem', 
-                          fontWeight: 800,
-                          border: `1px solid ${category.color}20`
-                        }}>
-                          {category.questionsCount} Questions
-                        </Box>
-                      )}
+                      <Typography variant="h3" sx={{ 
+                        fontWeight: 800, 
+                        color: '#1e293b', 
+                        fontSize: { xs: '1.25rem', sm: '1.35rem' } 
+                      }}>
+                        {category.title}
+                      </Typography>
                     </Box>
-                    
-                    <Typography variant="h3" sx={{ 
-                      fontWeight: 800, 
-                      color: '#1e293b', 
-                      mb: 1,
-                      fontSize: { xs: '1.25rem', sm: '1.35rem' } 
-                    }}>
-                      {category.title}
-                    </Typography>
-                    
-                    <Typography variant="body2" sx={{ 
-                      color: '#64748b', 
-                      fontWeight: 500, 
-                      lineHeight: 1.5,
-                      flexGrow: 1 
-                    }}>
-                      {category.description}
-                    </Typography>
-                  </CardContent>
-                </MotionCard>
-              );
-            })}
-          </Box>
-        )}
+                    {category.questionsCount !== undefined && (
+                      <Box sx={{ textAlign: 'right' }}>
+                        {statsLoading ? (
+                          <CircularProgress size={16} sx={{ color: category.color }} />
+                        ) : (
+                          <>
+                            <Typography sx={{ 
+                              fontWeight: 900, fontSize: '1.25rem', color: category.color, lineHeight: 1 
+                            }}>
+                              {category.questionsCount.toLocaleString()}
+                            </Typography>
+                            <Typography sx={{ 
+                              fontWeight: 800, fontSize: '0.65rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' 
+                            }}>
+                              Questions
+                            </Typography>
+                          </>
+                        )}
+                      </Box>
+                    )}
+                  </Box>
+                  
+                  <Typography variant="body2" sx={{ 
+                    color: '#64748b', 
+                    fontWeight: 500, 
+                    lineHeight: 1.5,
+                    flexGrow: 1 
+                  }}>
+                    {category.description}
+                  </Typography>
+
+                  {category.tags && (
+                    <Box sx={{ mt: 2, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                      {category.tags.map(tag => (
+                        <Box key={tag} sx={{ 
+                          px: 1.5, py: 0.5, bgcolor: category.bg, borderRadius: '8px', 
+                          border: `1px solid ${category.color}15` 
+                        }}>
+                          <Typography sx={{ fontWeight: 800, fontSize: '0.7rem', color: category.color }}>
+                            {tag}
+                          </Typography>
+                        </Box>
+                      ))}
+                    </Box>
+                  )}
+                </CardContent>
+              </MotionCard>
+            );
+          })}
+        </Box>
       </Box>
     </Box>
   );

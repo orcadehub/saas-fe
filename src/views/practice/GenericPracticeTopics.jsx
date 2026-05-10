@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Box, Card, CardContent, Typography, Breadcrumbs, Link, Chip } from '@mui/material';
+import { Box, Card, CardContent, Typography, Breadcrumbs, Link, Chip, Button, Dialog, DialogTitle, DialogContent, DialogActions, CircularProgress } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { IconChevronRight, IconClipboardList, IconBook, IconCalculator, IconBrain } from '@tabler/icons-react';
 import CardSkeleton from 'ui-component/skeletons/CardSkeleton';
@@ -12,6 +12,9 @@ export default function GenericPracticeTopics({ category, title, icon: Icon, fet
   const navigate = useNavigate();
   const [topics, setTopics] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showTestModal, setShowTestModal] = useState(false);
+  const [selectedTopics, setSelectedTopics] = useState([]);
+  const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
     fetchTopics();
@@ -25,6 +28,30 @@ export default function GenericPracticeTopics({ category, title, icon: Icon, fet
       console.error(`Error fetching ${category} topics:`, error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleStartTest = async () => {
+    if (selectedTopics.length === 0) return;
+    setGenerating(true);
+    try {
+      let testQuestions = [];
+      if (category === 'aptitude') {
+        testQuestions = await apiService.generateAptitudeTest(selectedTopics);
+      } else {
+        // Fallback or generic method if implemented
+        testQuestions = await apiService.generateAptitudeTest(selectedTopics); 
+      }
+      
+      // Store questions in session storage to pass to the test page
+      sessionStorage.setItem('testQuestions', JSON.stringify(testQuestions));
+      sessionStorage.setItem('testTitle', `${title} Mastery Test`);
+      navigate(`/practice/${category}/test-execution`);
+    } catch (error) {
+      console.error('Error generating test:', error);
+    } finally {
+      setGenerating(false);
+      setShowTestModal(false);
     }
   };
 
@@ -53,13 +80,35 @@ export default function GenericPracticeTopics({ category, title, icon: Icon, fet
         <Typography sx={{ fontWeight: 800, color: '#1e293b' }}>{title}</Typography>
       </Breadcrumbs>
 
-      <Box sx={{ mb: 6 }}>
-        <Typography variant="h1" sx={{ fontWeight: 900, color: '#1e293b', mb: 1, fontSize: '2.5rem', letterSpacing: '-0.02em' }}>
-          {title} Training
-        </Typography>
-        <Typography variant="body1" sx={{ color: '#64748b', fontSize: '1.1rem', fontWeight: 500 }}>
-          Master {title.toLowerCase()} essentials and prepare for your next challenge.
-        </Typography>
+      <Box sx={{ mb: 6, display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'flex-end' }, gap: 3 }}>
+        <Box>
+          <Typography variant="h1" sx={{ fontWeight: 900, color: '#1e293b', mb: 1, fontSize: '2.5rem', letterSpacing: '-0.02em' }}>
+            {title} Training
+          </Typography>
+          <Typography variant="body1" sx={{ color: '#64748b', fontSize: '1.1rem', fontWeight: 500 }}>
+            Master {title.toLowerCase()} essentials and prepare for your next challenge.
+          </Typography>
+        </Box>
+        <Button
+          variant="contained"
+          size="large"
+          startIcon={<IconClipboardList />}
+          onClick={() => setShowTestModal(true)}
+          sx={{
+            borderRadius: '16px',
+            py: 1.5,
+            px: 4,
+            fontWeight: 800,
+            bgcolor: '#6366f1',
+            textTransform: 'none',
+            fontSize: '1rem',
+            boxShadow: '0 10px 20px rgba(99, 102, 241, 0.2)',
+            '&:hover': { bgcolor: '#4f46e5', transform: 'translateY(-2px)' },
+            transition: 'all 0.2s'
+          }}
+        >
+          Take Assessment Test
+        </Button>
       </Box>
 
       {loading ? (
@@ -99,7 +148,13 @@ export default function GenericPracticeTopics({ category, title, icon: Icon, fet
                     boxShadow: '0 12px 30px rgba(15, 23, 42, 0.08)' 
                   }
                 }}
-                onClick={() => navigate(`/practice/${category}/${topic.topic}`)}
+                onClick={() => {
+                  if (['aptitude', 'verbal', 'quantitative'].includes(category)) {
+                    navigate(`/practice/${category}/topic/${topic.topic}`);
+                  } else {
+                    navigate(`/practice/${category}/${topic.topic}`);
+                  }
+                }}
               >
                 <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', p: { xs: 2.5, sm: 3 } }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2.5 }}>
@@ -149,6 +204,87 @@ export default function GenericPracticeTopics({ category, title, icon: Icon, fet
           })}
         </Box>
       )}
+      {/* Test Configuration Modal */}
+      <Dialog 
+        open={showTestModal} 
+        onClose={() => setShowTestModal(false)}
+        maxWidth="sm"
+        fullWidth
+        sx={{
+          '& .MuiPaper-root': {
+            borderRadius: '28px',
+            p: 1
+          }
+        }}
+      >
+        <DialogTitle sx={{ p: 3, pb: 1 }}>
+          <Box component="span" sx={{ fontWeight: 900, color: '#1e293b', fontSize: '1.5rem', display: 'block' }}>
+            Generate Custom Test
+          </Box>
+          <Typography variant="body2" sx={{ color: '#64748b', mt: 0.5, fontWeight: 600 }}>
+            Select topics to include in your 40-question randomized test.
+          </Typography>
+        </DialogTitle>
+        <DialogContent sx={{ p: 3 }}>
+          <Box sx={{ mt: 2, display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
+            {topics.map((topic) => {
+              const isSelected = selectedTopics.includes(topic.topic);
+              return (
+                <Chip
+                  key={topic.topic}
+                  label={topic.topic}
+                  onClick={() => {
+                    if (isSelected) {
+                      setSelectedTopics(prev => prev.filter(t => t !== topic.topic));
+                    } else {
+                      setSelectedTopics(prev => [...prev, topic.topic]);
+                    }
+                  }}
+                  sx={{
+                    py: 2.5,
+                    px: 1,
+                    borderRadius: '12px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    bgcolor: isSelected ? '#6366f1' : '#f1f5f9',
+                    color: isSelected ? '#fff' : '#475569',
+                    border: '1px solid',
+                    borderColor: isSelected ? '#6366f1' : '#e2e8f0',
+                    '&:hover': {
+                      bgcolor: isSelected ? '#4f46e5' : '#e2e8f0'
+                    },
+                    transition: 'all 0.2s',
+                    textTransform: 'capitalize'
+                  }}
+                />
+              );
+            })}
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ p: 3, pt: 0 }}>
+          <Button 
+            onClick={() => setShowTestModal(false)}
+            sx={{ fontWeight: 700, color: '#64748b' }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            disabled={selectedTopics.length === 0 || generating}
+            onClick={handleStartTest}
+            sx={{
+              borderRadius: '14px',
+              px: 4,
+              fontWeight: 800,
+              bgcolor: '#6366f1',
+              boxShadow: '0 8px 15px rgba(99, 102, 241, 0.15)',
+              '&:hover': { bgcolor: '#4f46e5' }
+            }}
+          >
+            {generating ? <CircularProgress size={24} color="inherit" /> : 'Start Test Now'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

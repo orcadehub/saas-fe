@@ -21,130 +21,15 @@ import {
 import tenantConfig from 'config/tenantConfig';
 import StarryBackground from 'components/StarryBackground';
 import CelestialCursor from 'components/CelestialCursor';
+import DarkNavbar from 'components/DarkNavbar';
+import AnimatedGridBackground from 'components/AnimatedGridBackground';
 
-// ── Animated Grid Background ──
-const AnimatedGridBackground = () => (
-  <Box sx={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0, overflow: 'hidden', pointerEvents: 'none' }}>
-    {/* Base dark */}
-    <Box sx={{ position: 'absolute', inset: 0, bgcolor: '#0a0a0f' }} />
-
-    {/* Animated grid */}
-    <Box sx={{
-      position: 'absolute', inset: 0,
-      backgroundImage: `
-        linear-gradient(rgba(139, 92, 246, 0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(139, 92, 246, 0.03) 1px, transparent 1px)
-      `,
-      backgroundSize: '60px 60px',
-      animation: 'gridMove 20s linear infinite',
-    }} />
-
-    {/* Glow orb 1 – purple */}
-    <Box sx={{
-      position: 'absolute', top: '-15%', left: '-10%',
-      width: '70vw', height: '70vw',
-      background: 'radial-gradient(circle, rgba(139,92,246,0.12) 0%, transparent 65%)',
-      borderRadius: '50%', filter: 'blur(80px)',
-      animation: 'floatOrb1 18s ease-in-out infinite alternate',
-    }} />
-
-    {/* Glow orb 2 – cyan */}
-    <Box sx={{
-      position: 'absolute', bottom: '-20%', right: '-15%',
-      width: '60vw', height: '60vw',
-      background: 'radial-gradient(circle, rgba(6,182,212,0.08) 0%, transparent 65%)',
-      borderRadius: '50%', filter: 'blur(100px)',
-      animation: 'floatOrb2 22s ease-in-out infinite alternate',
-    }} />
-
-    {/* Glow orb 3 – pink */}
-    <Box sx={{
-      position: 'absolute', top: '40%', right: '10%',
-      width: '35vw', height: '35vw',
-      background: 'radial-gradient(circle, rgba(236,72,153,0.06) 0%, transparent 65%)',
-      borderRadius: '50%', filter: 'blur(60px)',
-      animation: 'floatOrb3 15s ease-in-out infinite alternate',
-    }} />
-
-    {/* Noise texture overlay */}
-    <Box sx={{
-      position: 'absolute', inset: 0, opacity: 0.03,
-      backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-    }} />
-
-    <style dangerouslySetInnerHTML={{ __html: `
-      @keyframes gridMove {
-        0% { transform: translate(0, 0); }
-        100% { transform: translate(60px, 60px); }
-      }
-      @keyframes floatOrb1 {
-        0% { transform: translate(0, 0) scale(1); }
-        100% { transform: translate(8%, 12%) scale(1.15); }
-      }
-      @keyframes floatOrb2 {
-        0% { transform: translate(0, 0) scale(1); }
-        100% { transform: translate(-10%, -8%) scale(1.1); }
-      }
-      @keyframes floatOrb3 {
-        0% { transform: translate(0, 0) scale(0.9); }
-        100% { transform: translate(-6%, 10%) scale(1.05); }
-      }
-      body { cursor: default; }
-      a, button, [role="button"], .interactive { cursor: pointer; }
-    ` }} />
-  </Box>
-);
 
 // ── Starry Background (Moved to components/StarryBackground.jsx) ──
 
 // ── Interactive Cursor (Moved to components/CelestialCursor.jsx) ──
 
-// ── Letter-by-letter animated text ──
-const LetterByLetterText = ({ text, delay = 0, sx = {} }) => {
-  const letters = useMemo(() => text.split(''), [text]);
-
-  return (
-    <Typography
-      variant="h1"
-      component="h1"
-      sx={{
-        fontWeight: 900,
-        fontSize: { xs: '3rem', sm: '4.5rem', md: '5.5rem', lg: '6.5rem' },
-        lineHeight: 1.05,
-        letterSpacing: '-3px',
-        maxWidth: '1100px',
-        mx: 'auto',
-        ...sx,
-      }}
-    >
-      {letters.map((letter, i) => (
-        <motion.span
-          key={i}
-          initial={{ opacity: 0, y: 40, filter: 'blur(8px)' }}
-          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-          transition={{
-            duration: 0.4,
-            delay: delay + i * 0.035,
-            ease: [0.25, 0.46, 0.45, 0.94],
-          }}
-          style={{
-            display: 'inline-block',
-            background: letter === ' '
-              ? 'transparent'
-              : 'linear-gradient(135deg, #ffffff 0%, #c4b5fd 40%, #8b5cf6 70%, #06b6d4 100%)',
-            WebkitBackgroundClip: letter === ' ' ? 'unset' : 'text',
-            WebkitTextFillColor: letter === ' ' ? 'transparent' : 'transparent',
-            backgroundClip: letter === ' ' ? 'unset' : 'text',
-            whiteSpace: letter === ' ' ? 'pre' : 'normal',
-            minWidth: letter === ' ' ? '0.3em' : 'auto',
-          }}
-        >
-          {letter === ' ' ? '\u00A0' : letter}
-        </motion.span>
-      ))}
-    </Typography>
-  );
-};
+import { LetterByLetterText } from 'components/ThemeElements';
 
 // ── Glass Card ──
 const GlassCard = ({ children, sx, ...props }) => (
@@ -221,163 +106,17 @@ const FloatingParticles = () => {
   );
 };
 
-// ── Main Landing ──
 export default function Landing() {
   const navigate = useNavigate();
-  const [config, setConfig] = useState(null);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  useEffect(() => {
-    tenantConfig.load().then(setConfig).catch(console.error);
-  }, []);
 
   return (
     <Box sx={{
-      minHeight: '100vh',
-      bgcolor: '#0a0a0f',
-      color: '#e2e8f0',
+      color: '#1e293b',
       fontFamily: "'Inter', 'Outfit', sans-serif",
       position: 'relative',
-      overflowX: 'hidden',
     }}>
-      <AnimatedGridBackground />
-      <StarryBackground />
       <FloatingParticles />
-      <CelestialCursor />
 
-      {/* ══════════ Navbar ══════════ */}
-      <Box component="nav" sx={{
-        position: 'fixed', top: 0, width: '100%', zIndex: 100,
-        borderBottom: '1px solid rgba(255,255,255,0.04)',
-        background: 'rgba(10, 10, 15, 0.7)',
-        backdropFilter: 'blur(24px)',
-        WebkitBackdropFilter: 'blur(24px)',
-      }}>
-        <Container maxWidth="xl">
-          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ py: 1.5 }}>
-            {/* Logo */}
-            <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', cursor: 'pointer' }} onClick={() => navigate('/')}>
-              {config?.logoUrl ? (
-                <Box
-                  component="img"
-                  src={config.logoUrl}
-                  alt="Logo"
-                  sx={{
-                    height: 48,
-                    objectFit: 'contain',
-                    filter: 'brightness(1.1)',
-                    borderRadius: '12px',
-                  }}
-                  onError={(e) => { e.target.style.display = 'none'; }}
-                />
-              ) : (
-                <Typography variant="h5" sx={{
-                  fontWeight: 800, letterSpacing: '-0.5px',
-                  display: 'flex', alignItems: 'center', gap: 1,
-                  background: 'linear-gradient(135deg, #8b5cf6, #06b6d4)',
-                  WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-                }}>
-                  <AutoAwesomeRounded sx={{ color: '#8b5cf6' }} />
-                  {config?.tenantName || 'ORCADEHUB'}
-                </Typography>
-              )}
-            </Stack>
-
-            {/* Nav Links – Desktop */}
-            <Stack direction="row" spacing={1} sx={{ display: { xs: 'none', md: 'flex' } }}>
-              {[{ label: 'Home', path: '/' }, { label: 'Services', path: '/services' }, { label: 'Pricing', path: '/pricing' }].map((item) => (
-                <Button
-                  key={item.path}
-                  variant="text"
-                  onClick={() => navigate(item.path)}
-                  className="interactive"
-                  sx={{
-                    color: 'rgba(255,255,255,0.6)',
-                    '&:hover': { color: '#fff', background: 'rgba(255,255,255,0.05)' },
-                    textTransform: 'none', fontSize: '0.95rem', fontWeight: 500, px: 2,
-                    transition: 'all 0.3s',
-                  }}
-                >
-                  {item.label}
-                </Button>
-              ))}
-            </Stack>
-
-            {/* Actions */}
-            <Stack direction="row" spacing={2} alignItems="center">
-              <Button
-                onClick={() => navigate('/login')}
-                className="interactive"
-                sx={{
-                  background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
-                  color: '#ffffff',
-                  borderRadius: '100px',
-                  px: 3.5,
-                  py: 1,
-                  textTransform: 'none',
-                  fontWeight: 600,
-                  fontSize: '0.95rem',
-                  boxShadow: '0 4px 20px rgba(139, 92, 246, 0.3)',
-                  display: { xs: 'none', md: 'flex' },
-                  '&:hover': {
-                    background: 'linear-gradient(135deg, #7c3aed, #6d28d9)',
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 8px 30px rgba(139, 92, 246, 0.4)',
-                  },
-                  transition: 'all 0.3s',
-                }}
-              >
-                Login
-              </Button>
-              <IconButton
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                sx={{ display: { xs: 'flex', md: 'none' }, color: '#fff' }}
-              >
-                {mobileMenuOpen ? <CloseIcon /> : <MenuIcon />}
-              </IconButton>
-            </Stack>
-          </Stack>
-        </Container>
-
-        {/* Mobile nav */}
-        <AnimatePresence>
-          {mobileMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <Box sx={{
-                display: { xs: 'flex', md: 'none' },
-                flexDirection: 'column',
-                px: 3, pb: 3, gap: 1,
-                borderTop: '1px solid rgba(255,255,255,0.05)',
-              }}>
-                {[{ label: 'Home', path: '/' }, { label: 'Services', path: '/services' }, { label: 'Pricing', path: '/pricing' }].map((item) => (
-                  <Button
-                    key={item.path}
-                    onClick={() => { navigate(item.path); setMobileMenuOpen(false); }}
-                    sx={{ color: 'rgba(255,255,255,0.7)', textTransform: 'none', justifyContent: 'flex-start', fontWeight: 500 }}
-                  >
-                    {item.label}
-                  </Button>
-                ))}
-                <Button
-                  onClick={() => { navigate('/login'); setMobileMenuOpen(false); }}
-                  sx={{
-                    background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
-                    color: '#fff', borderRadius: '12px', mt: 1,
-                    textTransform: 'none', fontWeight: 600,
-                  }}
-                >
-                  Login
-                </Button>
-              </Box>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </Box>
 
       {/* ══════════ Hero Section ══════════ */}
       <Container maxWidth="xl" sx={{ pt: { xs: 14, md: 22 }, pb: { xs: 8, md: 14 }, position: 'relative', zIndex: 10 }}>
@@ -393,17 +132,17 @@ export default function Landing() {
               display: 'inline-flex', alignItems: 'center', gap: 1,
               px: 2.5, py: 0.8,
               borderRadius: '100px',
-              border: '1px solid rgba(139, 92, 246, 0.3)',
-              background: 'rgba(139, 92, 246, 0.08)',
+              border: '1px solid rgba(124, 58, 237, 0.1)',
+              background: 'rgba(124, 58, 237, 0.05)',
               backdropFilter: 'blur(10px)',
             }}>
               <Box sx={{
                 width: 6, height: 6, borderRadius: '50%',
-                bgcolor: '#8b5cf6',
-                boxShadow: '0 0 8px rgba(139,92,246,0.6)',
+                bgcolor: '#7c3aed',
+                boxShadow: '0 0 8px rgba(124, 58, 237, 0.3)',
                 animation: 'pulse 2s infinite',
               }} />
-              <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: '#c4b5fd', letterSpacing: '0.5px' }}>
+              <Typography sx={{ fontSize: '0.85rem', fontWeight: 700, color: '#6d28d9', letterSpacing: '0.5px' }}>
                 AI-POWERED LEARNING PLATFORM
               </Typography>
             </Box>
@@ -413,7 +152,27 @@ export default function Landing() {
           </motion.div>
 
           {/* Hero Heading – Letter by Letter */}
-          <LetterByLetterText text="Code at the speed of thought." delay={0.3} />
+          <Box>
+            <LetterByLetterText 
+              text="Code at the speed" 
+              delay={0.3} 
+              sx={{
+                background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 40%, #334155 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                mb: { xs: 0, md: -1 }
+              }}
+            />
+            <LetterByLetterText 
+              text="of thought." 
+              delay={0.8} 
+              sx={{
+                background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 40%, #334155 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+              }}
+            />
+          </Box>
 
           {/* Subtitle */}
           <motion.div
@@ -422,11 +181,11 @@ export default function Landing() {
             transition={{ duration: 0.8, delay: 1.8, ease: [0.16, 1, 0.3, 1] }}
           >
             <Typography variant="h5" sx={{
-              color: 'rgba(255,255,255,0.5)',
+              color: '#64748b',
               maxWidth: '650px',
               mx: 'auto',
               lineHeight: 1.7,
-              fontWeight: 400,
+              fontWeight: 500,
               fontSize: { xs: '1.05rem', md: '1.25rem' },
             }}>
               Master coding with 500+ practice problems, AI-powered mock interviews, interactive labs, and real-time assessments.
@@ -446,16 +205,16 @@ export default function Landing() {
                 endIcon={<ArrowForwardRounded />}
                 className="interactive"
                 sx={{
-                  background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #6d28d9 100%)',
+                  background: 'linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)',
                   color: '#fff', px: 5, py: 2,
                   borderRadius: '100px',
                   fontWeight: 700, fontSize: '1.1rem',
                   textTransform: 'none',
-                  boxShadow: '0 10px 40px rgba(139, 92, 246, 0.3), 0 0 0 1px rgba(139, 92, 246, 0.2)',
+                  boxShadow: '0 10px 30px rgba(124, 58, 237, 0.25)',
                   '&:hover': {
-                    background: 'linear-gradient(135deg, #7c3aed, #6d28d9)',
+                    background: 'linear-gradient(135deg, #6d28d9, #4338ca)',
                     transform: 'translateY(-3px)',
-                    boxShadow: '0 15px 50px rgba(139, 92, 246, 0.4), 0 0 0 1px rgba(139, 92, 246, 0.3)',
+                    boxShadow: '0 15px 40px rgba(124, 58, 237, 0.35)',
                   },
                   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                 }}
@@ -468,17 +227,17 @@ export default function Landing() {
                 onClick={() => navigate('/services')}
                 className="interactive"
                 sx={{
-                  borderColor: 'rgba(255,255,255,0.12)',
-                  color: '#e2e8f0',
+                  borderColor: 'rgba(0,0,0,0.12)',
+                  color: '#475569',
                   px: 5, py: 2,
                   borderRadius: '100px',
-                  fontWeight: 600, fontSize: '1.1rem',
+                  fontWeight: 700, fontSize: '1.1rem',
                   textTransform: 'none',
                   backdropFilter: 'blur(10px)',
-                  background: 'rgba(255,255,255,0.03)',
+                  background: 'rgba(255,255,255,0.8)',
                   '&:hover': {
-                    borderColor: 'rgba(139, 92, 246, 0.4)',
-                    background: 'rgba(139, 92, 246, 0.08)',
+                    borderColor: 'rgba(124, 58, 237, 0.4)',
+                    background: 'rgba(124, 58, 237, 0.05)',
                     transform: 'translateY(-2px)',
                   },
                   transition: 'all 0.3s',
@@ -501,32 +260,32 @@ export default function Landing() {
             width: '100%', maxWidth: '1100px', mx: 'auto',
             height: { xs: '280px', md: '460px' },
             borderRadius: '20px',
-            border: '1px solid rgba(255,255,255,0.06)',
-            background: 'rgba(15, 15, 25, 0.8)',
-            boxShadow: '0 40px 80px rgba(0,0,0,0.4), 0 0 0 1px rgba(139,92,246,0.05)',
+            border: '1px solid rgba(0,0,0,0.06)',
+            background: '#ffffff',
+            boxShadow: '0 40px 80px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.02)',
             overflow: 'hidden',
             display: 'flex', flexDirection: 'column',
             backdropFilter: 'blur(20px)',
           }}>
             {/* Window top bar */}
-            <Box sx={{ p: 2, borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', gap: 1, alignItems: 'center', background: 'rgba(255,255,255,0.02)' }}>
+            <Box sx={{ p: 2, borderBottom: '1px solid rgba(0,0,0,0.05)', display: 'flex', gap: 1, alignItems: 'center', background: '#f8fafc' }}>
               <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#FF5F56' }} />
               <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#FFBD2E' }} />
               <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#27C93F' }} />
-              <Typography sx={{ ml: 2, fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)', fontFamily: 'monospace' }}>
+              <Typography sx={{ ml: 2, fontSize: '0.75rem', color: '#94a3b8', fontWeight: 600, fontFamily: 'monospace' }}>
                 main.js — orcadehub
               </Typography>
             </Box>
             {/* Code body */}
             <Box sx={{ p: 4, flex: 1, display: 'flex', gap: 4, overflow: 'hidden' }}>
-              <Stack spacing={2} sx={{ width: '40px', color: 'rgba(255,255,255,0.15)', fontFamily: 'monospace', fontSize: '0.9rem' }}>
+              <Stack spacing={2} sx={{ width: '40px', color: '#cbd5e1', fontFamily: 'monospace', fontSize: '0.9rem' }}>
                 {[1,2,3,4,5,6,7,8,9,10].map(n => <span key={n}>{n}</span>)}
               </Stack>
-              <Box sx={{ flex: 1, fontFamily: "'JetBrains Mono', 'Fira Code', monospace", color: 'rgba(255,255,255,0.6)', fontSize: { xs: '0.8rem', md: '0.95rem' }, lineHeight: 2.2 }}>
-                <span style={{color: '#c084fc'}}>import</span> {'{'} OrcadeHub {'}'} <span style={{color: '#c084fc'}}>from</span> <span style={{color: '#34d399'}}>'@orcadehub/platform'</span>;<br/><br/>
-                <span style={{color: '#67e8f9'}}>const</span> journey = <span style={{color: '#c084fc'}}>new</span> <span style={{color: '#67e8f9'}}>OrcadeHub</span>();<br/>
-                journey.<span style={{color: '#38bdf8'}}>startLearning</span>();<br/><br/>
-                <span style={{color: 'rgba(255,255,255,0.2)'}}>// Start your coding journey today...</span>
+              <Box sx={{ flex: 1, fontFamily: "'JetBrains Mono', 'Fira Code', monospace", color: '#334155', fontSize: { xs: '0.8rem', md: '0.95rem' }, lineHeight: 2.2 }}>
+                <span style={{color: '#7c3aed'}}>import</span> {'{'} OrcadeHub {'}'} <span style={{color: '#7c3aed'}}>from</span> <span style={{color: '#059669'}}>'@orcadehub/platform'</span>;<br/><br/>
+                <span style={{color: '#2563eb'}}>const</span> journey = <span style={{color: '#7c3aed'}}>new</span> <span style={{color: '#2563eb'}}>OrcadeHub</span>();<br/>
+                journey.<span style={{color: '#d946ef'}}>startLearning</span>();<br/><br/>
+                <span style={{color: '#94a3b8'}}>// Start your coding journey today...</span>
               </Box>
             </Box>
           </Box>
@@ -547,7 +306,7 @@ export default function Landing() {
               fontSize: { xs: '2.5rem', md: '4rem' },
               letterSpacing: '-1.5px',
               mb: 2,
-              background: 'linear-gradient(135deg, #ffffff 0%, #c4b5fd 50%, #8b5cf6 100%)',
+              background: 'linear-gradient(135deg, #0f172a 0%, #334155 100%)',
               WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
             }}>
               Everything you need to excel.
@@ -560,7 +319,7 @@ export default function Landing() {
             transition={{ duration: 0.6, delay: 0.1 }}
           >
             <Typography variant="h6" sx={{
-              color: 'rgba(255,255,255,0.4)', fontWeight: 400,
+              color: '#64748b', fontWeight: 500,
               maxWidth: '700px', lineHeight: 1.7,
               fontSize: { xs: '1rem', md: '1.2rem' },
             }}>
@@ -575,12 +334,12 @@ export default function Landing() {
           gap: 4, mb: 16,
         }}>
           {[
-            { icon: <CodeRounded sx={{ fontSize: 36 }} />, title: 'Practice Problems', description: '500+ curated coding problems across multiple difficulty levels and topics with detailed solutions.', color: '#3B82F6', glow: 'rgba(59,130,246,0.15)' },
-            { icon: <Assessment sx={{ fontSize: 36 }} />, title: 'Assessments & Quizzes', description: 'Timed assessments with instant results, detailed analytics, and performance tracking.', color: '#10B981', glow: 'rgba(16,185,129,0.15)' },
-            { icon: <Psychology sx={{ fontSize: 36 }} />, title: 'Online IDE', description: 'Powerful browser-based IDE supporting Python, Java, C++, and C with instant execution.', color: '#F59E0B', glow: 'rgba(245,158,11,0.15)' },
-            { icon: <SmartToy sx={{ fontSize: 36 }} />, title: 'AI Mock Interviews', description: 'Practice with AI-powered interview sessions and get personalized feedback to improve.', color: '#8b5cf6', glow: 'rgba(139,92,246,0.15)' },
-            { icon: <SportsEsports sx={{ fontSize: 36 }} />, title: 'Interactive Labs', description: 'Hands-on coding labs and playgrounds for practical learning in an engaging environment.', color: '#EC4899', glow: 'rgba(236,72,153,0.15)' },
-            { icon: <EmojiEvents sx={{ fontSize: 36 }} />, title: 'Leaderboard & Analytics', description: 'Compete with peers, track rankings, and get detailed insights into your progress.', color: '#EF4444', glow: 'rgba(239,68,68,0.15)' },
+            { icon: <CodeRounded sx={{ fontSize: 36 }} />, title: 'Practice Problems', description: '500+ curated coding problems across multiple difficulty levels and topics with detailed solutions.', color: '#2563eb', glow: 'rgba(37,99,235,0.08)' },
+            { icon: <Assessment sx={{ fontSize: 36 }} />, title: 'Assessments & Quizzes', description: 'Timed assessments with instant results, detailed analytics, and performance tracking.', color: '#059669', glow: 'rgba(5,150,105,0.08)' },
+            { icon: <Psychology sx={{ fontSize: 36 }} />, title: 'Online IDE', description: 'Powerful browser-based IDE supporting Python, Java, C++, and C with instant execution.', color: '#d97706', glow: 'rgba(217,119,6,0.08)' },
+            { icon: <SmartToy sx={{ fontSize: 36 }} />, title: 'AI Mock Interviews', description: 'Practice with AI-powered interview sessions and get personalized feedback to improve.', color: '#7c3aed', glow: 'rgba(124,58,237,0.08)' },
+            { icon: <SportsEsports sx={{ fontSize: 36 }} />, title: 'Interactive Labs', description: 'Hands-on coding labs and playgrounds for practical learning in an engaging environment.', color: '#db2777', glow: 'rgba(219,39,119,0.08)' },
+            { icon: <EmojiEvents sx={{ fontSize: 36 }} />, title: 'Leaderboard & Analytics', description: 'Compete with peers, track rankings, and get detailed insights into your progress.', color: '#dc2626', glow: 'rgba(220,38,38,0.08)' },
           ].map((service, idx) => (
             <motion.div
               key={service.title}
@@ -589,27 +348,38 @@ export default function Landing() {
               viewport={{ once: true, margin: '-80px' }}
               transition={{ duration: 0.6, delay: idx * 0.08 }}
             >
-              <GlassCard sx={{ p: 5, height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+              <GlassCard sx={{ 
+                p: 5, height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
+                background: '#ffffff',
+                border: '1px solid rgba(0,0,0,0.05)',
+                boxShadow: '0 10px 30px rgba(0,0,0,0.03)',
+                '&:hover': {
+                  background: '#ffffff',
+                  border: `1px solid ${service.color}40`,
+                  boxShadow: `0 20px 40px rgba(0,0,0,0.06), 0 0 0 1px ${service.color}10`,
+                  transform: 'translateY(-6px)',
+                }
+              }}>
                 <Box sx={{
                   width: 72, height: 72,
                   borderRadius: '20px',
                   background: service.glow,
-                  border: `1px solid ${service.color}30`,
+                  border: `1px solid ${service.color}20`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   mb: 3, color: service.color,
-                  boxShadow: `0 8px 24px ${service.color}15`,
+                  boxShadow: `0 8px 24px ${service.color}10`,
                   transition: 'all 0.3s',
                 }}>
                   {service.icon}
                 </Box>
                 <Typography variant="h5" sx={{
-                  fontWeight: 700, mb: 2, letterSpacing: '-0.5px',
-                  color: '#f1f5f9', fontSize: '1.4rem',
+                  fontWeight: 800, mb: 2, letterSpacing: '-0.5px',
+                  color: '#0f172a', fontSize: '1.4rem',
                 }}>
                   {service.title}
                 </Typography>
                 <Typography variant="body1" sx={{
-                  color: 'rgba(255,255,255,0.4)', lineHeight: 1.8, fontSize: '0.95rem',
+                  color: '#64748b', lineHeight: 1.8, fontSize: '0.95rem', fontWeight: 500,
                 }}>
                   {service.description}
                 </Typography>
@@ -621,14 +391,13 @@ export default function Landing() {
 
       {/* ══════════ Footer ══════════ */}
       <Box sx={{
-        borderTop: '1px solid rgba(255,255,255,0.05)',
+        borderTop: '1px solid rgba(0,0,0,0.05)',
         py: 6, position: 'relative', zIndex: 10,
-        background: 'rgba(10, 10, 15, 0.9)',
-        backdropFilter: 'blur(20px)',
+        background: '#ffffff',
       }}>
         <Container maxWidth="xl">
           <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems="center" spacing={3}>
-            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.3)' }}>
+            <Typography variant="body2" sx={{ color: '#94a3b8', fontWeight: 600 }}>
               © {new Date().getFullYear()}{' '}
               <Typography
                 component="a"
@@ -636,9 +405,9 @@ export default function Landing() {
                 target="_blank"
                 rel="noopener noreferrer"
                 sx={{
-                  color: 'rgba(255,255,255,0.3)',
+                  color: '#94a3b8',
                   textDecoration: 'none',
-                  '&:hover': { color: '#8b5cf6' },
+                  '&:hover': { color: '#7c3aed' },
                   transition: 'color 0.3s',
                 }}
               >
@@ -655,9 +424,10 @@ export default function Landing() {
                   component="a"
                   href="#"
                   sx={{
-                    color: 'rgba(255,255,255,0.3)',
+                    color: '#94a3b8',
+                    fontWeight: 600,
                     textDecoration: 'none',
-                    '&:hover': { color: '#c4b5fd' },
+                    '&:hover': { color: '#7c3aed' },
                     transition: 'color 0.3s',
                   }}
                 >
@@ -671,3 +441,5 @@ export default function Landing() {
     </Box>
   );
 }
+
+

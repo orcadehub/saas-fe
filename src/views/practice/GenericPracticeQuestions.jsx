@@ -116,7 +116,13 @@ export default function GenericPracticeQuestions({ category, title, icon: Icon, 
                     boxShadow: '0 12px 30px rgba(15, 23, 42, 0.08)' 
                   }
                 }}
-                onClick={() => navigate(`/practice/assessment/${question._id}`)}
+                onClick={() => {
+                  if (['aptitude', 'verbal', 'quantitative'].includes(category)) {
+                    navigate(`/practice/mcq/${question._id}`);
+                  } else {
+                    navigate(`/practice/assessment/${question._id}`);
+                  }
+                }}
               >
                 <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', p: { xs: 2.5, sm: 3 } }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2.5 }}>

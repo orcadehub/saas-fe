@@ -109,7 +109,21 @@ const BalloonPopGame = ({ level, onSubmit, onHint, themeColor = '#6a0dad' }) => 
   const balloonColors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2', '#F8B739', '#52B788'];
 
   return (
-    <Box sx={{ width: '100%', display: 'flex', gap: 3 }}>
+    <Box sx={{ width: '100%' }}>
+      {/* Question Heading */}
+      {level?.question && (
+        <Box sx={{ mb: 4, textAlign: 'center' }}>
+          <Typography variant="h3" sx={{ 
+            fontWeight: 900, 
+            color: '#1e293b', 
+            fontSize: { xs: '1.5rem', sm: '2rem', md: '2.25rem' },
+            lineHeight: 1.4
+          }}>
+            {level.question}
+          </Typography>
+        </Box>
+      )}
+      <Box sx={{ display: 'flex', gap: 3 }}>
       {/* Left Side - Instructions */}
       <Box sx={{ flex: 1 }}>
         <Button
@@ -248,6 +262,7 @@ const BalloonPopGame = ({ level, onSubmit, onHint, themeColor = '#6a0dad' }) => 
           );
         })}
         </Box>
+      </Box>
       </Box>
     </Box>
   );

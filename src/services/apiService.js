@@ -75,6 +75,13 @@ class ApiService {
     return response.data;
   }
 
+  async updateStudentProfile(token, data) {
+    const response = await this.client.put('/students/update-profile', data, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
+  }
+
   async sendStudentHeartbeat(token) {
     const response = await this.client.post('/auth/student/heartbeat', {}, {
       headers: { Authorization: `Bearer ${token}` }
@@ -230,6 +237,14 @@ class ApiService {
   }
   async getAptitudeTopicQuestions(topic) {
     const response = await this.client.get(`/aptitude-questions/questions/${topic}`);
+    return response.data;
+  }
+  async generateAptitudeTest(topics) {
+    const response = await this.client.post('/aptitude-questions/generate-test', { topics });
+    return response.data;
+  }
+  async getAptitudeQuestionById(id) {
+    const response = await this.client.get(`/aptitude-questions/${id}`);
     return response.data;
   }
 

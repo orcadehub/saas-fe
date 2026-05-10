@@ -142,13 +142,31 @@ const DigitChallengeGame = ({ difficulty = 'Easy', onComplete }) => {
   };
 
   const handleSubmit = () => {
-    const isCorrect = userInputs.every((input, idx) => parseInt(input) === correctDigits[idx]);
+    // Build the user's equation string from their placed digits + the operators
+    const equationOps = equation.split('x').filter(p => p); // operators between digits
+    let userEquation = '';
+    for (let i = 0; i < userInputs.length; i++) {
+      userEquation += userInputs[i];
+      if (i < equationOps.length) {
+        userEquation += equationOps[i].replace('×', '*').replace('÷', '/');
+      }
+    }
+    
+    // Evaluate the user's equation and check if it equals the target answer
+    let userAnswer;
+    try {
+      userAnswer = eval(userEquation);
+    } catch {
+      userAnswer = null;
+    }
+    
+    const isCorrect = userAnswer === answer;
     
     if (isCorrect) {
       setScore(score + 1);
       setFeedback('✓ Correct!');
     } else {
-      setFeedback(`✗ Wrong! Correct: ${correctDigits.join(', ')}`);
+      setFeedback(`✗ Wrong! One valid answer: ${correctDigits.join(', ')}`);
     }
 
     setTimeout(() => {

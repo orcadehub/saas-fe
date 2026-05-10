@@ -16,6 +16,7 @@ import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
 import FormControl from '@mui/material/FormControl';
+import Divider from '@mui/material/Divider';
 
 // assets
 import Visibility from '@mui/icons-material/Visibility';
@@ -23,48 +24,48 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
 const API_BASE_URL = import.meta.env.DEV ? 'http://localhost:4000/api' : 'https://backend.orcode.in/api';
 
-// Dark-themed input styles
-const darkInputSx = {
+// Light-themed input styles
+const lightInputSx = {
   '& .MuiOutlinedInput-root': {
-    color: '#e2e8f0',
+    color: '#1e293b',
     borderRadius: '14px',
-    background: 'rgba(255, 255, 255, 0.04)',
-    backdropFilter: 'blur(10px)',
+    background: 'rgba(0, 0, 0, 0.02)',
     '& fieldset': {
-      borderColor: 'rgba(255, 255, 255, 0.08)',
+      borderColor: 'rgba(0, 0, 0, 0.08)',
       transition: 'border-color 0.3s',
     },
     '&:hover fieldset': {
-      borderColor: 'rgba(139, 92, 246, 0.3)',
+      borderColor: 'rgba(124, 58, 237, 0.3)',
     },
     '&.Mui-focused fieldset': {
-      borderColor: '#8b5cf6',
+      borderColor: '#7c3aed',
       borderWidth: '1.5px',
-      boxShadow: '0 0 0 3px rgba(139, 92, 246, 0.1)',
+      boxShadow: '0 0 0 3px rgba(124, 58, 237, 0.1)',
     },
     '& input': {
-      color: '#e2e8f0',
+      color: '#1e293b',
       '&::placeholder': {
-        color: 'rgba(255, 255, 255, 0.25)',
+        color: '#94a3b8',
         opacity: 1,
       },
       '&:-webkit-autofill': {
-        WebkitBoxShadow: '0 0 0 100px rgba(15, 15, 25, 0.95) inset',
-        WebkitTextFillColor: '#e2e8f0',
+        WebkitBoxShadow: '0 0 0 100px #ffffff inset',
+        WebkitTextFillColor: '#1e293b',
         borderRadius: '14px',
       },
     },
   },
   '& .MuiInputLabel-root': {
-    color: 'rgba(255, 255, 255, 0.4)',
+    color: '#64748b',
+    fontWeight: 500,
     '&.Mui-focused': {
-      color: '#8b5cf6',
+      color: '#7c3aed',
     },
   },
   '& .MuiIconButton-root': {
-    color: 'rgba(255, 255, 255, 0.4)',
+    color: '#94a3b8',
     '&:hover': {
-      color: '#8b5cf6',
+      color: '#7c3aed',
     },
   },
 };
@@ -94,26 +95,14 @@ export default function AuthLogin() {
     event.preventDefault();
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (e, customData = null) => {
+    if (e) e.preventDefault();
     setLoading(true);
     setError('');
 
-    try {
-      if (formData.email === 'test@test.com' && formData.password === 'test@123') {
-        const dummyToken = 'dummy-token-for-test-user';
-        const dummyStudent = {
-          id: 'test-user-id',
-          name: 'Test User',
-          email: 'test@test.com',
-          role: 'student',
-        };
-        
-        login({ ...dummyStudent, token: dummyToken });
-        navigate('/dashboard');
-        return;
-      }
+    const loginData = customData || formData;
 
+    try {
       if (!config) {
         setError('Configuration not loaded. Please refresh the page.');
         return;
@@ -126,7 +115,7 @@ export default function AuthLogin() {
           'x-api-key': config.apiKey || '',
           'x-tenant-id': config.tenantId || ''
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(loginData)
       });
       
       if (!response.ok) {
@@ -161,17 +150,18 @@ export default function AuthLogin() {
           sx={{
             mb: 2,
             borderRadius: '12px',
-            bgcolor: 'rgba(239, 68, 68, 0.1)',
-            color: '#fca5a5',
-            border: '1px solid rgba(239, 68, 68, 0.2)',
-            '& .MuiAlert-icon': { color: '#ef4444' },
+            bgcolor: 'rgba(239, 68, 68, 0.05)',
+            color: '#dc2626',
+            border: '1px solid rgba(239, 68, 68, 0.1)',
+            fontWeight: 500,
+            '& .MuiAlert-icon': { color: '#dc2626' },
           }}
         >
           {error}
         </Alert>
       )}
       
-      <FormControl fullWidth sx={{ ...darkInputSx, mb: 2.5 }}>
+      <FormControl fullWidth sx={{ ...lightInputSx, mb: 2.5 }}>
         <InputLabel htmlFor="outlined-adornment-email-login">Email Address</InputLabel>
         <OutlinedInput 
           id="outlined-adornment-email-login" 
@@ -186,7 +176,7 @@ export default function AuthLogin() {
         />
       </FormControl>
 
-      <FormControl fullWidth sx={{ ...darkInputSx, mb: 1.5 }}>
+      <FormControl fullWidth sx={{ ...lightInputSx, mb: 1.5 }}>
         <InputLabel htmlFor="outlined-adornment-password-login">Password</InputLabel>
         <OutlinedInput
           id="outlined-adornment-password-login"
@@ -221,10 +211,10 @@ export default function AuthLogin() {
             to="/forgot-password"
             sx={{
               textDecoration: 'none',
-              color: '#8b5cf6',
-              fontWeight: 500,
+              color: '#7c3aed',
+              fontWeight: 600,
               fontSize: '0.875rem',
-              '&:hover': { color: '#a78bfa' },
+              '&:hover': { color: '#6d28d9' },
               transition: 'color 0.3s',
             }}
           >
@@ -242,22 +232,22 @@ export default function AuthLogin() {
           disabled={loading}
           className="interactive"
           sx={{
-            background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #6d28d9 100%)',
+            background: 'linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)',
             color: '#fff',
             py: 1.5,
             borderRadius: '14px',
             fontWeight: 700,
             fontSize: '1rem',
             textTransform: 'none',
-            boxShadow: '0 8px 30px rgba(139, 92, 246, 0.3)',
+            boxShadow: '0 8px 24px rgba(124, 58, 237, 0.2)',
             '&:hover': {
-              background: 'linear-gradient(135deg, #7c3aed, #6d28d9)',
+              background: 'linear-gradient(135deg, #6d28d9, #4338ca)',
               transform: 'translateY(-2px)',
-              boxShadow: '0 12px 40px rgba(139, 92, 246, 0.4)',
+              boxShadow: '0 12px 30px rgba(124, 58, 237, 0.3)',
             },
             '&:disabled': {
-              background: 'rgba(139, 92, 246, 0.3)',
-              color: 'rgba(255,255,255,0.5)',
+              background: 'rgba(0, 0, 0, 0.12)',
+              color: 'rgba(0, 0, 0, 0.26)',
             },
             transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           }}
@@ -265,6 +255,44 @@ export default function AuthLogin() {
           {loading ? 'Signing In...' : 'Sign In'}
         </Button>
       </Box>
+
+      <Box sx={{ mt: 2, position: 'relative' }}>
+        <Divider sx={{ mb: 2, '&::before, &::after': { borderColor: 'rgba(0,0,0,0.06)' } }}>
+          <Typography variant="caption" sx={{ color: '#94a3b8', fontWeight: 600, px: 1 }}>OR CONTINUE WITH</Typography>
+        </Divider>
+        <Button
+          fullWidth
+          size="large"
+          variant="outlined"
+          onClick={() => {
+            setFormData({ email: 'test@test.com', password: 'password' });
+            // Small delay to ensure state update before submit if I were using a ref, 
+            // but I'll just trigger the submit logic directly here.
+            setTimeout(() => {
+              const fakeEvent = { preventDefault: () => {} };
+              handleSubmit(fakeEvent, { email: 'test@test.com', password: 'password' });
+            }, 100);
+          }}
+          sx={{
+            py: 1.5,
+            borderRadius: '14px',
+            borderColor: 'rgba(124, 58, 237, 0.2)',
+            color: '#7c3aed',
+            fontWeight: 700,
+            fontSize: '1rem',
+            textTransform: 'none',
+            '&:hover': {
+              background: 'rgba(124, 58, 237, 0.04)',
+              borderColor: '#7c3aed',
+            },
+            transition: 'all 0.3s',
+          }}
+        >
+          Login as Test User
+        </Button>
+      </Box>
+
     </form>
+
   );
 }

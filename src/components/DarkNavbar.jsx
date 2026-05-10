@@ -1,26 +1,26 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
 import { Box, Container, Stack, Typography, Button, IconButton } from '@mui/material';
-import { AutoAwesomeRounded, Menu as MenuIcon, Close as CloseIcon } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import tenantConfig from 'config/tenantConfig';
+import { Menu as MenuIcon, Close as CloseIcon, AutoAwesomeRounded } from '@mui/icons-material';
 
-export default function LandingHeader() {
+const DarkNavbar = ({ config }) => {
   const navigate = useNavigate();
-  const [config, setConfig] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  useEffect(() => {
-    tenantConfig.load().then(setConfig).catch(console.error);
-  }, []);
+  const navItems = [
+    { label: 'Home', path: '/' },
+    { label: 'Services', path: '/services' },
+    { label: 'Pricing', path: '/pricing' }
+  ];
 
   return (
     <Box component="nav" sx={{
       position: 'fixed', top: 0, width: '100%', zIndex: 100,
-      borderBottom: '1px solid rgba(0,0,0,0.05)',
+      borderBottom: '1px solid rgba(0,0,0,0.06)',
       background: 'rgba(255, 255, 255, 0.8)',
-      backdropFilter: 'blur(24px)',
-      WebkitBackdropFilter: 'blur(24px)',
+      backdropFilter: 'blur(20px)',
+      WebkitBackdropFilter: 'blur(20px)',
     }}>
       <Container maxWidth="xl">
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ py: 1.5 }}>
@@ -31,16 +31,20 @@ export default function LandingHeader() {
                 component="img"
                 src={config.logoUrl}
                 alt="Logo"
-                sx={{ height: 40, objectFit: 'contain', filter: 'none', borderRadius: '10px' }}
+                sx={{
+                  height: { xs: 36, md: 42 },
+                  objectFit: 'contain',
+                  filter: 'none',
+                  borderRadius: '12px',
+                }}
                 onError={(e) => { e.target.style.display = 'none'; }}
               />
             ) : (
               <Typography variant="h5" sx={{
                 fontWeight: 800, letterSpacing: '-0.5px',
                 display: 'flex', alignItems: 'center', gap: 1,
-                background: 'linear-gradient(135deg, #7c3aed, #4f46e5)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
+                background: 'linear-gradient(135deg, #7c3aed, #2563eb)',
+                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
               }}>
                 <AutoAwesomeRounded sx={{ color: '#7c3aed' }} />
                 {config?.tenantName || 'ORCADEHUB'}
@@ -48,17 +52,17 @@ export default function LandingHeader() {
             )}
           </Stack>
 
-          {/* Desktop Nav */}
+          {/* Nav Links – Desktop */}
           <Stack direction="row" spacing={1} sx={{ display: { xs: 'none', md: 'flex' } }}>
-            {[{ label: 'Home', path: '/' }, { label: 'Services', path: '/services' }, { label: 'Pricing', path: '/pricing' }].map((item) => (
+            {navItems.map((item) => (
               <Button
                 key={item.path}
                 variant="text"
                 onClick={() => navigate(item.path)}
                 className="interactive"
                 sx={{
-                  color: '#64748b',
-                  '&:hover': { color: '#1e293b', background: 'rgba(0,0,0,0.04)' },
+                  color: '#475569',
+                  '&:hover': { color: '#0f172a', background: 'rgba(0,0,0,0.03)' },
                   textTransform: 'none', fontSize: '0.95rem', fontWeight: 600, px: 2,
                   transition: 'all 0.3s',
                 }}
@@ -68,7 +72,7 @@ export default function LandingHeader() {
             ))}
           </Stack>
 
-          {/* Login Button & Mobile Toggle */}
+          {/* Actions */}
           <Stack direction="row" spacing={2} alignItems="center">
             <Button
               onClick={() => navigate('/login')}
@@ -80,14 +84,14 @@ export default function LandingHeader() {
                 px: 3.5,
                 py: 1,
                 textTransform: 'none',
-                fontWeight: 700,
+                fontWeight: 600,
                 fontSize: '0.95rem',
-                boxShadow: '0 4px 20px rgba(124, 58, 237, 0.2)',
+                boxShadow: '0 4px 12px rgba(124, 58, 237, 0.2)',
                 display: { xs: 'none', md: 'flex' },
                 '&:hover': {
                   background: 'linear-gradient(135deg, #6d28d9, #4338ca)',
                   transform: 'translateY(-2px)',
-                  boxShadow: '0 8px 30px rgba(124, 58, 237, 0.3)',
+                  boxShadow: '0 8px 20px rgba(124, 58, 237, 0.3)',
                 },
                 transition: 'all 0.3s',
               }}
@@ -96,7 +100,7 @@ export default function LandingHeader() {
             </Button>
             <IconButton
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              sx={{ display: { xs: 'flex', md: 'none' }, color: '#1e293b' }}
+              sx={{ display: { xs: 'flex', md: 'none' }, color: '#0f172a' }}
             >
               {mobileMenuOpen ? <CloseIcon /> : <MenuIcon />}
             </IconButton>
@@ -104,7 +108,7 @@ export default function LandingHeader() {
         </Stack>
       </Container>
 
-      {/* Mobile menu */}
+      {/* Mobile nav */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div
@@ -115,15 +119,16 @@ export default function LandingHeader() {
           >
             <Box sx={{
               display: { xs: 'flex', md: 'none' },
-              flexDirection: 'column', px: 3, pb: 3, gap: 1,
+              flexDirection: 'column',
+              px: 3, pb: 3, gap: 1,
               borderTop: '1px solid rgba(0,0,0,0.05)',
-              background: '#ffffff',
+              background: '#fff',
             }}>
-              {[{ label: 'Home', path: '/' }, { label: 'Services', path: '/services' }, { label: 'Pricing', path: '/pricing' }].map((item) => (
+              {navItems.map((item) => (
                 <Button
                   key={item.path}
                   onClick={() => { navigate(item.path); setMobileMenuOpen(false); }}
-                  sx={{ color: '#64748b', textTransform: 'none', justifyContent: 'flex-start', fontWeight: 600 }}
+                  sx={{ color: '#475569', textTransform: 'none', justifyContent: 'flex-start', fontWeight: 600 }}
                 >
                   {item.label}
                 </Button>
@@ -133,7 +138,7 @@ export default function LandingHeader() {
                 sx={{
                   background: 'linear-gradient(135deg, #7c3aed, #4f46e5)',
                   color: '#fff', borderRadius: '12px', mt: 1,
-                  textTransform: 'none', fontWeight: 700,
+                  textTransform: 'none', fontWeight: 600,
                 }}
               >
                 Login
@@ -143,6 +148,8 @@ export default function LandingHeader() {
         )}
       </AnimatePresence>
     </Box>
-
   );
-}
+};
+
+
+export default DarkNavbar;

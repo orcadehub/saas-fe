@@ -221,7 +221,7 @@ const MazeGame = ({ level, themeColor = '#6366f1', onComplete }) => {
         }}
       >
         <Typography variant="body1" sx={{ color: '#64748b', mb: 1, fontWeight: 500 }}>
-          Navigate the maze from the start (yellow) to the exit (green).
+          Navigate from start (yellow) to exit (green). Walls are hidden — remember where you hit them!
         </Typography>
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 1, mb: 3 }}>
           <Typography variant="body2" sx={{ color: '#94a3b8', fontWeight: 600 }}>Use Arrow Keys:</Typography>
@@ -263,9 +263,9 @@ const MazeGame = ({ level, themeColor = '#6366f1', onComplete }) => {
                       sx={{
                         width: cellSize,
                         height: cellSize,
-                        bgcolor: isWall ? '#334155' : isEnd ? '#10b981' : isStart ? '#fef3c7' : isPathHint ? '#fde047' : '#f8fafc',
+                        bgcolor: isEnd ? '#10b981' : isStart ? '#fef3c7' : isPathHint ? '#fde047' : (hitWallPos && hitWallPos[0] === rowIdx && hitWallPos[1] === colIdx) ? 'rgba(239, 68, 68, 0.3)' : '#f8fafc',
                         border: '1px solid',
-                        borderColor: isWall ? '#1e293b' : '#e2e8f0',
+                        borderColor: '#e2e8f0',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',

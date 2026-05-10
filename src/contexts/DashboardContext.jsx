@@ -16,6 +16,7 @@ export const DashboardProvider = ({ children }) => {
   const { user } = useAuth();
   const [dashboardData, setDashboardData] = useState(null);
   const [leaderboardData, setLeaderboardData] = useState(null);
+  const [practiceStats, setPracticeStats] = useState(null);
   const [loading, setLoading] = useState(false);
   const [config, setConfig] = useState(null);
 
@@ -27,30 +28,6 @@ export const DashboardProvider = ({ children }) => {
     if (dashboardData && !forceRefresh) return dashboardData;
     
     if (!user?.email || !config) return null;
-
-    if (user.email === 'test@test.com') {
-      const generatedActivity = {};
-      for (let i = 0; i < 150; i++) {
-        const d = new Date();
-        d.setDate(d.getDate() - i);
-        if (Math.random() > 0.3) {
-          generatedActivity[d.toISOString().split('T')[0]] = Math.floor(Math.random() * 8) + 1;
-        }
-      }
-
-      const dummyDashboard = {
-        stats: { appSolved: 120, rank: 42, assessments: 15, quizzes: 8, practice: 45, accuracy: 92, overall: 85 },
-        activityData: generatedActivity,
-        codingProfiles: {
-          leetcode: { username: 'test_leet', connected: true },
-          hackerrank: { username: 'test_hacker', connected: true },
-          codeforces: { username: '', connected: false }
-        },
-        createdAt: new Date(Date.now() - 30 * 86400000).toISOString()
-      };
-      setDashboardData(dummyDashboard);
-      return dummyDashboard;
-    }
 
     setLoading(true);
     try {
@@ -76,20 +53,6 @@ export const DashboardProvider = ({ children }) => {
     
     if (!user?.email || !config) return null;
 
-    if (user.email === 'test@test.com') {
-      const mult = timeframe === 'thisWeek' ? 0.15 : timeframe === 'thisMonth' ? 0.4 : 1;
-      const getVal = (val) => Math.max(1, Math.floor(val * mult));
-      const dummyLeaderboard = [
-        { _id: '1', rank: 1, name: 'Alice Smith', email: 'alice@example.com', leetcode: getVal(200), hackerrank: getVal(150), codeforces: getVal(50), appSolved: getVal(150), totalSolved: getVal(550) },
-        { _id: '2', rank: 2, name: 'Bob Johnson', email: 'bob@example.com', leetcode: getVal(180), hackerrank: getVal(140), codeforces: getVal(40), appSolved: getVal(142), totalSolved: getVal(502) },
-        { _id: '3', rank: 3, name: 'Charlie Brown', email: 'charlie@example.com', leetcode: getVal(160), hackerrank: getVal(130), codeforces: getVal(30), appSolved: getVal(135), totalSolved: getVal(455) },
-        { _id: '42', rank: 42, name: 'Test User', email: 'test@test.com', leetcode: getVal(100), hackerrank: getVal(90), codeforces: getVal(20), appSolved: getVal(120), totalSolved: getVal(330) },
-        { _id: '43', rank: 43, name: 'Diana Prince', email: 'diana@example.com', leetcode: getVal(50), hackerrank: getVal(80), codeforces: getVal(10), appSolved: getVal(118), totalSolved: getVal(258) },
-      ];
-      setLeaderboardData(dummyLeaderboard);
-      return dummyLeaderboard;
-    }
-
     setLoading(true);
     try {
       const apiEndpoint = import.meta.env.DEV ? 'http://localhost:4000/api' : config?.apiEndpoint;
@@ -107,6 +70,24 @@ export const DashboardProvider = ({ children }) => {
     }
   };
 
+  const fetchPracticeStats = async (forceRefresh = false) => {
+    if (practiceStats && !forceRefresh) return practiceStats;
+    try {
+      const apiEndpoint = import.meta.env.DEV ? 'http://localhost:4000/api' : config?.apiEndpoint;
+      if (!apiEndpoint) return null;
+
+      const res = await fetch(`${apiEndpoint}/aptitude-questions/topics`);
+      const topics = await res.json();
+      const totalQuestions = topics.reduce((sum, t) => sum + (t.count || 0), 0);
+      const stats = { aptitudeCount: totalQuestions, aptitudeTopics: topics.length };
+      setPracticeStats(stats);
+      return stats;
+    } catch (error) {
+      console.error('Practice stats error:', error);
+      return null;
+    }
+  };
+
   useEffect(() => {
     if (user?.email && config) {
       fetchDashboardData(true);
@@ -117,6 +98,7 @@ export const DashboardProvider = ({ children }) => {
   const refreshData = () => {
     setDashboardData(null);
     setLeaderboardData(null);
+    setPracticeStats(null);
   };
 
   return (
@@ -124,9 +106,11 @@ export const DashboardProvider = ({ children }) => {
       value={{
         dashboardData,
         leaderboardData,
+        practiceStats,
         loading,
         fetchDashboardData,
         fetchLeaderboardData,
+        fetchPracticeStats,
         refreshData
       }}
     >

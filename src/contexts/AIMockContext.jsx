@@ -23,12 +23,14 @@ export function AIMockProvider({ children }) {
   };
 
   return (
-    <AIMockContext.Provider value={{ 
-      currentInterview, 
-      startInterview, 
-      submitAnswer: submitMockAnswer, 
-      completeInterview: finishInterview 
-    }}>
+    <AIMockContext.Provider
+      value={{
+        currentInterview,
+        startInterview,
+        submitAnswer: submitMockAnswer,
+        completeInterview: finishInterview
+      }}
+    >
       {children}
     </AIMockContext.Provider>
   );

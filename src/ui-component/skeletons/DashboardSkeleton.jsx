@@ -15,7 +15,9 @@ export default function DashboardSkeleton() {
       </Box>
 
       {/* Stats Cards */}
-      <Box sx={{ mb: 3, display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(3, 1fr)', md: 'repeat(5, 1fr)' }, gap: 2 }}>
+      <Box
+        sx={{ mb: 3, display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(3, 1fr)', md: 'repeat(5, 1fr)' }, gap: 2 }}
+      >
         {Array.from({ length: 5 }).map((_, idx) => (
           <Card key={idx} sx={{ borderRadius: 4 }}>
             <CardContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 3 }}>

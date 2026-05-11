@@ -53,32 +53,38 @@ export default function MCQPracticePage() {
 
   return (
     <Box sx={{ p: { xs: 2, sm: 4 }, maxWidth: 900, mx: 'auto' }}>
-      <Button
-        startIcon={<IconChevronLeft />}
-        onClick={() => navigate(-1)}
-        sx={{ mb: 4, fontWeight: 700, color: '#64748b' }}
-      >
+      <Button startIcon={<IconChevronLeft />} onClick={() => navigate(-1)} sx={{ mb: 4, fontWeight: 700, color: '#64748b' }}>
         Back to Topics
       </Button>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-      >
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
         <Paper sx={{ p: { xs: 3, sm: 6 }, borderRadius: '32px', border: '1px solid #f1f5f9', boxShadow: '0 20px 40px rgba(0,0,0,0.03)' }}>
           <Stack direction="row" spacing={1} sx={{ mb: 3 }}>
-            <Chip 
-              label={question.topic} 
-              sx={{ bgcolor: 'rgba(99, 102, 241, 0.08)', color: '#6366f1', fontWeight: 800, borderRadius: '8px', textTransform: 'capitalize' }} 
+            <Chip
+              label={question.topic}
+              sx={{
+                bgcolor: 'rgba(99, 102, 241, 0.08)',
+                color: '#6366f1',
+                fontWeight: 800,
+                borderRadius: '8px',
+                textTransform: 'capitalize'
+              }}
             />
-            <Chip 
-              label={question.difficulty} 
-              sx={{ 
-                bgcolor: question.difficulty === 'easy' ? 'rgba(34, 197, 94, 0.08)' : question.difficulty === 'medium' ? 'rgba(234, 179, 8, 0.08)' : 'rgba(239, 44, 44, 0.08)',
+            <Chip
+              label={question.difficulty}
+              sx={{
+                bgcolor:
+                  question.difficulty === 'easy'
+                    ? 'rgba(34, 197, 94, 0.08)'
+                    : question.difficulty === 'medium'
+                      ? 'rgba(234, 179, 8, 0.08)'
+                      : 'rgba(239, 44, 44, 0.08)',
                 color: question.difficulty === 'easy' ? '#16a34a' : question.difficulty === 'medium' ? '#ca8a04' : '#ef4444',
-                fontWeight: 800, borderRadius: '8px', textTransform: 'uppercase', fontSize: '0.65rem' 
-              }} 
+                fontWeight: 800,
+                borderRadius: '8px',
+                textTransform: 'uppercase',
+                fontSize: '0.65rem'
+              }}
             />
           </Stack>
 
@@ -90,11 +96,11 @@ export default function MCQPracticePage() {
             {question.options.map((option, idx) => {
               const isSelected = selectedOption === idx;
               const isCorrectOption = idx === question.correctAnswer;
-              
+
               let borderColor = '#f1f5f9';
               let bgcolor = '#fff';
               let color = '#475569';
-              
+
               if (selectedOption !== null) {
                 if (isCorrectOption) {
                   borderColor = '#22c55e';
@@ -127,14 +133,19 @@ export default function MCQPracticePage() {
                     '&:hover': selectedOption === null ? { borderColor: '#6366f1', bgcolor: 'rgba(99, 102, 241, 0.02)' } : {}
                   }}
                 >
-                  <Box sx={{ 
-                    width: 36, height: 36, 
-                    borderRadius: '10px', 
-                    bgcolor: isSelected || (selectedOption !== null && isCorrectOption) ? color : '#f8fafc', 
-                    color: isSelected || (selectedOption !== null && isCorrectOption) ? '#fff' : '#64748b',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontWeight: 900
-                  }}>
+                  <Box
+                    sx={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: '10px',
+                      bgcolor: isSelected || (selectedOption !== null && isCorrectOption) ? color : '#f8fafc',
+                      color: isSelected || (selectedOption !== null && isCorrectOption) ? '#fff' : '#64748b',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: 900
+                    }}
+                  >
                     {String.fromCharCode(65 + idx)}
                   </Box>
                   <Typography sx={{ fontWeight: 700, color: color, flexGrow: 1 }}>{option}</Typography>
@@ -147,18 +158,17 @@ export default function MCQPracticePage() {
 
           <AnimatePresence>
             {showExplanation && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                transition={{ duration: 0.3 }}
-              >
+              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} transition={{ duration: 0.3 }}>
                 <Box sx={{ mt: 4, p: 4, bgcolor: '#f8fafc', borderRadius: '24px', border: '1px solid #e2e8f0' }}>
                   <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2 }}>
-                    <Box sx={{ 
-                      p: 1, borderRadius: '10px', 
-                      bgcolor: isCorrect ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 44, 44, 0.1)',
-                      color: isCorrect ? '#16a34a' : '#ef4444' 
-                    }}>
+                    <Box
+                      sx={{
+                        p: 1,
+                        borderRadius: '10px',
+                        bgcolor: isCorrect ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 44, 44, 0.1)',
+                        color: isCorrect ? '#16a34a' : '#ef4444'
+                      }}
+                    >
                       {isCorrect ? <IconTrophy size={20} /> : <IconInfoCircle size={20} />}
                     </Box>
                     <Typography variant="h4" sx={{ fontWeight: 800, color: '#1e293b' }}>
@@ -166,9 +176,21 @@ export default function MCQPracticePage() {
                     </Typography>
                   </Stack>
                   <Divider sx={{ mb: 2.5, opacity: 0.5 }} />
-                  <Typography sx={{ fontWeight: 900, color: t.textMuted, fontSize: '0.7rem', mb: 1, textTransform: 'uppercase', letterSpacing: '1px' }}>Explanation</Typography>
+                  <Typography
+                    sx={{
+                      fontWeight: 900,
+                      color: t.textMuted,
+                      fontSize: '0.7rem',
+                      mb: 1,
+                      textTransform: 'uppercase',
+                      letterSpacing: '1px'
+                    }}
+                  >
+                    Explanation
+                  </Typography>
                   <Typography sx={{ color: '#475569', fontWeight: 600, lineHeight: 1.7, fontSize: '1.05rem' }}>
-                    {question.explanation || 'No detailed explanation provided for this question yet. Focus on the core concept and the correct option indicated above.'}
+                    {question.explanation ||
+                      'No detailed explanation provided for this question yet. Focus on the core concept and the correct option indicated above.'}
                   </Typography>
                 </Box>
               </motion.div>

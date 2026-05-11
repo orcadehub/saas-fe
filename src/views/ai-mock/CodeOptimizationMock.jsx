@@ -21,8 +21,8 @@ export default function CodeOptimizationMock() {
       const selectedLang = language === 'other' ? customLanguage : language;
       const resumeText = `Code optimization interview in ${selectedLang}. Focus on time complexity, space complexity, and performance improvements.`;
       const result = await analyzeResume({ resumeText, duration, difficulty });
-      navigate(`/ai-mock/code-interview/${result.interviewId}`, { 
-        state: { questions: result.questions, duration, type: 'optimization', language: selectedLang } 
+      navigate(`/ai-mock/code-interview/${result.interviewId}`, {
+        state: { questions: result.questions, duration, type: 'optimization', language: selectedLang }
       });
     } catch (error) {
       alert('Failed to start interview');
@@ -41,24 +41,43 @@ export default function CodeOptimizationMock() {
         <FormControl fullWidth sx={{ mb: 3 }}>
           <InputLabel>Programming Language</InputLabel>
           <Select value={language} onChange={(e) => setLanguage(e.target.value)} label="Programming Language">
-            {languages.map(lang => <MenuItem key={lang} value={lang.toLowerCase()}>{lang}</MenuItem>)}
+            {languages.map((lang) => (
+              <MenuItem key={lang} value={lang.toLowerCase()}>
+                {lang}
+              </MenuItem>
+            ))}
           </Select>
         </FormControl>
 
         {language === 'other' && (
-          <TextField 
-            fullWidth 
-            label="Enter Language Name" 
-            value={customLanguage} 
+          <TextField
+            fullWidth
+            label="Enter Language Name"
+            value={customLanguage}
             onChange={(e) => setCustomLanguage(e.target.value)}
             placeholder="e.g., Rust, Go, TypeScript"
             sx={{ mb: 3 }}
           />
         )}
 
-        <TextField fullWidth label="Duration (minutes)" type="number" value={duration} onChange={(e) => setDuration(e.target.value)} sx={{ mb: 3 }} />
+        <TextField
+          fullWidth
+          label="Duration (minutes)"
+          type="number"
+          value={duration}
+          onChange={(e) => setDuration(e.target.value)}
+          sx={{ mb: 3 }}
+        />
 
-        <TextField fullWidth select label="Difficulty" value={difficulty} onChange={(e) => setDifficulty(e.target.value)} SelectProps={{ native: true }} sx={{ mb: 3 }}>
+        <TextField
+          fullWidth
+          select
+          label="Difficulty"
+          value={difficulty}
+          onChange={(e) => setDifficulty(e.target.value)}
+          SelectProps={{ native: true }}
+          sx={{ mb: 3 }}
+        >
           <option value="easy">Easy</option>
           <option value="medium">Medium</option>
           <option value="hard">Hard</option>

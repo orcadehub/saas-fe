@@ -25,7 +25,6 @@ export default function Login() {
 
   return (
     <Box sx={{ minHeight: '100vh', position: 'relative', overflow: 'hidden' }}>
-
       {/* Main content */}
       {/* Main content - Split Screen */}
       <Box
@@ -35,7 +34,7 @@ export default function Login() {
           display: 'flex',
           flexDirection: { xs: 'column', lg: 'row' },
           position: 'relative',
-          zIndex: 10,
+          zIndex: 10
         }}
       >
         {/* Left Side: Login Form */}
@@ -59,15 +58,17 @@ export default function Login() {
             transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
             style={{ width: '100%', maxWidth: 480 }}
           >
-            <Box sx={{
-              p: { xs: 3, sm: 5 },
-              borderRadius: '32px',
-              border: '1px solid rgba(0, 0, 0, 0.05)',
-              background: 'rgba(255, 255, 255, 0.9)',
-              boxShadow: '0 40px 80px rgba(0, 0, 0, 0.06)',
-              position: 'relative',
-              overflow: 'hidden',
-            }}>
+            <Box
+              sx={{
+                p: { xs: 3, sm: 5 },
+                borderRadius: '32px',
+                border: '1px solid rgba(0, 0, 0, 0.05)',
+                background: 'rgba(255, 255, 255, 0.9)',
+                boxShadow: '0 40px 80px rgba(0, 0, 0, 0.06)',
+                position: 'relative',
+                overflow: 'hidden'
+              }}
+            >
               <Stack sx={{ alignItems: 'center', gap: 4 }}>
                 {/* Logo */}
                 <Box>
@@ -77,7 +78,9 @@ export default function Login() {
                       src={config.logoUrl}
                       alt="Logo"
                       sx={{ height: 52, maxWidth: 200, objectFit: 'contain', borderRadius: '12px' }}
-                      onError={(e) => { e.target.style.display = 'none'; }}
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                      }}
                     />
                   ) : (
                     <Logo />
@@ -85,11 +88,16 @@ export default function Login() {
                 </Box>
 
                 <Stack sx={{ alignItems: 'center', gap: 1 }}>
-                  <Typography variant="h2" sx={{
-                    fontWeight: 900, fontSize: '1.85rem',
-                    background: 'linear-gradient(135deg, #0f172a 0%, #334155 100%)',
-                    WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-                  }}>
+                  <Typography
+                    variant="h2"
+                    sx={{
+                      fontWeight: 900,
+                      fontSize: '1.85rem',
+                      background: 'linear-gradient(135deg, #0f172a 0%, #334155 100%)',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent'
+                    }}
+                  >
                     Welcome Back
                   </Typography>
                   <Typography variant="body1" sx={{ color: '#64748b', fontWeight: 600 }}>
@@ -107,8 +115,12 @@ export default function Login() {
                   href="https://orcadehub.com"
                   target="_blank"
                   sx={{
-                    mt: 2, color: '#94a3b8', textDecoration: 'none', fontWeight: 600,
-                    '&:hover': { color: '#6366f1' }, transition: 'color 0.3s',
+                    mt: 2,
+                    color: '#94a3b8',
+                    textDecoration: 'none',
+                    fontWeight: 600,
+                    '&:hover': { color: '#6366f1' },
+                    transition: 'color 0.3s'
                   }}
                 >
                   © {new Date().getFullYear()} Orcadehub Innovations
@@ -138,4 +150,3 @@ export default function Login() {
     </Box>
   );
 }
-

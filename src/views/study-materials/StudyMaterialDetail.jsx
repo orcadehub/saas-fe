@@ -1,6 +1,20 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Box, Typography, Paper, List, ListItemButton, ListItemText, Collapse, IconButton, Chip, Button, Stack, Skeleton, Tooltip } from '@mui/material';
+import {
+  Box,
+  Typography,
+  Paper,
+  List,
+  ListItemButton,
+  ListItemText,
+  Collapse,
+  IconButton,
+  Chip,
+  Button,
+  Stack,
+  Skeleton,
+  Tooltip
+} from '@mui/material';
 import { ExpandLess, ExpandMore, ChevronLeft, ChevronRight, ArrowBack, MenuBook, CheckCircle } from '@mui/icons-material';
 import { IconBook, IconBookmark, IconChevronLeft, IconChevronRight, IconMenu2, IconX } from '@tabler/icons-react';
 import { motion } from 'framer-motion';
@@ -11,12 +25,18 @@ const MotionBox = motion.create(Box);
 const LightBackground = () => (
   <Box sx={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0, overflow: 'hidden', pointerEvents: 'none' }}>
     <Box sx={{ position: 'absolute', inset: 0, bgcolor: '#fbfcfe' }} />
-    <Box sx={{
-      position: 'absolute', top: '5%', right: '10%',
-      width: '35vw', height: '35vw',
-      background: 'radial-gradient(circle, rgba(99, 102, 241, 0.04) 0%, transparent 70%)',
-      borderRadius: '50%', filter: 'blur(80px)',
-    }} />
+    <Box
+      sx={{
+        position: 'absolute',
+        top: '5%',
+        right: '10%',
+        width: '35vw',
+        height: '35vw',
+        background: 'radial-gradient(circle, rgba(99, 102, 241, 0.04) 0%, transparent 70%)',
+        borderRadius: '50%',
+        filter: 'blur(80px)'
+      }}
+    />
   </Box>
 );
 
@@ -42,16 +62,14 @@ export default function StudyMaterialDetail() {
   }, [id]);
 
   const handleChapterToggle = (index) => {
-    setExpandedChapters(prev =>
-      prev.includes(index) ? prev.filter(i => i !== index) : [...prev, index]
-    );
+    setExpandedChapters((prev) => (prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]));
   };
 
   const handleLessonChange = (chapterIdx, lessonIdx) => {
     setCurrentChapter(chapterIdx);
     setCurrentLesson(lessonIdx);
     if (!expandedChapters.includes(chapterIdx)) {
-      setExpandedChapters(prev => [...prev, chapterIdx]);
+      setExpandedChapters((prev) => [...prev, chapterIdx]);
     }
     document.querySelector('.content-scroll')?.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -74,37 +92,41 @@ export default function StudyMaterialDetail() {
     }
   };
 
-  if (!material) return (
-    <Box sx={{ p: { xs: 2.5, sm: 3, md: 4.5 }, bgcolor: '#fbfcfe', minHeight: '100vh' }}>
-      <LightBackground />
-      <Box sx={{ position: 'relative', zIndex: 10 }}>
-        <Skeleton variant="rounded" height={60} sx={{ borderRadius: '16px', mb: 3 }} />
-        <Box sx={{ display: 'flex', gap: 3 }}>
-          <Skeleton variant="rounded" width={300} height={500} sx={{ borderRadius: '24px' }} />
-          <Box sx={{ flex: 1 }}>
-            <Skeleton variant="rounded" height={60} sx={{ borderRadius: '16px', mb: 2 }} />
-            <Skeleton variant="rounded" height={400} sx={{ borderRadius: '24px' }} />
+  if (!material)
+    return (
+      <Box sx={{ p: { xs: 2.5, sm: 3, md: 4.5 }, bgcolor: '#fbfcfe', minHeight: '100vh' }}>
+        <LightBackground />
+        <Box sx={{ position: 'relative', zIndex: 10 }}>
+          <Skeleton variant="rounded" height={60} sx={{ borderRadius: '16px', mb: 3 }} />
+          <Box sx={{ display: 'flex', gap: 3 }}>
+            <Skeleton variant="rounded" width={300} height={500} sx={{ borderRadius: '24px' }} />
+            <Box sx={{ flex: 1 }}>
+              <Skeleton variant="rounded" height={60} sx={{ borderRadius: '16px', mb: 2 }} />
+              <Skeleton variant="rounded" height={400} sx={{ borderRadius: '24px' }} />
+            </Box>
           </Box>
         </Box>
       </Box>
-    </Box>
-  );
+    );
 
   const lesson = material.chapters[currentChapter]?.lessons[currentLesson];
   const totalLessons = material.chapters.reduce((acc, ch) => acc + ch.lessons.length, 0);
-  const currentLessonNumber = material.chapters.slice(0, currentChapter).reduce((acc, ch) => acc + ch.lessons.length, 0) + currentLesson + 1;
+  const currentLessonNumber =
+    material.chapters.slice(0, currentChapter).reduce((acc, ch) => acc + ch.lessons.length, 0) + currentLesson + 1;
   const isFirst = currentChapter === 0 && currentLesson === 0;
   const isLast = currentChapter === material.chapters.length - 1 && currentLesson === material.chapters[currentChapter].lessons.length - 1;
 
   return (
-    <Box sx={{
-      minHeight: '100vh',
-      p: { xs: 2, sm: 3, md: 4 },
-      bgcolor: '#fbfcfe',
-      color: '#1e293b',
-      position: 'relative',
-      overflowX: 'hidden'
-    }}>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        p: { xs: 2, sm: 3, md: 4 },
+        bgcolor: '#fbfcfe',
+        color: '#1e293b',
+        position: 'relative',
+        overflowX: 'hidden'
+      }}
+    >
       <LightBackground />
 
       <Box sx={{ position: 'relative', zIndex: 10 }}>
@@ -114,8 +136,13 @@ export default function StudyMaterialDetail() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
           sx={{
-            display: 'flex', alignItems: 'center', gap: 2, mb: 3,
-            p: 2, bgcolor: '#fff', borderRadius: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+            mb: 3,
+            p: 2,
+            bgcolor: '#fff',
+            borderRadius: '16px',
             border: '1px solid #f1f5f9',
             boxShadow: '0 2px 8px rgba(15,23,42,0.03)'
           }}
@@ -126,9 +153,7 @@ export default function StudyMaterialDetail() {
             </IconButton>
           </Tooltip>
           <Box sx={{ flex: 1 }}>
-            <Typography sx={{ fontWeight: 800, color: '#1e293b', fontSize: { xs: '1rem', sm: '1.25rem' } }}>
-              {material.title}
-            </Typography>
+            <Typography sx={{ fontWeight: 800, color: '#1e293b', fontSize: { xs: '1rem', sm: '1.25rem' } }}>{material.title}</Typography>
             <Typography variant="caption" sx={{ color: '#94a3b8', fontWeight: 600 }}>
               Lesson {currentLessonNumber} of {totalLessons}
             </Typography>
@@ -171,48 +196,68 @@ export default function StudyMaterialDetail() {
                 onClick={() => setSidebarOpen(false)}
                 sx={{
                   display: { xs: 'block', md: 'none' },
-                  position: 'fixed', inset: 0, bgcolor: 'rgba(0,0,0,0.4)', zIndex: -1
+                  position: 'fixed',
+                  inset: 0,
+                  bgcolor: 'rgba(0,0,0,0.4)',
+                  zIndex: -1
                 }}
               />
 
-              <Box sx={{
-                bgcolor: '#fff',
-                borderRadius: { xs: '24px 24px 0 0', md: '24px' },
-                border: '1px solid #f1f5f9',
-                boxShadow: '0 10px 40px rgba(15,23,42,0.08)',
-                overflow: 'hidden',
-                display: 'flex',
-                flexDirection: 'column',
-                maxHeight: { xs: '75vh', md: 'calc(100vh - 140px)' },
-                position: { xs: 'fixed', md: 'relative' },
-                bottom: { xs: 0, md: 'auto' },
-                left: { xs: 0, md: 'auto' },
-                right: { xs: 0, md: 'auto' },
-                width: { xs: '100%', md: 320 },
-              }}>
+              <Box
+                sx={{
+                  bgcolor: '#fff',
+                  borderRadius: { xs: '24px 24px 0 0', md: '24px' },
+                  border: '1px solid #f1f5f9',
+                  boxShadow: '0 10px 40px rgba(15,23,42,0.08)',
+                  overflow: 'hidden',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  maxHeight: { xs: '75vh', md: 'calc(100vh - 140px)' },
+                  position: { xs: 'fixed', md: 'relative' },
+                  bottom: { xs: 0, md: 'auto' },
+                  left: { xs: 0, md: 'auto' },
+                  right: { xs: 0, md: 'auto' },
+                  width: { xs: '100%', md: 320 }
+                }}
+              >
                 {/* Sidebar Header */}
-                <Box sx={{
-                  p: 2.5, borderBottom: '1px solid #f1f5f9',
-                  background: 'linear-gradient(135deg, rgba(99,102,241,0.05) 0%, rgba(139,92,246,0.03) 100%)'
-                }}>
+                <Box
+                  sx={{
+                    p: 2.5,
+                    borderBottom: '1px solid #f1f5f9',
+                    background: 'linear-gradient(135deg, rgba(99,102,241,0.05) 0%, rgba(139,92,246,0.03) 100%)'
+                  }}
+                >
                   <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.5 }}>
-                    <Typography sx={{ fontWeight: 800, color: '#1e293b', fontSize: '1.1rem' }}>
-                      Chapters
-                    </Typography>
+                    <Typography sx={{ fontWeight: 800, color: '#1e293b', fontSize: '1.1rem' }}>Chapters</Typography>
                     <IconButton size="small" onClick={() => setSidebarOpen(false)} sx={{ bgcolor: '#f8fafc', borderRadius: '10px' }}>
                       <IconX size={16} color="#64748b" />
                     </IconButton>
                   </Stack>
                   <Stack direction="row" spacing={1}>
-                    <Chip label={`${material.chapters?.length || 0} chapters`} size="small"
-                      sx={{ bgcolor: '#ede9fe', color: '#6366f1', fontWeight: 700, fontSize: '0.7rem', height: 24, borderRadius: '8px' }} />
-                    <Chip label={`${totalLessons} lessons`} size="small"
-                      sx={{ bgcolor: '#f1f5f9', color: '#64748b', fontWeight: 700, fontSize: '0.7rem', height: 24, borderRadius: '8px' }} />
+                    <Chip
+                      label={`${material.chapters?.length || 0} chapters`}
+                      size="small"
+                      sx={{ bgcolor: '#ede9fe', color: '#6366f1', fontWeight: 700, fontSize: '0.7rem', height: 24, borderRadius: '8px' }}
+                    />
+                    <Chip
+                      label={`${totalLessons} lessons`}
+                      size="small"
+                      sx={{ bgcolor: '#f1f5f9', color: '#64748b', fontWeight: 700, fontSize: '0.7rem', height: 24, borderRadius: '8px' }}
+                    />
                   </Stack>
                 </Box>
 
                 {/* Chapter List */}
-                <List sx={{ overflow: 'auto', flexGrow: 1, p: 1.5, '&::-webkit-scrollbar': { width: 4 }, '&::-webkit-scrollbar-thumb': { bgcolor: '#e2e8f0', borderRadius: 10 } }}>
+                <List
+                  sx={{
+                    overflow: 'auto',
+                    flexGrow: 1,
+                    p: 1.5,
+                    '&::-webkit-scrollbar': { width: 4 },
+                    '&::-webkit-scrollbar-thumb': { bgcolor: '#e2e8f0', borderRadius: 10 }
+                  }}
+                >
                   {material.chapters.map((chapter, chIdx) => (
                     <Box key={chIdx} sx={{ mb: 0.5 }}>
                       <ListItemButton
@@ -224,13 +269,22 @@ export default function StudyMaterialDetail() {
                           '&:hover': { bgcolor: 'rgba(99,102,241,0.04)' }
                         }}
                       >
-                        <Box sx={{
-                          width: 28, height: 28, borderRadius: '8px', mr: 1.5, flexShrink: 0,
-                          bgcolor: currentChapter === chIdx ? '#6366f1' : '#f1f5f9',
-                          color: currentChapter === chIdx ? '#fff' : '#94a3b8',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          fontSize: '0.75rem', fontWeight: 800
-                        }}>
+                        <Box
+                          sx={{
+                            width: 28,
+                            height: 28,
+                            borderRadius: '8px',
+                            mr: 1.5,
+                            flexShrink: 0,
+                            bgcolor: currentChapter === chIdx ? '#6366f1' : '#f1f5f9',
+                            color: currentChapter === chIdx ? '#fff' : '#94a3b8',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '0.75rem',
+                            fontWeight: 800
+                          }}
+                        >
                           {chIdx + 1}
                         </Box>
                         <ListItemText
@@ -241,7 +295,11 @@ export default function StudyMaterialDetail() {
                             color: currentChapter === chIdx ? '#1e293b' : '#475569'
                           }}
                         />
-                        {expandedChapters.includes(chIdx) ? <ExpandLess sx={{ color: '#94a3b8', fontSize: 20 }} /> : <ExpandMore sx={{ color: '#94a3b8', fontSize: 20 }} />}
+                        {expandedChapters.includes(chIdx) ? (
+                          <ExpandLess sx={{ color: '#94a3b8', fontSize: 20 }} />
+                        ) : (
+                          <ExpandMore sx={{ color: '#94a3b8', fontSize: 20 }} />
+                        )}
                       </ListItemButton>
 
                       <Collapse in={expandedChapters.includes(chIdx)} timeout="auto">
@@ -260,10 +318,16 @@ export default function StudyMaterialDetail() {
                                   '&:hover': { bgcolor: 'rgba(99,102,241,0.04)' }
                                 }}
                               >
-                                <Box sx={{
-                                  width: 6, height: 6, borderRadius: '50%', mr: 1.5, flexShrink: 0,
-                                  bgcolor: isActive ? '#6366f1' : '#cbd5e1'
-                                }} />
+                                <Box
+                                  sx={{
+                                    width: 6,
+                                    height: 6,
+                                    borderRadius: '50%',
+                                    mr: 1.5,
+                                    flexShrink: 0,
+                                    bgcolor: isActive ? '#6366f1' : '#cbd5e1'
+                                  }}
+                                />
                                 <ListItemText
                                   primary={les.title}
                                   primaryTypographyProps={{
@@ -296,7 +360,8 @@ export default function StudyMaterialDetail() {
               <Box
                 className="content-scroll"
                 sx={{
-                  bgcolor: '#fff', borderRadius: '20px',
+                  bgcolor: '#fff',
+                  borderRadius: '20px',
                   border: '1px solid #f1f5f9',
                   boxShadow: '0 2px 8px rgba(15,23,42,0.03)',
                   p: { xs: 3, sm: 4, md: 5 },
@@ -307,50 +372,77 @@ export default function StudyMaterialDetail() {
                   '&::-webkit-scrollbar-track': { bgcolor: 'transparent' }
                 }}
               >
-                <Box sx={{
-                  '& h1': { fontSize: '2rem', fontWeight: 800, mb: 3, mt: 5, color: '#1e293b', '&:first-of-type': { mt: 0 } },
-                  '& h2': { fontSize: '1.5rem', fontWeight: 800, mb: 2.5, mt: 4, color: '#1e293b', '&:first-of-type': { mt: 0 } },
-                  '& h3': { fontSize: '1.25rem', fontWeight: 700, mb: 2, mt: 3, color: '#334155' },
-                  '& p': { mb: 2.5, lineHeight: 1.9, fontSize: '1rem', color: '#475569' },
-                  '& ul, & ol': { mb: 2.5, pl: 4, lineHeight: 1.9 },
-                  '& li': { mb: 1, color: '#475569' },
-                  '& table': {
-                    width: '100%', borderCollapse: 'collapse', mb: 3,
-                    border: '1px solid #e2e8f0', borderRadius: '12px', overflow: 'hidden'
-                  },
-                  '& th, & td': { border: '1px solid #e2e8f0', p: 2, textAlign: 'left', fontSize: '0.9rem' },
-                  '& th': { bgcolor: '#f8fafc', fontWeight: 700, color: '#1e293b' },
-                  '& pre': {
-                    bgcolor: '#1e293b', color: '#e2e8f0', p: 3, borderRadius: '16px',
-                    overflow: 'auto', mb: 3, fontSize: '0.875rem', lineHeight: 1.7,
-                    border: '1px solid #334155'
-                  },
-                  '& code': { fontFamily: "'JetBrains Mono', Consolas, Monaco, monospace", fontSize: '0.875rem' },
-                  '& :not(pre) > code': {
-                    bgcolor: '#f1f5f9', color: '#6366f1', px: 1, py: 0.3,
-                    borderRadius: '6px', fontSize: '0.85rem', fontWeight: 600
-                  },
-                  '& img': { maxWidth: '100%', height: 'auto', borderRadius: '16px', my: 3, display: 'block' },
-                  '& blockquote': {
-                    borderLeft: '4px solid #6366f1', bgcolor: '#f8fafc',
-                    px: 3, py: 2, my: 3, borderRadius: '0 12px 12px 0',
-                    '& p': { color: '#475569', mb: 0 }
-                  },
-                  '& a': { color: '#6366f1', fontWeight: 600, textDecoration: 'none', '&:hover': { textDecoration: 'underline' } },
-                  '& hr': { border: 'none', borderTop: '1px solid #f1f5f9', my: 4 }
-                }}>
+                <Box
+                  sx={{
+                    '& h1': { fontSize: '2rem', fontWeight: 800, mb: 3, mt: 5, color: '#1e293b', '&:first-of-type': { mt: 0 } },
+                    '& h2': { fontSize: '1.5rem', fontWeight: 800, mb: 2.5, mt: 4, color: '#1e293b', '&:first-of-type': { mt: 0 } },
+                    '& h3': { fontSize: '1.25rem', fontWeight: 700, mb: 2, mt: 3, color: '#334155' },
+                    '& p': { mb: 2.5, lineHeight: 1.9, fontSize: '1rem', color: '#475569' },
+                    '& ul, & ol': { mb: 2.5, pl: 4, lineHeight: 1.9 },
+                    '& li': { mb: 1, color: '#475569' },
+                    '& table': {
+                      width: '100%',
+                      borderCollapse: 'collapse',
+                      mb: 3,
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '12px',
+                      overflow: 'hidden'
+                    },
+                    '& th, & td': { border: '1px solid #e2e8f0', p: 2, textAlign: 'left', fontSize: '0.9rem' },
+                    '& th': { bgcolor: '#f8fafc', fontWeight: 700, color: '#1e293b' },
+                    '& pre': {
+                      bgcolor: '#1e293b',
+                      color: '#e2e8f0',
+                      p: 3,
+                      borderRadius: '16px',
+                      overflow: 'auto',
+                      mb: 3,
+                      fontSize: '0.875rem',
+                      lineHeight: 1.7,
+                      border: '1px solid #334155'
+                    },
+                    '& code': { fontFamily: "'JetBrains Mono', Consolas, Monaco, monospace", fontSize: '0.875rem' },
+                    '& :not(pre) > code': {
+                      bgcolor: '#f1f5f9',
+                      color: '#6366f1',
+                      px: 1,
+                      py: 0.3,
+                      borderRadius: '6px',
+                      fontSize: '0.85rem',
+                      fontWeight: 600
+                    },
+                    '& img': { maxWidth: '100%', height: 'auto', borderRadius: '16px', my: 3, display: 'block' },
+                    '& blockquote': {
+                      borderLeft: '4px solid #6366f1',
+                      bgcolor: '#f8fafc',
+                      px: 3,
+                      py: 2,
+                      my: 3,
+                      borderRadius: '0 12px 12px 0',
+                      '& p': { color: '#475569', mb: 0 }
+                    },
+                    '& a': { color: '#6366f1', fontWeight: 600, textDecoration: 'none', '&:hover': { textDecoration: 'underline' } },
+                    '& hr': { border: 'none', borderTop: '1px solid #f1f5f9', my: 4 }
+                  }}
+                >
                   <div dangerouslySetInnerHTML={{ __html: lesson?.content }} />
                 </Box>
               </Box>
 
               {/* Navigation Footer */}
-              <Box sx={{
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                mt: 3, p: 2,
-                bgcolor: '#fff', borderRadius: '16px',
-                border: '1px solid #f1f5f9',
-                boxShadow: '0 2px 8px rgba(15,23,42,0.03)'
-              }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  mt: 3,
+                  p: 2,
+                  bgcolor: '#fff',
+                  borderRadius: '16px',
+                  border: '1px solid #f1f5f9',
+                  boxShadow: '0 2px 8px rgba(15,23,42,0.03)'
+                }}
+              >
                 <Button
                   startIcon={<IconChevronLeft size={18} />}
                   onClick={handlePrevious}

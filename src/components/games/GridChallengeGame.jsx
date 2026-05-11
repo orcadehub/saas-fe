@@ -4,11 +4,13 @@ import { Box, Button, Typography, Card, LinearProgress } from '@mui/material';
 const generateGrid = (difficulty) => {
   const size = difficulty === 'Easy' ? 3 : difficulty === 'Medium' ? 5 : 7;
   const colors = ['#e74c3c', '#3498db', '#2ecc71', '#f39c12', '#9b59b6', '#1abc9c', '#e67e22'];
-  const grid = Array(size).fill(null).map(() => Array(size).fill(null));
-  
+  const grid = Array(size)
+    .fill(null)
+    .map(() => Array(size).fill(null));
+
   const patternTypes = ['diagonal', 'anti-diagonal', 'L-shape', 'cross', 'checkerboard', 'spiral', 'blocks'];
   const pattern = patternTypes[Math.floor(Math.random() * patternTypes.length)];
-  
+
   if (pattern === 'diagonal') {
     for (let i = 0; i < size; i++) {
       for (let j = 0; j < size; j++) {
@@ -58,13 +60,13 @@ const generateGrid = (difficulty) => {
       }
     }
   }
-  
+
   // Remove one cell
   const row = Math.floor(Math.random() * size);
   const col = Math.floor(Math.random() * size);
   const answer = grid[row][col];
   grid[row][col] = null;
-  
+
   // Generate options
   const options = [answer];
   while (options.length < 4) {
@@ -74,7 +76,7 @@ const generateGrid = (difficulty) => {
     }
   }
   options.sort(() => Math.random() - 0.5);
-  
+
   return { grid, answer, questionPos: [row, col], options };
 };
 
@@ -99,7 +101,7 @@ const GridChallengeGame = ({ difficulty = 'Easy', onComplete }) => {
 
   const handleSubmit = () => {
     const isCorrect = selected === gridData.answer;
-    
+
     if (isCorrect) {
       setScore(score + 1);
       setFeedback('✓ Correct!');
@@ -120,10 +122,18 @@ const GridChallengeGame = ({ difficulty = 'Easy', onComplete }) => {
   if (gameOver) {
     return (
       <Box sx={{ textAlign: 'center', p: 4 }}>
-        <Typography variant="h4" sx={{ mb: 2 }}>Game Complete!</Typography>
-        <Typography variant="h5" sx={{ mb: 3 }}>Score: {score}/{totalQuestions}</Typography>
-        <Typography variant="h6" sx={{ mb: 2 }}>Accuracy: {((score / totalQuestions) * 100).toFixed(1)}%</Typography>
-        <Button variant="contained" onClick={() => window.location.reload()}>Play Again</Button>
+        <Typography variant="h4" sx={{ mb: 2 }}>
+          Game Complete!
+        </Typography>
+        <Typography variant="h5" sx={{ mb: 3 }}>
+          Score: {score}/{totalQuestions}
+        </Typography>
+        <Typography variant="h6" sx={{ mb: 2 }}>
+          Accuracy: {((score / totalQuestions) * 100).toFixed(1)}%
+        </Typography>
+        <Button variant="contained" onClick={() => window.location.reload()}>
+          Play Again
+        </Button>
       </Box>
     );
   }
@@ -136,13 +146,13 @@ const GridChallengeGame = ({ difficulty = 'Easy', onComplete }) => {
         <Typography variant="h6" sx={{ mb: 3, color: 'text.secondary' }}>
           Which color completes the pattern?
         </Typography>
-        
+
         <Box sx={{ display: 'inline-block', mb: 3 }}>
           {gridData.grid.map((row, rowIdx) => (
             <Box key={rowIdx} sx={{ display: 'flex' }}>
               {row.map((cell, colIdx) => {
                 const isQuestion = rowIdx === gridData.questionPos[0] && colIdx === gridData.questionPos[1];
-                
+
                 return (
                   <Box
                     key={colIdx}
@@ -158,7 +168,9 @@ const GridChallengeGame = ({ difficulty = 'Easy', onComplete }) => {
                     }}
                   >
                     {isQuestion && (
-                      <Typography variant="h3" sx={{ fontWeight: 700, color: 'grey.700' }}>?</Typography>
+                      <Typography variant="h3" sx={{ fontWeight: 700, color: 'grey.700' }}>
+                        ?
+                      </Typography>
                     )}
                   </Box>
                 );
@@ -167,7 +179,9 @@ const GridChallengeGame = ({ difficulty = 'Easy', onComplete }) => {
           ))}
         </Box>
 
-        <Typography variant="body1" sx={{ mb: 2, fontWeight: 600 }}>Select your answer:</Typography>
+        <Typography variant="body1" sx={{ mb: 2, fontWeight: 600 }}>
+          Select your answer:
+        </Typography>
         <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mb: 3 }}>
           {gridData.options.map((color, idx) => (
             <Box
@@ -193,7 +207,7 @@ const GridChallengeGame = ({ difficulty = 'Easy', onComplete }) => {
             {feedback}
           </Typography>
         )}
-        
+
         {!feedback && (
           <Button variant="contained" onClick={handleSubmit} disabled={!selected} sx={{ px: 4, py: 1.5 }}>
             Submit

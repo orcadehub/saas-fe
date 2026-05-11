@@ -31,10 +31,14 @@ export default function GenericPracticeQuestions({ category, title, icon: Icon, 
 
   const getDifficultyTheme = (difficulty) => {
     switch (difficulty?.toLowerCase()) {
-      case 'easy': return { color: '#16a34a', bg: '#f0fdf4' };
-      case 'medium': return { color: '#d97706', bg: '#fffbeb' };
-      case 'hard': return { color: '#dc2626', bg: '#fef2f2' };
-      default: return { color: '#64748b', bg: '#f8fafc' };
+      case 'easy':
+        return { color: '#16a34a', bg: '#f0fdf4' };
+      case 'medium':
+        return { color: '#d97706', bg: '#fffbeb' };
+      case 'hard':
+        return { color: '#dc2626', bg: '#fef2f2' };
+      default:
+        return { color: '#64748b', bg: '#f8fafc' };
     }
   };
 
@@ -67,7 +71,10 @@ export default function GenericPracticeQuestions({ category, title, icon: Icon, 
       </Breadcrumbs>
 
       <Box sx={{ mb: 6 }}>
-        <Typography variant="h1" sx={{ fontWeight: 900, color: '#1e293b', mb: 1, fontSize: '2.5rem', letterSpacing: '-0.02em', textTransform: 'capitalize' }}>
+        <Typography
+          variant="h1"
+          sx={{ fontWeight: 900, color: '#1e293b', mb: 1, fontSize: '2.5rem', letterSpacing: '-0.02em', textTransform: 'capitalize' }}
+        >
           {topic}
         </Typography>
         <Typography variant="body1" sx={{ color: '#64748b', fontSize: '1.1rem', fontWeight: 500 }}>
@@ -111,9 +118,9 @@ export default function GenericPracticeQuestions({ category, title, icon: Icon, 
                   display: 'flex',
                   flexDirection: 'column',
                   height: '100%',
-                  '&:hover': { 
-                    transform: 'translateY(-5px)', 
-                    boxShadow: '0 12px 30px rgba(15, 23, 42, 0.08)' 
+                  '&:hover': {
+                    transform: 'translateY(-5px)',
+                    boxShadow: '0 12px 30px rgba(15, 23, 42, 0.08)'
                   }
                 }}
                 onClick={() => {
@@ -126,50 +133,64 @@ export default function GenericPracticeQuestions({ category, title, icon: Icon, 
               >
                 <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', p: { xs: 2.5, sm: 3 } }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2.5 }}>
-                    <Box sx={{ 
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', 
-                      width: 44, height: 44, 
-                      borderRadius: '10px', 
-                      bgcolor: '#f8fafc', 
-                      color: '#6366f1' 
-                    }}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: 44,
+                        height: 44,
+                        borderRadius: '10px',
+                        bgcolor: '#f8fafc',
+                        color: '#6366f1'
+                      }}
+                    >
                       <Icon size={24} />
                     </Box>
-                    <Box sx={{ 
-                      bgcolor: theme.bg, 
-                      color: theme.color, 
-                      px: 1.5, py: 0.5, 
-                      borderRadius: '8px', 
-                      fontSize: '0.65rem', 
-                      fontWeight: 900,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.05em',
-                      border: `1px solid ${theme.color}20`
-                    }}>
+                    <Box
+                      sx={{
+                        bgcolor: theme.bg,
+                        color: theme.color,
+                        px: 1.5,
+                        py: 0.5,
+                        borderRadius: '8px',
+                        fontSize: '0.65rem',
+                        fontWeight: 900,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em',
+                        border: `1px solid ${theme.color}20`
+                      }}
+                    >
                       {question.difficulty}
                     </Box>
                   </Box>
-                  
-                  <Typography variant="h3" sx={{ 
-                    fontWeight: 800, 
-                    color: '#1e293b', 
-                    mb: 1.5,
-                    fontSize: '1.15rem',
-                    lineHeight: 1.4
-                  }}>
+
+                  <Typography
+                    variant="h3"
+                    sx={{
+                      fontWeight: 800,
+                      color: '#1e293b',
+                      mb: 1.5,
+                      fontSize: '1.15rem',
+                      lineHeight: 1.4
+                    }}
+                  >
                     {question.title}
                   </Typography>
-                  
-                  <Typography variant="body2" sx={{ 
-                    color: '#64748b', 
-                    fontWeight: 500, 
-                    lineHeight: 1.6,
-                    flexGrow: 1,
-                    display: '-webkit-box',
-                    WebkitLineClamp: 3,
-                    WebkitBoxOrient: 'vertical',
-                    overflow: 'hidden'
-                  }}>
+
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: '#64748b',
+                      fontWeight: 500,
+                      lineHeight: 1.6,
+                      flexGrow: 1,
+                      display: '-webkit-box',
+                      WebkitLineClamp: 3,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden'
+                    }}
+                  >
                     {question.description || 'Practice your skills with this targeted dummy challenge provided for review.'}
                   </Typography>
 
@@ -179,11 +200,11 @@ export default function GenericPracticeQuestions({ category, title, icon: Icon, 
                         key={tIdx}
                         label={tag}
                         size="small"
-                        sx={{ 
+                        sx={{
                           height: '24px',
                           fontSize: '0.7rem',
-                          fontWeight: 700, 
-                          bgcolor: '#f1f5f9', 
+                          fontWeight: 700,
+                          bgcolor: '#f1f5f9',
                           color: '#475569',
                           borderRadius: '6px'
                         }}

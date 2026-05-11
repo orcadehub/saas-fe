@@ -63,7 +63,10 @@ export default function AIMock() {
         <Link
           color="inherit"
           href="#"
-          onClick={(e) => { e.preventDefault(); navigate('/'); }}
+          onClick={(e) => {
+            e.preventDefault();
+            navigate('/');
+          }}
           sx={{ cursor: 'pointer', fontWeight: 600, color: '#64748b', '&:hover': { color: '#6366f1' } }}
         >
           Dashboard
@@ -106,52 +109,66 @@ export default function AIMock() {
               display: 'flex',
               flexDirection: 'column',
               height: '100%',
-              '&:hover': { 
-                transform: 'translateY(-5px)', 
-                boxShadow: '0 12px 30px rgba(15, 23, 42, 0.08)' 
+              '&:hover': {
+                transform: 'translateY(-5px)',
+                boxShadow: '0 12px 30px rgba(15, 23, 42, 0.08)'
               }
             }}
             onClick={() => navigate(`/ai-mock/${type.id}`)}
           >
             <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', p: { xs: 2.5, sm: 3 } }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2.5 }}>
-                <Box sx={{ 
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', 
-                  width: 52, height: 52, 
-                  borderRadius: '12px', 
-                  bgcolor: type.bg, 
-                  color: type.color 
-                }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: 52,
+                    height: 52,
+                    borderRadius: '12px',
+                    bgcolor: type.bg,
+                    color: type.color
+                  }}
+                >
                   <type.icon size={28} />
                 </Box>
-                <Box sx={{ 
-                  bgcolor: type.bg, 
-                  color: type.color, 
-                  px: 1.5, py: 0.5, 
-                  borderRadius: '10px', 
-                  fontSize: '0.75rem', 
-                  fontWeight: 800,
-                  border: `1px solid ${type.color}20`
-                }}>
+                <Box
+                  sx={{
+                    bgcolor: type.bg,
+                    color: type.color,
+                    px: 1.5,
+                    py: 0.5,
+                    borderRadius: '10px',
+                    fontSize: '0.75rem',
+                    fontWeight: 800,
+                    border: `1px solid ${type.color}20`
+                  }}
+                >
                   {type.count}
                 </Box>
               </Box>
-              
-              <Typography variant="h3" sx={{ 
-                fontWeight: 800, 
-                color: '#1e293b', 
-                mb: 1.5,
-                fontSize: '1.25rem'
-              }}>
+
+              <Typography
+                variant="h3"
+                sx={{
+                  fontWeight: 800,
+                  color: '#1e293b',
+                  mb: 1.5,
+                  fontSize: '1.25rem'
+                }}
+              >
                 {type.title}
               </Typography>
-              
-              <Typography variant="body2" sx={{ 
-                color: '#64748b', 
-                fontWeight: 600, 
-                lineHeight: 1.6,
-                flexGrow: 1 
-              }}>
+
+              <Typography
+                variant="body2"
+                sx={{
+                  color: '#64748b',
+                  fontWeight: 600,
+                  lineHeight: 1.6,
+                  flexGrow: 1
+                }}
+              >
                 {type.description}
               </Typography>
             </CardContent>

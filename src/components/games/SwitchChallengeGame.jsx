@@ -5,24 +5,24 @@ import { Lightbulb, LightbulbOutlined } from '@mui/icons-material';
 const generateSwitch = (difficulty) => {
   const numBulbs = 5;
   const initialState = Array(numBulbs).fill(false);
-  
+
   // Generate random switch operations
   const operations = [];
   const numOps = difficulty === 'Easy' ? 5 : difficulty === 'Medium' ? 10 : 15;
-  
+
   for (let i = 0; i < numOps; i++) {
     const switchNum = Math.floor(Math.random() * numBulbs) + 1;
     operations.push(switchNum);
   }
-  
+
   // Calculate final state
   const finalState = [...initialState];
-  operations.forEach(switchNum => {
+  operations.forEach((switchNum) => {
     finalState[switchNum - 1] = !finalState[switchNum - 1];
   });
-  
-  const onCount = finalState.filter(b => b).length;
-  
+
+  const onCount = finalState.filter((b) => b).length;
+
   return { numBulbs, operations, answer: onCount, finalState };
 };
 
@@ -47,7 +47,7 @@ const SwitchChallengeGame = ({ difficulty = 'Easy', onComplete }) => {
 
   const handleSubmit = () => {
     const isCorrect = selected === switchData.answer;
-    
+
     if (isCorrect) {
       setScore(score + 1);
       setFeedback('✓ Correct!');
@@ -68,10 +68,18 @@ const SwitchChallengeGame = ({ difficulty = 'Easy', onComplete }) => {
   if (gameOver) {
     return (
       <Box sx={{ textAlign: 'center', p: 4 }}>
-        <Typography variant="h4" sx={{ mb: 2 }}>Game Complete!</Typography>
-        <Typography variant="h5" sx={{ mb: 3 }}>Score: {score}/{totalQuestions}</Typography>
-        <Typography variant="h6" sx={{ mb: 2 }}>Accuracy: {((score / totalQuestions) * 100).toFixed(1)}%</Typography>
-        <Button variant="contained" onClick={() => window.location.reload()}>Play Again</Button>
+        <Typography variant="h4" sx={{ mb: 2 }}>
+          Game Complete!
+        </Typography>
+        <Typography variant="h5" sx={{ mb: 3 }}>
+          Score: {score}/{totalQuestions}
+        </Typography>
+        <Typography variant="h6" sx={{ mb: 2 }}>
+          Accuracy: {((score / totalQuestions) * 100).toFixed(1)}%
+        </Typography>
+        <Button variant="contained" onClick={() => window.location.reload()}>
+          Play Again
+        </Button>
       </Box>
     );
   }
@@ -89,29 +97,33 @@ const SwitchChallengeGame = ({ difficulty = 'Easy', onComplete }) => {
         <Typography variant="body1" sx={{ mb: 3, color: 'text.secondary' }}>
           How many bulbs are ON after all switches?
         </Typography>
-        
+
         <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, mb: 3 }}>
-          {Array(switchData.numBulbs).fill(null).map((_, idx) => (
-            <Box
-              key={idx}
-              sx={{
-                width: 50,
-                height: 50,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                border: '2px solid',
-                borderColor: 'grey.400',
-                borderRadius: 2,
-                bgcolor: 'background.paper'
-              }}
-            >
-              <LightbulbOutlined sx={{ fontSize: 30, color: 'grey.400' }} />
-            </Box>
-          ))}
+          {Array(switchData.numBulbs)
+            .fill(null)
+            .map((_, idx) => (
+              <Box
+                key={idx}
+                sx={{
+                  width: 50,
+                  height: 50,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  border: '2px solid',
+                  borderColor: 'grey.400',
+                  borderRadius: 2,
+                  bgcolor: 'background.paper'
+                }}
+              >
+                <LightbulbOutlined sx={{ fontSize: 30, color: 'grey.400' }} />
+              </Box>
+            ))}
         </Box>
 
-        <Typography variant="body1" sx={{ mb: 2, fontWeight: 600 }}>Switch Operations:</Typography>
+        <Typography variant="body1" sx={{ mb: 2, fontWeight: 600 }}>
+          Switch Operations:
+        </Typography>
         <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mb: 3, flexWrap: 'wrap' }}>
           {switchData.operations.map((switchNum, idx) => (
             <Box
@@ -132,7 +144,9 @@ const SwitchChallengeGame = ({ difficulty = 'Easy', onComplete }) => {
           ))}
         </Box>
 
-        <Typography variant="body1" sx={{ mb: 2, fontWeight: 600 }}>How many bulbs are ON?</Typography>
+        <Typography variant="body1" sx={{ mb: 2, fontWeight: 600 }}>
+          How many bulbs are ON?
+        </Typography>
         <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mb: 3, flexWrap: 'wrap' }}>
           {options.map((num) => (
             <Box
@@ -153,7 +167,9 @@ const SwitchChallengeGame = ({ difficulty = 'Easy', onComplete }) => {
                 '&:hover': feedback ? {} : { borderColor: 'primary.main', transform: 'scale(1.1)' }
               }}
             >
-              <Typography variant="h5" sx={{ fontWeight: 700 }}>{num}</Typography>
+              <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                {num}
+              </Typography>
             </Box>
           ))}
         </Box>
@@ -163,7 +179,7 @@ const SwitchChallengeGame = ({ difficulty = 'Easy', onComplete }) => {
             {feedback}
           </Typography>
         )}
-        
+
         {!feedback && (
           <Button variant="contained" onClick={handleSubmit} disabled={selected === null} sx={{ px: 4, py: 1.5 }}>
             Submit

@@ -1,5 +1,24 @@
 import { useState, useEffect, useRef } from 'react';
-import { Box, Typography, Button, IconButton, CircularProgress, Dialog, DialogTitle, DialogContent, DialogActions, Card, CardContent, Chip, FormControl, InputLabel, Select, MenuItem, Stack, ButtonGroup } from '@mui/material';
+import {
+  Box,
+  Typography,
+  Button,
+  IconButton,
+  CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Card,
+  CardContent,
+  Chip,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Stack,
+  ButtonGroup
+} from '@mui/material';
 import { PlayArrow, CheckCircle, Close, Add, Remove, Edit, AccessTime, InfoOutlined } from '@mui/icons-material';
 import Editor from '@monaco-editor/react';
 import { submitCode } from 'services/pistonService';
@@ -27,31 +46,46 @@ export default function ProgrammingEditor({ assessment, question, attemptId, onT
 
   const getLanguageTemplate = (lang) => {
     switch (lang) {
-      case 'python': return `# Write your code here\n`;
-      case 'cpp': return `#include <iostream>\nusing namespace std;\n\nint main() {\n    // Write your code here\n    return 0;\n}`;
-      case 'java': return `import java.util.*;\n\npublic class Main {\n    public static void main(String[] args) {\n        // Write your code here\n    }\n}`;
-      case 'c': return `#include <stdio.h>\n\nint main() {\n    // Write your code here\n    return 0;\n}`;
-      default: return '// Write your code here';
+      case 'python':
+        return `# Write your code here\n`;
+      case 'cpp':
+        return `#include <iostream>\nusing namespace std;\n\nint main() {\n    // Write your code here\n    return 0;\n}`;
+      case 'java':
+        return `import java.util.*;\n\npublic class Main {\n    public static void main(String[] args) {\n        // Write your code here\n    }\n}`;
+      case 'c':
+        return `#include <stdio.h>\n\nint main() {\n    // Write your code here\n    return 0;\n}`;
+      default:
+        return '// Write your code here';
     }
   };
 
   const getMonacoLanguage = (lang) => {
     switch (lang) {
-      case 'cpp': return 'cpp';
-      case 'java': return 'java';
-      case 'python': return 'python';
-      case 'c': return 'c';
-      default: return 'plaintext';
+      case 'cpp':
+        return 'cpp';
+      case 'java':
+        return 'java';
+      case 'python':
+        return 'python';
+      case 'c':
+        return 'c';
+      default:
+        return 'plaintext';
     }
   };
 
   const getLanguageId = (lang) => {
     switch (lang) {
-      case 'python': return 71;
-      case 'cpp': return 54;
-      case 'java': return 62;
-      case 'c': return 50;
-      default: return 71;
+      case 'python':
+        return 71;
+      case 'cpp':
+        return 54;
+      case 'java':
+        return 62;
+      case 'c':
+        return 50;
+      default:
+        return 71;
     }
   };
 
@@ -132,7 +166,7 @@ export default function ProgrammingEditor({ assessment, question, attemptId, onT
       const token = localStorage.getItem('studentToken');
       const response = await apiService.getLastExecutedCode(token, attemptId);
       const progCodes = response.lastExecutedCode || response.successfulCodes;
-      
+
       if (progCodes && progCodes[question._id] && progCodes[question._id][language]) {
         const savedCode = progCodes[question._id][language];
         setCode(savedCode);
@@ -151,32 +185,32 @@ export default function ProgrammingEditor({ assessment, question, attemptId, onT
 
   const handleRunCode = async () => {
     if (!code.trim() || !language) return;
-    
+
     setIsRunning(true);
     setTestCaseResults({});
-    
-    const publicTestCases = question?.testCases?.filter(tc => tc.isPublic) || [];
+
+    const publicTestCases = question?.testCases?.filter((tc) => tc.isPublic) || [];
     const allTestCases = [...publicTestCases, ...customTestCases];
     const languageId = getLanguageId(language);
-    
+
     for (let i = 0; i < allTestCases.length; i++) {
       if (questionIdRef.current !== question?._id) break;
       const testCase = allTestCases[i];
-      
-      setTestCaseResults(prev => ({
+
+      setTestCaseResults((prev) => ({
         ...prev,
         [i]: { loading: true }
       }));
-      
+
       try {
         const result = await submitCode(code, languageId, testCase.input);
-        
+
         if (result.status.id === 3) {
           const userOutput = result.stdout ? result.stdout.trim() : '';
           const expectedOutput = (testCase.expectedOutput || testCase.output)?.toString().trim();
           const passed = userOutput === expectedOutput;
-          
-          setTestCaseResults(prev => ({
+
+          setTestCaseResults((prev) => ({
             ...prev,
             [i]: { loading: false, output: userOutput, error: null, passed }
           }));
@@ -185,19 +219,19 @@ export default function ProgrammingEditor({ assessment, question, attemptId, onT
           if (errorOutput.includes('fatal signal')) {
             errorOutput = 'Error: Program exceeded time/memory limits';
           }
-          setTestCaseResults(prev => ({
+          setTestCaseResults((prev) => ({
             ...prev,
             [i]: { loading: false, output: null, error: errorOutput, passed: false }
           }));
         }
       } catch (error) {
-        setTestCaseResults(prev => ({
+        setTestCaseResults((prev) => ({
           ...prev,
           [i]: { loading: false, output: null, error: error.message, passed: false }
         }));
       }
     }
-    
+
     setIsRunning(false);
 
     // Save progress to backend if in assessment
@@ -213,37 +247,37 @@ export default function ProgrammingEditor({ assessment, question, attemptId, onT
 
   const handleSubmit = async () => {
     if (!code.trim() || !language) return;
-    
+
     const allTestCases = question?.testCases || [];
-    
+
     const initialResults = allTestCases.map((tc, i) => ({
       index: i + 1,
       type: tc.isPublic ? 'Public' : 'Private',
       status: 'Pending',
       passed: null
     }));
-    
+
     setSubmitResults(initialResults);
     setShowSubmitModal(true);
     setIsSubmitting(true);
-    
+
     const languageId = getLanguageId(language);
     const results = [...initialResults];
-    
+
     for (let i = 0; i < allTestCases.length; i++) {
       if (questionIdRef.current !== question?._id) break;
       const testCase = allTestCases[i];
       results[i] = { ...results[i], status: 'Running' };
       setSubmitResults([...results]);
-      
+
       try {
         const result = await submitCode(code, languageId, testCase.input);
-        
+
         if (result.status.id === 3) {
           const userOutput = result.stdout ? result.stdout.trim() : '';
           const expectedOutput = (testCase.expectedOutput || testCase.output)?.toString().trim();
           const passed = userOutput === expectedOutput;
-          
+
           results[i] = {
             ...results[i],
             status: passed ? 'Passed' : 'Failed',
@@ -269,50 +303,42 @@ export default function ProgrammingEditor({ assessment, question, attemptId, onT
       }
       setSubmitResults([...results]);
     }
-    
+
     setIsSubmitting(false);
-    
-    const allPassed = results.every(r => r.passed === true);
-    
+
+    const allPassed = results.every((r) => r.passed === true);
+
     if (!isPractice && attemptId && question?._id) {
       try {
         const token = localStorage.getItem('studentToken');
-        await apiService.saveAssessmentCode(
-          token,
-          attemptId,
-          question._id,
-          language,
-          code,
-          allPassed,
-          results
-        );
+        await apiService.saveAssessmentCode(token, attemptId, question._id, language, code, allPassed, results);
       } catch (error) {
         console.error('Error saving final code submission:', error);
       }
     }
-    
+
     if (onTestComplete) {
-      onTestComplete(results.filter(r => r.passed === true).length, results.length);
+      onTestComplete(results.filter((r) => r.passed === true).length, results.length);
     }
   };
 
   const handleAddCustomTestCase = () => {
     if (!customInput.trim()) return;
     if (editingCustomIndex !== null) {
-      setCustomTestCases(prev => {
+      setCustomTestCases((prev) => {
         const updated = [...prev];
         updated[editingCustomIndex] = { input: customInput, isCustom: true };
         return updated;
       });
       setEditingCustomIndex(null);
     } else {
-      setCustomTestCases(prev => [...prev, { input: customInput, isCustom: true }]);
+      setCustomTestCases((prev) => [...prev, { input: customInput, isCustom: true }]);
     }
     setCustomInput('');
     setShowAddCustomInput(false);
   };
 
-  const publicTestCases = question?.testCases?.filter(tc => tc.isPublic) || [];
+  const publicTestCases = question?.testCases?.filter((tc) => tc.isPublic) || [];
   const allDisplayTestCases = [...publicTestCases, ...customTestCases];
   const canAddMore = publicTestCases.length >= 0 && customTestCases.length < 4;
 
@@ -322,11 +348,18 @@ export default function ProgrammingEditor({ assessment, question, attemptId, onT
         {/* Editor Pane */}
         <Box sx={{ height: `${compilerSplit}%`, display: 'flex', flexDirection: 'column', bgcolor: '#ffffff', minHeight: 0 }}>
           {/* Header Bar */}
-          <Box sx={{ 
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between', 
-            px: 2.5, py: 1.5, borderBottom: '1px solid #f1f5f9', bgcolor: '#ffffff',
-            flexShrink: 0
-          }}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              px: 2.5,
+              py: 1.5,
+              borderBottom: '1px solid #f1f5f9',
+              bgcolor: '#ffffff',
+              flexShrink: 0
+            }}
+          >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <FormControl size="small" sx={{ minWidth: 140 }}>
                 <InputLabel sx={{ fontWeight: 700 }}>Language</InputLabel>
@@ -349,14 +382,27 @@ export default function ProgrammingEditor({ assessment, question, attemptId, onT
                 </Select>
               </FormControl>
 
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, bgcolor: '#f8fafc', px: 1, py: 0.5, borderRadius: '12px', border: '1px solid #f1f5f9' }}>
-                <IconButton size="small" onClick={() => setFontSize(prev => Math.max(12, prev - 2))} sx={{ color: '#64748b' }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 0.5,
+                  bgcolor: '#f8fafc',
+                  px: 1,
+                  py: 0.5,
+                  borderRadius: '12px',
+                  border: '1px solid #f1f5f9'
+                }}
+              >
+                <IconButton size="small" onClick={() => setFontSize((prev) => Math.max(12, prev - 2))} sx={{ color: '#64748b' }}>
                   <Remove fontSize="small" />
                 </IconButton>
-                <Typography sx={{ minWidth: '32px', textAlign: 'center', fontWeight: 900, fontSize: '0.85rem', fontFamily: 'JetBrains Mono' }}>
+                <Typography
+                  sx={{ minWidth: '32px', textAlign: 'center', fontWeight: 900, fontSize: '0.85rem', fontFamily: 'JetBrains Mono' }}
+                >
                   {fontSize}px
                 </Typography>
-                <IconButton size="small" onClick={() => setFontSize(prev => Math.min(32, prev + 2))} sx={{ color: '#64748b' }}>
+                <IconButton size="small" onClick={() => setFontSize((prev) => Math.min(32, prev + 2))} sx={{ color: '#64748b' }}>
                   <Add fontSize="small" />
                 </IconButton>
               </Box>
@@ -367,8 +413,12 @@ export default function ProgrammingEditor({ assessment, question, attemptId, onT
                   size="small"
                   onClick={handleRecover}
                   sx={{
-                    textTransform: 'none', borderRadius: '12px', fontWeight: 800, px: 2,
-                    borderColor: '#e2e8f0', color: '#475569',
+                    textTransform: 'none',
+                    borderRadius: '12px',
+                    fontWeight: 800,
+                    px: 2,
+                    borderColor: '#e2e8f0',
+                    color: '#475569',
                     '&:hover': { bgcolor: '#f8fafc', borderColor: '#cbd5e1' }
                   }}
                 >
@@ -391,9 +441,14 @@ export default function ProgrammingEditor({ assessment, question, attemptId, onT
                 variant="contained"
                 onClick={handleSubmit}
                 disabled={!code.trim() || isSubmitting}
-                sx={{ 
-                  borderRadius: '12px', fontWeight: 900, textTransform: 'none', px: 3, py: 1,
-                  bgcolor: '#6366f1', '&:hover': { bgcolor: '#4f46e5' }
+                sx={{
+                  borderRadius: '12px',
+                  fontWeight: 900,
+                  textTransform: 'none',
+                  px: 3,
+                  py: 1,
+                  bgcolor: '#6366f1',
+                  '&:hover': { bgcolor: '#4f46e5' }
                 }}
               >
                 Submit Code
@@ -409,7 +464,9 @@ export default function ProgrammingEditor({ assessment, question, attemptId, onT
               value={code}
               theme="vs-dark"
               onChange={(v) => setCode(v || '')}
-              onMount={(editor) => { editorRef.current = editor; }}
+              onMount={(editor) => {
+                editorRef.current = editor;
+              }}
               options={{
                 fontSize: fontSize,
                 minimap: { enabled: false },
@@ -432,23 +489,37 @@ export default function ProgrammingEditor({ assessment, question, attemptId, onT
         {/* Test Cases Pane */}
         <Box sx={{ height: `${100 - compilerSplit}%`, display: 'flex', flexDirection: 'column', bgcolor: '#ffffff', minHeight: 0 }}>
           {/* Tabs */}
-          <Box sx={{ 
-            display: 'flex', alignItems: 'center', gap: 1, px: 2, py: 1, 
-            bgcolor: '#f8fafc', borderBottom: '1px solid #f1f5f9', overflowX: 'auto' 
-          }}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              px: 2,
+              py: 1,
+              bgcolor: '#f8fafc',
+              borderBottom: '1px solid #f1f5f9',
+              overflowX: 'auto'
+            }}
+          >
             {allDisplayTestCases.map((tc, idx) => {
               const res = testCaseResults[idx];
               const isActive = currentTestCaseTab === idx;
               const isPassed = res?.passed === true;
               const isFailed = res?.passed === false;
-              
+
               return (
                 <Box
                   key={idx}
                   onClick={() => setCurrentTestCaseTab(idx)}
                   sx={{
-                    display: 'flex', alignItems: 'center', gap: 1, px: 2.5, py: 1,
-                    cursor: 'pointer', borderRadius: '10px', transition: 'all 0.2s',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                    px: 2.5,
+                    py: 1,
+                    cursor: 'pointer',
+                    borderRadius: '10px',
+                    transition: 'all 0.2s',
                     bgcolor: isActive ? '#ffffff' : 'transparent',
                     border: '1px solid',
                     borderColor: isActive ? (isPassed ? '#22c55e' : isFailed ? '#ef4444' : '#6366f1') : 'transparent',
@@ -460,13 +531,17 @@ export default function ProgrammingEditor({ assessment, question, attemptId, onT
                   {isFailed && <Close sx={{ color: '#ef4444', fontSize: 16 }} />}
                   {res?.loading && <CircularProgress size={14} />}
                   <Typography sx={{ fontWeight: 800, fontSize: '0.85rem' }}>
-                    {idx < publicTestCases.length ? `Case ${idx+1}` : `Custom ${idx - publicTestCases.length + 1}`}
+                    {idx < publicTestCases.length ? `Case ${idx + 1}` : `Custom ${idx - publicTestCases.length + 1}`}
                   </Typography>
                 </Box>
               );
             })}
             {canAddMore && (
-              <IconButton size="small" onClick={() => setShowAddCustomInput(true)} sx={{ color: '#6366f1', bgcolor: '#eef2ff', borderRadius: '10px' }}>
+              <IconButton
+                size="small"
+                onClick={() => setShowAddCustomInput(true)}
+                sx={{ color: '#6366f1', bgcolor: '#eef2ff', borderRadius: '10px' }}
+              >
                 <Add fontSize="small" />
               </IconButton>
             )}
@@ -477,12 +552,22 @@ export default function ProgrammingEditor({ assessment, question, attemptId, onT
             {allDisplayTestCases[currentTestCaseTab] ? (
               <Box>
                 {/* Input */}
-                <Typography sx={{ fontWeight: 800, fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', mb: 1.5 }}>Input</Typography>
-                <Box sx={{ p: 2, bgcolor: '#f8fafc', borderRadius: '12px', border: '1px solid #f1f5f9', mb: 3, fontFamily: "'JetBrains Mono'", fontSize: '0.9rem' }}>
+                <Typography sx={{ fontWeight: 800, fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', mb: 1.5 }}>
+                  Input
+                </Typography>
+                <Box
+                  sx={{
+                    p: 2,
+                    bgcolor: '#f8fafc',
+                    borderRadius: '12px',
+                    border: '1px solid #f1f5f9',
+                    mb: 3,
+                    fontFamily: "'JetBrains Mono'",
+                    fontSize: '0.9rem'
+                  }}
+                >
                   {allDisplayTestCases[currentTestCaseTab].input ? (
-                    <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>
-                      {allDisplayTestCases[currentTestCaseTab].input}
-                    </pre>
+                    <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{allDisplayTestCases[currentTestCaseTab].input}</pre>
                   ) : (
                     <Typography sx={{ color: '#94a3b8', fontStyle: 'italic' }}>No input required</Typography>
                   )}
@@ -491,17 +576,27 @@ export default function ProgrammingEditor({ assessment, question, attemptId, onT
                 {/* Output */}
                 {testCaseResults[currentTestCaseTab] && (
                   <>
-                    <Typography sx={{ fontWeight: 800, fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', mb: 1.5 }}>Your Output</Typography>
-                    <Box sx={{ 
-                      p: 2, borderRadius: '12px', border: '1px solid',
-                      borderColor: testCaseResults[currentTestCaseTab].error ? '#fee2e2' : '#f1f5f9',
-                      bgcolor: testCaseResults[currentTestCaseTab].error ? '#fff7ed' : '#ffffff',
-                      mb: 3, fontFamily: "'JetBrains Mono'", fontSize: '0.9rem'
-                    }}>
-                      {testCaseResults[currentTestCaseTab].loading ? <CircularProgress size={20} /> : (
-                        testCaseResults[currentTestCaseTab].error ? 
-                          <Typography sx={{ color: '#ef4444' }}>{testCaseResults[currentTestCaseTab].error}</Typography> : 
-                          <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{testCaseResults[currentTestCaseTab].output || 'No output'}</pre>
+                    <Typography sx={{ fontWeight: 800, fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', mb: 1.5 }}>
+                      Your Output
+                    </Typography>
+                    <Box
+                      sx={{
+                        p: 2,
+                        borderRadius: '12px',
+                        border: '1px solid',
+                        borderColor: testCaseResults[currentTestCaseTab].error ? '#fee2e2' : '#f1f5f9',
+                        bgcolor: testCaseResults[currentTestCaseTab].error ? '#fff7ed' : '#ffffff',
+                        mb: 3,
+                        fontFamily: "'JetBrains Mono'",
+                        fontSize: '0.9rem'
+                      }}
+                    >
+                      {testCaseResults[currentTestCaseTab].loading ? (
+                        <CircularProgress size={20} />
+                      ) : testCaseResults[currentTestCaseTab].error ? (
+                        <Typography sx={{ color: '#ef4444' }}>{testCaseResults[currentTestCaseTab].error}</Typography>
+                      ) : (
+                        <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{testCaseResults[currentTestCaseTab].output || 'No output'}</pre>
                       )}
                     </Box>
                   </>
@@ -510,8 +605,20 @@ export default function ProgrammingEditor({ assessment, question, attemptId, onT
                 {/* Expected */}
                 {currentTestCaseTab < publicTestCases.length && (
                   <>
-                    <Typography sx={{ fontWeight: 800, fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', mb: 1.5 }}>Expected Output</Typography>
-                    <Box sx={{ p: 2, bgcolor: '#f8fafc', borderRadius: '12px', border: '1px solid #f1f5f9', mb: 3, fontFamily: "'JetBrains Mono'", fontSize: '0.9rem' }}>
+                    <Typography sx={{ fontWeight: 800, fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', mb: 1.5 }}>
+                      Expected Output
+                    </Typography>
+                    <Box
+                      sx={{
+                        p: 2,
+                        bgcolor: '#f8fafc',
+                        borderRadius: '12px',
+                        border: '1px solid #f1f5f9',
+                        mb: 3,
+                        fontFamily: "'JetBrains Mono'",
+                        fontSize: '0.9rem'
+                      }}
+                    >
                       <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>
                         {allDisplayTestCases[currentTestCaseTab].expectedOutput || allDisplayTestCases[currentTestCaseTab].output}
                       </pre>
@@ -524,9 +631,21 @@ export default function ProgrammingEditor({ assessment, question, attemptId, onT
                   <>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
                       <InfoOutlined sx={{ fontSize: 16, color: '#6366f1' }} />
-                      <Typography sx={{ fontWeight: 800, fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase' }}>Explanation</Typography>
+                      <Typography sx={{ fontWeight: 800, fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase' }}>
+                        Explanation
+                      </Typography>
                     </Box>
-                    <Box sx={{ p: 2, bgcolor: '#eff6ff', borderRadius: '12px', border: '1px solid #dbeafe', color: '#1e40af', fontSize: '0.9rem', lineHeight: 1.6 }}>
+                    <Box
+                      sx={{
+                        p: 2,
+                        bgcolor: '#eff6ff',
+                        borderRadius: '12px',
+                        border: '1px solid #dbeafe',
+                        color: '#1e40af',
+                        fontSize: '0.9rem',
+                        lineHeight: 1.6
+                      }}
+                    >
                       {allDisplayTestCases[currentTestCaseTab].explanation}
                     </Box>
                   </>
@@ -542,11 +661,11 @@ export default function ProgrammingEditor({ assessment, question, attemptId, onT
       </Box>
 
       {/* Execution Results Modal - Premium Design from AssessmentTaking */}
-      <Dialog 
-        open={showSubmitModal} 
+      <Dialog
+        open={showSubmitModal}
         onClose={!isSubmitting ? () => setShowSubmitModal(false) : undefined}
-        maxWidth="md" 
-        fullWidth 
+        maxWidth="md"
+        fullWidth
         disableEscapeKeyDown={isSubmitting}
         PaperProps={{ sx: { borderRadius: '32px', border: '1px solid #f1f5f9', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.15)' } }}
       >
@@ -573,22 +692,61 @@ export default function ProgrammingEditor({ assessment, question, attemptId, onT
             <Box>
               <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 3, mb: 5 }}>
                 <Box sx={{ p: 3, borderRadius: '24px', bgcolor: '#f8fafc', border: '1px solid #f1f5f9' }}>
-                  <Typography sx={{ color: '#94a3b8', fontWeight: 800, textTransform: 'uppercase', fontSize: '0.7rem', letterSpacing: '0.1em', mb: 1 }}>Test Results</Typography>
+                  <Typography
+                    sx={{
+                      color: '#94a3b8',
+                      fontWeight: 800,
+                      textTransform: 'uppercase',
+                      fontSize: '0.7rem',
+                      letterSpacing: '0.1em',
+                      mb: 1
+                    }}
+                  >
+                    Test Results
+                  </Typography>
                   <Typography sx={{ fontWeight: 900, color: '#0f172a', fontSize: '2.25rem' }}>
-                    {submitResults.filter(r => r.passed === true).length}{' '}
-                    <Typography component="span" sx={{ fontSize: '1.25rem', color: '#64748b', fontWeight: 700 }}>out of</Typography>{' '}
+                    {submitResults.filter((r) => r.passed === true).length}{' '}
+                    <Typography component="span" sx={{ fontSize: '1.25rem', color: '#64748b', fontWeight: 700 }}>
+                      out of
+                    </Typography>{' '}
                     {submitResults.length}
                   </Typography>
                   <Typography sx={{ color: '#64748b', fontWeight: 600, fontSize: '0.9rem', mt: 0.5 }}>Test Cases Passed</Typography>
                 </Box>
 
                 {(() => {
-                  const passRate = submitResults.length > 0 ? Math.round((submitResults.filter(r => r.passed === true).length / submitResults.length) * 100) : 0;
+                  const passRate =
+                    submitResults.length > 0
+                      ? Math.round((submitResults.filter((r) => r.passed === true).length / submitResults.length) * 100)
+                      : 0;
                   return (
-                    <Box sx={{ p: 3, borderRadius: '24px', bgcolor: passRate >= 70 ? '#f0fdf4' : '#fef2f2', border: '1px solid', borderColor: passRate >= 70 ? '#dcfce7' : '#fee2e2' }}>
-                      <Typography sx={{ color: passRate >= 70 ? '#22c55e' : '#ef4444', fontWeight: 800, textTransform: 'uppercase', fontSize: '0.7rem', letterSpacing: '0.1em', mb: 1 }}>Pass Rate</Typography>
-                      <Typography sx={{ fontWeight: 900, color: passRate >= 70 ? '#14532d' : '#991b1b', fontSize: '2.25rem' }}>{passRate}%</Typography>
-                      <Box sx={{ width: '100%', height: 8, bgcolor: 'rgba(255,255,255,0.5)', borderRadius: 4, mt: 1.5, overflow: 'hidden' }}>
+                    <Box
+                      sx={{
+                        p: 3,
+                        borderRadius: '24px',
+                        bgcolor: passRate >= 70 ? '#f0fdf4' : '#fef2f2',
+                        border: '1px solid',
+                        borderColor: passRate >= 70 ? '#dcfce7' : '#fee2e2'
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          color: passRate >= 70 ? '#22c55e' : '#ef4444',
+                          fontWeight: 800,
+                          textTransform: 'uppercase',
+                          fontSize: '0.7rem',
+                          letterSpacing: '0.1em',
+                          mb: 1
+                        }}
+                      >
+                        Pass Rate
+                      </Typography>
+                      <Typography sx={{ fontWeight: 900, color: passRate >= 70 ? '#14532d' : '#991b1b', fontSize: '2.25rem' }}>
+                        {passRate}%
+                      </Typography>
+                      <Box
+                        sx={{ width: '100%', height: 8, bgcolor: 'rgba(255,255,255,0.5)', borderRadius: 4, mt: 1.5, overflow: 'hidden' }}
+                      >
                         <Box sx={{ width: `${passRate}%`, height: '100%', bgcolor: passRate >= 70 ? '#22c55e' : '#ef4444' }} />
                       </Box>
                     </Box>
@@ -599,26 +757,56 @@ export default function ProgrammingEditor({ assessment, question, attemptId, onT
               <Typography sx={{ fontWeight: 800, color: '#0f172a', mb: 2.5, fontSize: '1.25rem' }}>Test Case Diagnostics</Typography>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {submitResults.map((result) => (
-                  <Box key={result.index} sx={{ 
-                    display: 'flex', alignItems: 'center', gap: 3, p: 2.5, bgcolor: '#f8fafc',
-                    borderRadius: '20px', border: '1px solid #f1f5f9', transition: 'all 0.2s',
-                    '&:hover': { transform: 'translateX(8px)', borderColor: '#cbd5e1' }
-                  }}>
-                    <Box sx={{ 
-                      width: 44, height: 44, borderRadius: '16px', flexShrink: 0,
-                      bgcolor: result.passed === true ? '#dcfce7' : result.passed === false ? '#fee2e2' : '#f1f5f9',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center'
-                    }}>
+                  <Box
+                    key={result.index}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 3,
+                      p: 2.5,
+                      bgcolor: '#f8fafc',
+                      borderRadius: '20px',
+                      border: '1px solid #f1f5f9',
+                      transition: 'all 0.2s',
+                      '&:hover': { transform: 'translateX(8px)', borderColor: '#cbd5e1' }
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        width: 44,
+                        height: 44,
+                        borderRadius: '16px',
+                        flexShrink: 0,
+                        bgcolor: result.passed === true ? '#dcfce7' : result.passed === false ? '#fee2e2' : '#f1f5f9',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                    >
                       {result.passed === true && <CheckCircle sx={{ color: '#22c55e', fontSize: 24 }} />}
                       {result.passed === false && <Close sx={{ color: '#ef4444', fontSize: 24 }} />}
                     </Box>
                     <Box sx={{ flex: 1 }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                         <Typography sx={{ fontWeight: 800, color: '#1e293b', fontSize: '1rem' }}>Test Case {result.index}</Typography>
-                        <Chip label={result.type} size="small" sx={{ height: 20, fontSize: '0.65rem', fontWeight: 900, bgcolor: result.type === 'Public' ? '#e0e7ff' : '#f3e8ff', color: result.type === 'Public' ? '#4338ca' : '#7e22ce' }} />
+                        <Chip
+                          label={result.type}
+                          size="small"
+                          sx={{
+                            height: 20,
+                            fontSize: '0.65rem',
+                            fontWeight: 900,
+                            bgcolor: result.type === 'Public' ? '#e0e7ff' : '#f3e8ff',
+                            color: result.type === 'Public' ? '#4338ca' : '#7e22ce'
+                          }}
+                        />
                       </Box>
                       <Typography sx={{ color: '#64748b', fontWeight: 600, fontSize: '0.85rem', mt: 0.5 }}>
-                        {result.passed === true ? 'Scenario verified successfully' : result.passed === false ? 'Output mismatch detected' : 'Processing...'}
+                        {result.passed === true
+                          ? 'Scenario verified successfully'
+                          : result.passed === false
+                            ? 'Output mismatch detected'
+                            : 'Processing...'}
                       </Typography>
                     </Box>
                     <Typography sx={{ fontWeight: 900, fontSize: '0.9rem', color: result.passed === true ? '#10b981' : '#ef4444' }}>
@@ -632,7 +820,19 @@ export default function ProgrammingEditor({ assessment, question, attemptId, onT
         </DialogContent>
         {!isSubmitting && (
           <DialogActions sx={{ p: 4, pt: 2 }}>
-            <Button onClick={() => setShowSubmitModal(false)} variant="contained" fullWidth sx={{ borderRadius: '16px', py: 2, fontWeight: 900, textTransform: 'none', bgcolor: '#0f172a', '&:hover': { bgcolor: '#1e293b' } }}>
+            <Button
+              onClick={() => setShowSubmitModal(false)}
+              variant="contained"
+              fullWidth
+              sx={{
+                borderRadius: '16px',
+                py: 2,
+                fontWeight: 900,
+                textTransform: 'none',
+                bgcolor: '#0f172a',
+                '&:hover': { bgcolor: '#1e293b' }
+              }}
+            >
               Return to Editor
             </Button>
           </DialogActions>
@@ -640,14 +840,36 @@ export default function ProgrammingEditor({ assessment, question, attemptId, onT
       </Dialog>
 
       {/* Custom Input Modal */}
-      <Dialog open={showAddCustomInput} onClose={() => setShowAddCustomInput(false)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: '24px' } }}>
+      <Dialog
+        open={showAddCustomInput}
+        onClose={() => setShowAddCustomInput(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: '24px' } }}
+      >
         <DialogTitle sx={{ fontWeight: 800 }}>{editingCustomIndex !== null ? 'Edit Custom Input' : 'Add Custom Test Input'}</DialogTitle>
         <DialogContent>
-          <Box sx={{ component: 'textarea', width: '100%', minHeight: 120, p: 2, mt: 1, border: '1px solid #e2e8f0', borderRadius: '12px', fontFamily: "'JetBrains Mono'", fontSize: '0.9rem', outline: 'none', '&:focus': { borderColor: '#6366f1' } }} 
-               contentEditable onChange={(e) => setCustomInput(e.target.value)} value={customInput}>
-            <textarea 
-              rows={5} 
-              style={{ width: '100%', border: 'none', outline: 'none', resize: 'vertical', fontFamily: 'inherit', fontSize: 'inherit' }} 
+          <Box
+            sx={{
+              component: 'textarea',
+              width: '100%',
+              minHeight: 120,
+              p: 2,
+              mt: 1,
+              border: '1px solid #e2e8f0',
+              borderRadius: '12px',
+              fontFamily: "'JetBrains Mono'",
+              fontSize: '0.9rem',
+              outline: 'none',
+              '&:focus': { borderColor: '#6366f1' }
+            }}
+            contentEditable
+            onChange={(e) => setCustomInput(e.target.value)}
+            value={customInput}
+          >
+            <textarea
+              rows={5}
+              style={{ width: '100%', border: 'none', outline: 'none', resize: 'vertical', fontFamily: 'inherit', fontSize: 'inherit' }}
               placeholder="Paste your test input here..."
               value={customInput}
               onChange={(e) => setCustomInput(e.target.value)}
@@ -655,8 +877,16 @@ export default function ProgrammingEditor({ assessment, question, attemptId, onT
           </Box>
         </DialogContent>
         <DialogActions sx={{ p: 3 }}>
-          <Button onClick={() => setShowAddCustomInput(false)} sx={{ fontWeight: 700 }}>Cancel</Button>
-          <Button onClick={handleAddCustomTestCase} variant="contained" sx={{ borderRadius: '10px', px: 4, fontWeight: 700, bgcolor: '#6366f1' }}>{editingCustomIndex !== null ? 'Update' : 'Add Case'}</Button>
+          <Button onClick={() => setShowAddCustomInput(false)} sx={{ fontWeight: 700 }}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleAddCustomTestCase}
+            variant="contained"
+            sx={{ borderRadius: '10px', px: 4, fontWeight: 700, bgcolor: '#6366f1' }}
+          >
+            {editingCustomIndex !== null ? 'Update' : 'Add Case'}
+          </Button>
         </DialogActions>
       </Dialog>
     </>

@@ -13,22 +13,24 @@ export const OrcaProvider = ({ children }) => {
   }, []);
 
   const addNotification = (notif) => {
-    setNotifications(prev => [...prev, { id: Date.now(), ...notif }]);
+    setNotifications((prev) => [...prev, { id: Date.now(), ...notif }]);
   };
 
   const removeNotification = (id) => {
-    setNotifications(prev => prev.filter(n => n.id !== id));
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
   };
 
   return (
-    <OrcaContext.Provider value={{ 
-      platformConfig, 
-      isAssistantOpen, 
-      setIsAssistantOpen,
-      notifications,
-      addNotification,
-      removeNotification
-    }}>
+    <OrcaContext.Provider
+      value={{
+        platformConfig,
+        isAssistantOpen,
+        setIsAssistantOpen,
+        notifications,
+        addNotification,
+        removeNotification
+      }}
+    >
       {children}
     </OrcaContext.Provider>
   );

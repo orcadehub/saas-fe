@@ -26,7 +26,7 @@ export const DashboardProvider = ({ children }) => {
 
   const fetchDashboardData = async (forceRefresh = false) => {
     if (dashboardData && !forceRefresh) return dashboardData;
-    
+
     if (!user?.email || !config) return null;
 
     setLoading(true);
@@ -47,10 +47,10 @@ export const DashboardProvider = ({ children }) => {
   };
 
   const fetchLeaderboardData = async (forceRefresh = false, timeframe = 'allTime') => {
-    // We ignore the cached 'leaderboardData' check if we are supplying a timeframe that isn't 'allTime' 
+    // We ignore the cached 'leaderboardData' check if we are supplying a timeframe that isn't 'allTime'
     // or if forceRefresh is true, to ensure we get new data on filter change.
     if (leaderboardData && !forceRefresh && timeframe === 'allTime') return leaderboardData;
-    
+
     if (!user?.email || !config) return null;
 
     setLoading(true);
@@ -58,7 +58,9 @@ export const DashboardProvider = ({ children }) => {
       const apiEndpoint = import.meta.env.DEV ? 'http://localhost:4000/api' : config?.apiEndpoint;
       if (!apiEndpoint) return null;
 
-      const res = await fetch(`${apiEndpoint}/leaderboard/overall?email=${encodeURIComponent(user.email)}&limit=1000&timeframe=${timeframe}`);
+      const res = await fetch(
+        `${apiEndpoint}/leaderboard/overall?email=${encodeURIComponent(user.email)}&limit=1000&timeframe=${timeframe}`
+      );
       const data = await res.json();
       setLeaderboardData(data.data || []);
       setLoading(false);

@@ -18,18 +18,30 @@ const MotionCard = motion.create(Card);
 const LightBackground = () => (
   <Box sx={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0, overflow: 'hidden', pointerEvents: 'none' }}>
     <Box sx={{ position: 'absolute', inset: 0, bgcolor: '#fbfcfe' }} />
-    <Box sx={{
-      position: 'absolute', top: '-10%', right: '-5%',
-      width: '60vw', height: '60vw',
-      background: 'radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, transparent 70%)',
-      borderRadius: '50%', filter: 'blur(80px)',
-    }} />
-    <Box sx={{
-      position: 'absolute', bottom: '-15%', left: '-10%',
-      width: '50vw', height: '50vw',
-      background: 'radial-gradient(circle, rgba(139, 92, 246, 0.05) 0%, transparent 70%)',
-      borderRadius: '50%', filter: 'blur(100px)',
-    }} />
+    <Box
+      sx={{
+        position: 'absolute',
+        top: '-10%',
+        right: '-5%',
+        width: '60vw',
+        height: '60vw',
+        background: 'radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, transparent 70%)',
+        borderRadius: '50%',
+        filter: 'blur(80px)'
+      }}
+    />
+    <Box
+      sx={{
+        position: 'absolute',
+        bottom: '-15%',
+        left: '-10%',
+        width: '50vw',
+        height: '50vw',
+        background: 'radial-gradient(circle, rgba(139, 92, 246, 0.05) 0%, transparent 70%)',
+        borderRadius: '50%',
+        filter: 'blur(100px)'
+      }}
+    />
   </Box>
 );
 
@@ -40,9 +52,9 @@ export default function GamifiedQuestions() {
   const [questions, setQuestions] = useState([]);
 
   useEffect(() => {
-    const found = gamifiedData.subtopics.find(st => st._id === subtopicId);
+    const found = gamifiedData.subtopics.find((st) => st._id === subtopicId);
     setSubtopic(found);
-    
+
     let gameQuestions = [];
     if (subtopicId === 'subtopic-gamified-maze-games') {
       gameQuestions = getMazeQuestions(subtopicId);
@@ -61,14 +73,16 @@ export default function GamifiedQuestions() {
   }, [subtopicId]);
 
   return (
-    <Box sx={{ 
-      minHeight: '100vh', 
-      p: { xs: 2.5, sm: 3, md: 4.5 }, 
-      bgcolor: '#fbfcfe', 
-      color: '#1e293b', 
-      position: 'relative',
-      overflowX: 'hidden'
-    }}>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        p: { xs: 2.5, sm: 3, md: 4.5 },
+        bgcolor: '#fbfcfe',
+        color: '#1e293b',
+        position: 'relative',
+        overflowX: 'hidden'
+      }}
+    >
       <LightBackground />
 
       <Box sx={{ position: 'relative', zIndex: 10 }}>
@@ -99,12 +113,15 @@ export default function GamifiedQuestions() {
         </Breadcrumbs>
 
         <Box sx={{ mb: { xs: 4, md: 6 } }}>
-          <Typography variant="h1" sx={{ 
-            fontWeight: 900, 
-            color: '#1e293b', 
-            mb: 1, 
-            fontSize: { xs: '1.75rem', sm: '2.25rem', md: '2.5rem' } 
-          }}>
+          <Typography
+            variant="h1"
+            sx={{
+              fontWeight: 900,
+              color: '#1e293b',
+              mb: 1,
+              fontSize: { xs: '1.75rem', sm: '2.25rem', md: '2.5rem' }
+            }}
+          >
             {subtopic?.title}
           </Typography>
           <Typography variant="body1" sx={{ color: '#64748b', fontSize: { xs: '0.9rem', sm: '1rem' } }}>
@@ -143,40 +160,51 @@ export default function GamifiedQuestions() {
                   display: 'flex',
                   flexDirection: 'column',
                   height: '100%',
-                  '&:hover': { 
-                    transform: 'translateY(-5px)', 
-                    boxShadow: '0 12px 30px rgba(15, 23, 42, 0.08)' 
+                  '&:hover': {
+                    transform: 'translateY(-5px)',
+                    boxShadow: '0 12px 30px rgba(15, 23, 42, 0.08)'
                   }
                 }}
               >
                 <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', p: { xs: 2.5, sm: 3 } }}>
-                  <Box sx={{ 
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', 
-                    width: { xs: 44, sm: 52 }, height: { xs: 44, sm: 52 }, 
-                    borderRadius: '12px', 
-                    bgcolor: 'rgba(59, 130, 246, 0.1)', 
-                    color: '#3b82f6', 
-                    mb: 2
-                  }}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: { xs: 44, sm: 52 },
+                      height: { xs: 44, sm: 52 },
+                      borderRadius: '12px',
+                      bgcolor: 'rgba(59, 130, 246, 0.1)',
+                      color: '#3b82f6',
+                      mb: 2
+                    }}
+                  >
                     <IconTrophy size={28} />
                   </Box>
-                  
-                  <Typography variant="h3" sx={{ 
-                    fontWeight: 800, 
-                    color: '#1e293b', 
-                    mb: 1,
-                    fontSize: { xs: '1.25rem', sm: '1.35rem' } 
-                  }}>
+
+                  <Typography
+                    variant="h3"
+                    sx={{
+                      fontWeight: 800,
+                      color: '#1e293b',
+                      mb: 1,
+                      fontSize: { xs: '1.25rem', sm: '1.35rem' }
+                    }}
+                  >
                     {question.title}
                   </Typography>
-                  
-                  <Typography variant="body2" sx={{ 
-                    color: '#64748b', 
-                    fontWeight: 500, 
-                    lineHeight: 1.5,
-                    flexGrow: 1,
-                    mb: 3
-                  }}>
+
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: '#64748b',
+                      fontWeight: 500,
+                      lineHeight: 1.5,
+                      flexGrow: 1,
+                      mb: 3
+                    }}
+                  >
                     {question.description}
                   </Typography>
 
@@ -184,9 +212,16 @@ export default function GamifiedQuestions() {
                     <Chip
                       label={question.difficulty || 'Easy'}
                       size="small"
-                      sx={{ 
-                        fontWeight: 700, borderRadius: '8px', border: 'none',
-                        bgcolor: question.difficulty === 'Hard' ? 'rgba(239, 68, 68, 0.1)' : question.difficulty === 'Medium' ? 'rgba(245, 158, 11, 0.1)' : 'rgba(34, 197, 94, 0.1)',
+                      sx={{
+                        fontWeight: 700,
+                        borderRadius: '8px',
+                        border: 'none',
+                        bgcolor:
+                          question.difficulty === 'Hard'
+                            ? 'rgba(239, 68, 68, 0.1)'
+                            : question.difficulty === 'Medium'
+                              ? 'rgba(245, 158, 11, 0.1)'
+                              : 'rgba(34, 197, 94, 0.1)',
                         color: question.difficulty === 'Hard' ? '#ef4444' : question.difficulty === 'Medium' ? '#f59e0b' : '#22c55e'
                       }}
                     />

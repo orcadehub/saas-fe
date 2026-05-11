@@ -27,8 +27,8 @@ export default function TopicBasedMock() {
     try {
       const resumeText = `Technical interview focusing on: ${topics.join(', ')}. Cover concepts, best practices, and real-world scenarios.`;
       const result = await analyzeResume({ resumeText, duration, difficulty });
-      navigate(`/ai-mock/interview/${result.interviewId}`, { 
-        state: { questions: result.questions, duration } 
+      navigate(`/ai-mock/interview/${result.interviewId}`, {
+        state: { questions: result.questions, duration }
       });
     } catch (error) {
       alert('Failed to start interview');
@@ -46,21 +46,32 @@ export default function TopicBasedMock() {
 
         <FormControl fullWidth sx={{ mb: 3 }}>
           <InputLabel>Select Topics</InputLabel>
-          <Select multiple value={topics} onChange={(e) => setTopics(e.target.value)} label="Select Topics"
+          <Select
+            multiple
+            value={topics}
+            onChange={(e) => setTopics(e.target.value)}
+            label="Select Topics"
             renderValue={(selected) => (
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                {selected.map((value) => <Chip key={value} label={value} size="small" onDelete={() => setTopics(topics.filter(t => t !== value))} />)}
+                {selected.map((value) => (
+                  <Chip key={value} label={value} size="small" onDelete={() => setTopics(topics.filter((t) => t !== value))} />
+                ))}
               </Box>
-            )}>
-            {availableTopics.map(topic => <MenuItem key={topic} value={topic}>{topic}</MenuItem>)}
+            )}
+          >
+            {availableTopics.map((topic) => (
+              <MenuItem key={topic} value={topic}>
+                {topic}
+              </MenuItem>
+            ))}
           </Select>
         </FormControl>
 
         <Box sx={{ display: 'flex', gap: 1, mb: 3 }}>
-          <TextField 
-            fullWidth 
-            label="Add Custom Topic" 
-            value={customTopic} 
+          <TextField
+            fullWidth
+            label="Add Custom Topic"
+            value={customTopic}
             onChange={(e) => setCustomTopic(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleAddCustomTopic()}
             placeholder="e.g., Machine Learning, Blockchain"
@@ -70,15 +81,37 @@ export default function TopicBasedMock() {
           </Button>
         </Box>
 
-        <TextField fullWidth label="Duration (minutes)" type="number" value={duration} onChange={(e) => setDuration(e.target.value)} sx={{ mb: 3 }} />
+        <TextField
+          fullWidth
+          label="Duration (minutes)"
+          type="number"
+          value={duration}
+          onChange={(e) => setDuration(e.target.value)}
+          sx={{ mb: 3 }}
+        />
 
-        <TextField fullWidth select label="Difficulty" value={difficulty} onChange={(e) => setDifficulty(e.target.value)} SelectProps={{ native: true }} sx={{ mb: 3 }}>
+        <TextField
+          fullWidth
+          select
+          label="Difficulty"
+          value={difficulty}
+          onChange={(e) => setDifficulty(e.target.value)}
+          SelectProps={{ native: true }}
+          sx={{ mb: 3 }}
+        >
           <option value="easy">Easy</option>
           <option value="medium">Medium</option>
           <option value="hard">Hard</option>
         </TextField>
 
-        <Button variant="contained" fullWidth size="large" startIcon={<PlayArrow />} onClick={handleStart} disabled={topics.length === 0 || loading}>
+        <Button
+          variant="contained"
+          fullWidth
+          size="large"
+          startIcon={<PlayArrow />}
+          onClick={handleStart}
+          disabled={topics.length === 0 || loading}
+        >
           {loading ? 'Starting...' : 'Start Interview'}
         </Button>
       </Box>

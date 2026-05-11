@@ -17,7 +17,8 @@ export default function LogoSection() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    tenantConfig.load()
+    tenantConfig
+      .load()
       .then((res) => {
         setConfig(res);
         setLoading(false);
@@ -33,17 +34,19 @@ export default function LogoSection() {
       {loading ? (
         <Logo width="50" />
       ) : config?.logoUrl ? (
-        <Box 
+        <Box
           component="img"
           src={config.logoUrl}
           alt="Logo"
-          sx={{ 
-            height: 44, 
-            maxWidth: 150, 
+          sx={{
+            height: 44,
+            maxWidth: 150,
             objectFit: 'contain',
             borderRadius: '12px'
           }}
-          onError={(e) => { e.target.style.display = 'none' }}
+          onError={(e) => {
+            e.target.style.display = 'none';
+          }}
         />
       ) : (
         <Logo width="100" />

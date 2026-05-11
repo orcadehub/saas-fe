@@ -4,7 +4,7 @@ import { Box, Typography, Button } from '@mui/material';
 const parseCSV = (csvText) => {
   const lines = csvText.trim().split('\n');
   const questions = [];
-  
+
   for (let i = 1; i < lines.length; i++) {
     const parts = lines[i].split(';');
     if (parts.length >= 6) {
@@ -37,13 +37,13 @@ const TechnicalMCQGame = ({ dataset, onSubmit }) => {
         const response = await fetch(`/src/datasets/${dataset}`);
         const csvText = await response.text();
         const parsed = parseCSV(csvText);
-        
+
         // Shuffle questions
         for (let i = parsed.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
           [parsed[i], parsed[j]] = [parsed[j], parsed[i]];
         }
-        
+
         setQuestions(parsed.slice(0, 50)); // Take first 50 shuffled questions
         setLoading(false);
       } catch (error) {
@@ -120,10 +120,12 @@ const TechnicalMCQGame = ({ dataset, onSubmit }) => {
                 bgcolor: isCorrectAnswer ? '#d1fae5' : isWrongAnswer ? '#fee2e2' : isSelected ? '#f3e8ff' : 'white',
                 cursor: showResult ? 'default' : 'pointer',
                 transition: 'all 0.2s',
-                '&:hover': showResult ? {} : {
-                  borderColor: '#6a0dad',
-                  transform: 'scale(1.02)'
-                }
+                '&:hover': showResult
+                  ? {}
+                  : {
+                      borderColor: '#6a0dad',
+                      transform: 'scale(1.02)'
+                    }
               }}
             >
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>

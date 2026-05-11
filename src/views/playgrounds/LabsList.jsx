@@ -9,36 +9,40 @@ import { motion } from 'framer-motion';
 const MotionCard = motion.create(Card);
 
 const techConfig = {
-  'C': { 
-    color: '#6366f1', bg: '#f5f3ff', 
+  C: {
+    color: '#6366f1',
+    bg: '#f5f3ff',
     subtitle: 'Master C programming fundamentals and system programming',
     highlights: ['Basics', 'Pointers']
   },
-  'C++': { 
-    color: '#ec4899', bg: '#fdf2f8',
+  'C++': {
+    color: '#ec4899',
+    bg: '#fdf2f8',
     subtitle: 'Learn C++ and object-oriented programming concepts',
     highlights: ['OOP', 'STL']
   },
-  'Java': { 
-    color: '#8b5cf6', bg: '#f5f3ff',
+  Java: {
+    color: '#8b5cf6',
+    bg: '#f5f3ff',
     subtitle: 'Java programming and enterprise applications',
     highlights: ['Core Java', 'Collections']
   },
-  'Python': { 
-    color: '#10b981', bg: '#f0fdf4',
+  Python: {
+    color: '#10b981',
+    bg: '#f0fdf4',
     subtitle: 'Python programming from basics to advanced',
     highlights: ['Basics']
   },
-  'JavaScript': { color: '#f59e0b', bg: '#fffbeb', subtitle: 'Web and Server-side JS', highlights: ['DOM', 'Async'] },
-  'React': { color: '#06b6d4', bg: '#ecfeff', subtitle: 'Modern Web UI', highlights: ['Hooks', 'State'] },
-  'MongoDB': { color: '#10b981', bg: '#f0fdf4', subtitle: 'NoSQL Database Management', highlights: ['Queries', 'Indexing'] },
-  'MySQL': { color: '#3b82f6', bg: '#eff6ff', subtitle: 'Relational Database (SQL)', highlights: ['DDL/DML', 'Joins'] },
-  'AI': { color: '#ef4444', bg: '#fef2f2', subtitle: 'Artificial Intelligence Core', highlights: ['Search', 'Logic'] },
-  'ML': { color: '#8b5cf6', bg: '#f5f3ff', subtitle: 'Predictive Modeling', highlights: ['Training', 'Stats'] },
-  'IoT': { color: '#00dc82', bg: '#f0fdf9', subtitle: 'Connected Systems', highlights: ['Sensors', 'Cloud'] },
+  JavaScript: { color: '#f59e0b', bg: '#fffbeb', subtitle: 'Web and Server-side JS', highlights: ['DOM', 'Async'] },
+  React: { color: '#06b6d4', bg: '#ecfeff', subtitle: 'Modern Web UI', highlights: ['Hooks', 'State'] },
+  MongoDB: { color: '#10b981', bg: '#f0fdf4', subtitle: 'NoSQL Database Management', highlights: ['Queries', 'Indexing'] },
+  MySQL: { color: '#3b82f6', bg: '#eff6ff', subtitle: 'Relational Database (SQL)', highlights: ['DDL/DML', 'Joins'] },
+  AI: { color: '#ef4444', bg: '#fef2f2', subtitle: 'Artificial Intelligence Core', highlights: ['Search', 'Logic'] },
+  ML: { color: '#8b5cf6', bg: '#f5f3ff', subtitle: 'Predictive Modeling', highlights: ['Training', 'Stats'] },
+  IoT: { color: '#00dc82', bg: '#f0fdf9', subtitle: 'Connected Systems', highlights: ['Sensors', 'Cloud'] },
   'Data Structures': { color: '#6366f1', bg: '#f5f3ff', subtitle: 'Core Logic & Data', highlights: ['Lists', 'Trees'] },
   'Operating Systems': { color: '#ec4899', bg: '#fdf2f8', subtitle: 'System Architecture', highlights: ['Scheduling', 'Memory'] },
-  'Computer Networks': { color: '#8b5cf6', bg: '#f5f3ff', subtitle: 'Communication Protocols', highlights: ['Sockets', 'Layers'] },
+  'Computer Networks': { color: '#8b5cf6', bg: '#f5f3ff', subtitle: 'Communication Protocols', highlights: ['Sockets', 'Layers'] }
 };
 
 export default function LabsList() {
@@ -80,7 +84,10 @@ export default function LabsList() {
         <Link
           color="inherit"
           href="#"
-          onClick={(e) => { e.preventDefault(); navigate('/'); }}
+          onClick={(e) => {
+            e.preventDefault();
+            navigate('/');
+          }}
           sx={{ cursor: 'pointer', fontWeight: 600, color: '#64748b', '&:hover': { color: '#6366f1' } }}
         >
           Dashboard
@@ -133,43 +140,54 @@ export default function LabsList() {
                   display: 'flex',
                   flexDirection: 'column',
                   height: '100%',
-                  '&:hover': { 
-                    transform: 'translateY(-5px)', 
-                    boxShadow: '0 12px 30px rgba(15, 23, 42, 0.08)' 
+                  '&:hover': {
+                    transform: 'translateY(-5px)',
+                    boxShadow: '0 12px 30px rgba(15, 23, 42, 0.08)'
                   }
                 }}
                 onClick={() => navigate(`/labs/technology/${encodeURIComponent(technology)}`)}
               >
                 <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', p: { xs: 2.5, sm: 3 } }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2.5 }}>
-                    <Box sx={{ 
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', 
-                      width: 52, height: 52, 
-                      borderRadius: '12px', 
-                      bgcolor: theme.bg, 
-                      color: theme.color 
-                    }}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: 52,
+                        height: 52,
+                        borderRadius: '12px',
+                        bgcolor: theme.bg,
+                        color: theme.color
+                      }}
+                    >
                       <Code sx={{ fontSize: 28 }} />
                     </Box>
                   </Box>
-                  
-                  <Typography variant="h3" sx={{ 
-                    fontWeight: 800, 
-                    color: '#1e293b', 
-                    mb: 0.5,
-                    fontSize: '1.25rem',
-                    textTransform: 'capitalize'
-                  }}>
+
+                  <Typography
+                    variant="h3"
+                    sx={{
+                      fontWeight: 800,
+                      color: '#1e293b',
+                      mb: 0.5,
+                      fontSize: '1.25rem',
+                      textTransform: 'capitalize'
+                    }}
+                  >
                     {technology} Programming Lab
                   </Typography>
-                  
-                  <Typography variant="body2" sx={{ 
-                    color: '#64748b', 
-                    fontWeight: 600, 
-                    lineHeight: 1.4,
-                    mb: 2,
-                    fontSize: '0.85rem'
-                  }}>
+
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: '#64748b',
+                      fontWeight: 600,
+                      lineHeight: 1.4,
+                      mb: 2,
+                      fontSize: '0.85rem'
+                    }}
+                  >
                     {theme.subtitle || `Comprehensive ${technology} engineering curriculum and experiments.`}
                   </Typography>
 
@@ -180,7 +198,7 @@ export default function LabsList() {
                   </Typography>
 
                   <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                    {(theme.highlights || ['Foundations', 'Advanced']).map(h => (
+                    {(theme.highlights || ['Foundations', 'Advanced']).map((h) => (
                       <Typography key={h} sx={{ color: '#94a3b8', fontSize: '0.75rem', fontWeight: 700 }}>
                         {h}
                       </Typography>

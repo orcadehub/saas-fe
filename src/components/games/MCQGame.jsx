@@ -1,12 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Box,
-  Typography,
-  Radio,
-  RadioGroup,
-  FormControlLabel,
-  Button
-} from '@mui/material';
+import { Box, Typography, Radio, RadioGroup, FormControlLabel, Button } from '@mui/material';
 
 const MCQGame = ({ level, onSubmit, showResult, isCorrect, disabled }) => {
   const [selectedAnswer, setSelectedAnswer] = useState('');
@@ -76,12 +69,7 @@ const MCQGame = ({ level, onSubmit, showResult, isCorrect, disabled }) => {
 
       {!showResult && (
         <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
-          <Button
-            variant="contained"
-            size="large"
-            onClick={handleSubmit}
-            disabled={!selectedAnswer || disabled}
-          >
+          <Button variant="contained" size="large" onClick={handleSubmit} disabled={!selectedAnswer || disabled}>
             Submit Answer
           </Button>
         </Box>

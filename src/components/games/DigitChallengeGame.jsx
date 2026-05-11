@@ -5,7 +5,7 @@ const generateEquation = (numDigits) => {
   const operators = ['+', '-', '*'];
   let digits = [];
   let ops = [];
-  
+
   // Generate unique random digits (1-9)
   const availableDigits = [1, 2, 3, 4, 5, 6, 7, 8, 9];
   for (let i = 0; i < numDigits; i++) {
@@ -13,12 +13,12 @@ const generateEquation = (numDigits) => {
     digits.push(availableDigits[randomIndex]);
     availableDigits.splice(randomIndex, 1);
   }
-  
+
   // Generate operators (one less than digits)
   for (let i = 0; i < numDigits - 1; i++) {
     ops.push(operators[Math.floor(Math.random() * operators.length)]);
   }
-  
+
   // Build equation string and calculate answer
   let equation = '';
   for (let i = 0; i < numDigits; i++) {
@@ -27,7 +27,7 @@ const generateEquation = (numDigits) => {
       equation += ops[i];
     }
   }
-  
+
   // Calculate answer
   let answerEquation = '';
   for (let i = 0; i < numDigits; i++) {
@@ -37,10 +37,10 @@ const generateEquation = (numDigits) => {
     }
   }
   const answer = eval(answerEquation);
-  
+
   // Generate 3x3 matrix including the correct digits
   const matrixDigits = [...digits]; // Start with correct digits
-  
+
   // Add random digits to fill the matrix
   while (matrixDigits.length < 9) {
     const randomDigit = Math.floor(Math.random() * 9) + 1;
@@ -48,18 +48,14 @@ const generateEquation = (numDigits) => {
       matrixDigits.push(randomDigit);
     }
   }
-  
+
   // Shuffle matrix digits
   for (let i = matrixDigits.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [matrixDigits[i], matrixDigits[j]] = [matrixDigits[j], matrixDigits[i]];
   }
-  const matrix = [
-    matrixDigits.slice(0, 3),
-    matrixDigits.slice(3, 6),
-    matrixDigits.slice(6, 9)
-  ];
-  
+  const matrix = [matrixDigits.slice(0, 3), matrixDigits.slice(3, 6), matrixDigits.slice(6, 9)];
+
   return { equation, digits, answer, matrix };
 };
 
@@ -71,7 +67,7 @@ const DigitChallengeGame = ({ difficulty = 'Easy', onComplete }) => {
   };
 
   const { numDigits, questions: totalQuestions } = config[difficulty];
-  
+
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [equation, setEquation] = useState('');
   const [correctDigits, setCorrectDigits] = useState([]);
@@ -106,7 +102,7 @@ const DigitChallengeGame = ({ difficulty = 'Easy', onComplete }) => {
       const oldValue = newInputs[selectedIndex];
       newInputs[selectedIndex] = num.toString();
       setUserInputs(newInputs);
-      
+
       const newUsedDigits = [...usedDigits];
       if (oldValue) {
         const oldIndex = newUsedDigits.indexOf(parseInt(oldValue));
@@ -114,7 +110,7 @@ const DigitChallengeGame = ({ difficulty = 'Easy', onComplete }) => {
       }
       newUsedDigits.push(num);
       setUsedDigits(newUsedDigits);
-      
+
       setSelectedIndex(null);
     }
   };
@@ -131,7 +127,7 @@ const DigitChallengeGame = ({ difficulty = 'Easy', onComplete }) => {
       const removedValue = newInputs[index];
       newInputs[index] = '';
       setUserInputs(newInputs);
-      
+
       if (removedValue) {
         const newUsedDigits = [...usedDigits];
         const digitIndex = newUsedDigits.indexOf(parseInt(removedValue));
@@ -143,7 +139,7 @@ const DigitChallengeGame = ({ difficulty = 'Easy', onComplete }) => {
 
   const handleSubmit = () => {
     // Build the user's equation string from their placed digits + the operators
-    const equationOps = equation.split('x').filter(p => p); // operators between digits
+    const equationOps = equation.split('x').filter((p) => p); // operators between digits
     let userEquation = '';
     for (let i = 0; i < userInputs.length; i++) {
       userEquation += userInputs[i];
@@ -151,7 +147,7 @@ const DigitChallengeGame = ({ difficulty = 'Easy', onComplete }) => {
         userEquation += equationOps[i].replace('×', '*').replace('÷', '/');
       }
     }
-    
+
     // Evaluate the user's equation and check if it equals the target answer
     let userAnswer;
     try {
@@ -159,9 +155,9 @@ const DigitChallengeGame = ({ difficulty = 'Easy', onComplete }) => {
     } catch {
       userAnswer = null;
     }
-    
+
     const isCorrect = userAnswer === answer;
-    
+
     if (isCorrect) {
       setScore(score + 1);
       setFeedback('✓ Correct!');
@@ -182,7 +178,9 @@ const DigitChallengeGame = ({ difficulty = 'Easy', onComplete }) => {
   if (gameOver) {
     return (
       <Box sx={{ textAlign: 'center', p: 4 }}>
-        <Typography variant="h4" sx={{ mb: 2 }}>Game Complete!</Typography>
+        <Typography variant="h4" sx={{ mb: 2 }}>
+          Game Complete!
+        </Typography>
         <Typography variant="h5" sx={{ mb: 3 }}>
           Score: {score}/{totalQuestions}
         </Typography>
@@ -196,8 +194,8 @@ const DigitChallengeGame = ({ difficulty = 'Easy', onComplete }) => {
     );
   }
 
-  const equationParts = equation.split('x').filter(p => p);
-  const allFilled = userInputs.every(input => input !== '');
+  const equationParts = equation.split('x').filter((p) => p);
+  const allFilled = userInputs.every((input) => input !== '');
 
   return (
     <Box sx={{ maxWidth: 700, mx: 'auto', p: 3 }}>
@@ -205,7 +203,7 @@ const DigitChallengeGame = ({ difficulty = 'Easy', onComplete }) => {
         <Typography variant="h6" sx={{ mb: 3, color: 'text.secondary' }}>
           Click on a box below, then select a digit from the grid:
         </Typography>
-        
+
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 2, flexWrap: 'wrap' }}>
           {userInputs.map((input, idx) => (
             <React.Fragment key={idx}>
@@ -232,11 +230,7 @@ const DigitChallengeGame = ({ difficulty = 'Easy', onComplete }) => {
                   {input || '?'}
                 </Box>
                 {input && !feedback && (
-                  <Button
-                    size="small"
-                    onClick={() => handleRemove(idx)}
-                    sx={{ minWidth: 'auto', px: 1, py: 0.5, fontSize: '0.7rem' }}
-                  >
+                  <Button size="small" onClick={() => handleRemove(idx)} sx={{ minWidth: 'auto', px: 1, py: 0.5, fontSize: '0.7rem' }}>
                     Remove
                   </Button>
                 )}
@@ -256,7 +250,7 @@ const DigitChallengeGame = ({ difficulty = 'Easy', onComplete }) => {
         <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary', fontWeight: 600 }}>
           Select digits from the grid:
         </Typography>
-        
+
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, mb: 3 }}>
           {matrix.map((row, rowIdx) => (
             <Box key={rowIdx} sx={{ display: 'flex', gap: 1 }}>
@@ -279,7 +273,10 @@ const DigitChallengeGame = ({ difficulty = 'Easy', onComplete }) => {
                     cursor: selectedIndex !== null && !feedback && !usedDigits.includes(num) ? 'pointer' : 'default',
                     opacity: usedDigits.includes(num) ? 0.4 : 1,
                     transition: 'all 0.2s',
-                    '&:hover': selectedIndex !== null && !feedback && !usedDigits.includes(num) ? { bgcolor: 'primary.light', transform: 'scale(1.1)' } : {}
+                    '&:hover':
+                      selectedIndex !== null && !feedback && !usedDigits.includes(num)
+                        ? { bgcolor: 'primary.light', transform: 'scale(1.1)' }
+                        : {}
                   }}
                 >
                   {num}
@@ -290,10 +287,10 @@ const DigitChallengeGame = ({ difficulty = 'Easy', onComplete }) => {
         </Box>
 
         {feedback && (
-          <Typography 
-            variant="h6" 
-            sx={{ 
-              mt: 3, 
+          <Typography
+            variant="h6"
+            sx={{
+              mt: 3,
               color: feedback.includes('✓') ? 'success.main' : 'error.main',
               fontWeight: 600
             }}
@@ -301,14 +298,9 @@ const DigitChallengeGame = ({ difficulty = 'Easy', onComplete }) => {
             {feedback}
           </Typography>
         )}
-        
+
         {!feedback && (
-          <Button
-            variant="contained"
-            onClick={handleSubmit}
-            disabled={!allFilled}
-            sx={{ mt: 3, px: 4, py: 1.5 }}
-          >
+          <Button variant="contained" onClick={handleSubmit} disabled={!allFilled} sx={{ mt: 3, px: 4, py: 1.5 }}>
             Submit
           </Button>
         )}

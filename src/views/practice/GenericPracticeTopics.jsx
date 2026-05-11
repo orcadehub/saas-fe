@@ -1,5 +1,19 @@
 import { useState, useEffect } from 'react';
-import { Box, Card, CardContent, Typography, Breadcrumbs, Link, Chip, Button, Dialog, DialogTitle, DialogContent, DialogActions, CircularProgress } from '@mui/material';
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  Breadcrumbs,
+  Link,
+  Chip,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  CircularProgress
+} from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { IconChevronRight, IconClipboardList, IconBook, IconCalculator, IconBrain } from '@tabler/icons-react';
 import CardSkeleton from 'ui-component/skeletons/CardSkeleton';
@@ -40,9 +54,9 @@ export default function GenericPracticeTopics({ category, title, icon: Icon, fet
         testQuestions = await apiService.generateAptitudeTest(selectedTopics);
       } else {
         // Fallback or generic method if implemented
-        testQuestions = await apiService.generateAptitudeTest(selectedTopics); 
+        testQuestions = await apiService.generateAptitudeTest(selectedTopics);
       }
-      
+
       // Store questions in session storage to pass to the test page
       sessionStorage.setItem('testQuestions', JSON.stringify(testQuestions));
       sessionStorage.setItem('testTitle', `${title} Mastery Test`);
@@ -80,7 +94,16 @@ export default function GenericPracticeTopics({ category, title, icon: Icon, fet
         <Typography sx={{ fontWeight: 800, color: '#1e293b' }}>{title}</Typography>
       </Breadcrumbs>
 
-      <Box sx={{ mb: 6, display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'flex-end' }, gap: 3 }}>
+      <Box
+        sx={{
+          mb: 6,
+          display: 'flex',
+          flexDirection: { xs: 'column', sm: 'row' },
+          justifyContent: 'space-between',
+          alignItems: { xs: 'flex-start', sm: 'flex-end' },
+          gap: 3
+        }}
+      >
         <Box>
           <Typography variant="h1" sx={{ fontWeight: 900, color: '#1e293b', mb: 1, fontSize: '2.5rem', letterSpacing: '-0.02em' }}>
             {title} Training
@@ -143,9 +166,9 @@ export default function GenericPracticeTopics({ category, title, icon: Icon, fet
                   display: 'flex',
                   flexDirection: 'column',
                   height: '100%',
-                  '&:hover': { 
-                    transform: 'translateY(-5px)', 
-                    boxShadow: '0 12px 30px rgba(15, 23, 42, 0.08)' 
+                  '&:hover': {
+                    transform: 'translateY(-5px)',
+                    boxShadow: '0 12px 30px rgba(15, 23, 42, 0.08)'
                   }
                 }}
                 onClick={() => {
@@ -158,44 +181,58 @@ export default function GenericPracticeTopics({ category, title, icon: Icon, fet
               >
                 <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', p: { xs: 2.5, sm: 3 } }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2.5 }}>
-                    <Box sx={{ 
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', 
-                      width: 52, height: 52, 
-                      borderRadius: '12px', 
-                      bgcolor: theme.bg, 
-                      color: theme.color 
-                    }}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: 52,
+                        height: 52,
+                        borderRadius: '12px',
+                        bgcolor: theme.bg,
+                        color: theme.color
+                      }}
+                    >
                       <Icon size={28} />
                     </Box>
-                    <Box sx={{ 
-                      bgcolor: theme.bg, 
-                      color: theme.color, 
-                      px: 1.5, py: 0.5, 
-                      borderRadius: '10px', 
-                      fontSize: '0.75rem', 
-                      fontWeight: 800,
-                      border: `1px solid ${theme.color}20`
-                    }}>
+                    <Box
+                      sx={{
+                        bgcolor: theme.bg,
+                        color: theme.color,
+                        px: 1.5,
+                        py: 0.5,
+                        borderRadius: '10px',
+                        fontSize: '0.75rem',
+                        fontWeight: 800,
+                        border: `1px solid ${theme.color}20`
+                      }}
+                    >
                       {topic.count} Challenges
                     </Box>
                   </Box>
-                  
-                  <Typography variant="h3" sx={{ 
-                    fontWeight: 800, 
-                    color: '#1e293b', 
-                    mb: 1.5,
-                    fontSize: '1.25rem',
-                    textTransform: 'capitalize'
-                  }}>
+
+                  <Typography
+                    variant="h3"
+                    sx={{
+                      fontWeight: 800,
+                      color: '#1e293b',
+                      mb: 1.5,
+                      fontSize: '1.25rem',
+                      textTransform: 'capitalize'
+                    }}
+                  >
                     {topic.topic}
                   </Typography>
-                  
-                  <Typography variant="body2" sx={{ 
-                    color: '#64748b', 
-                    fontWeight: 600, 
-                    lineHeight: 1.6,
-                    flexGrow: 1 
-                  }}>
+
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: '#64748b',
+                      fontWeight: 600,
+                      lineHeight: 1.6,
+                      flexGrow: 1
+                    }}
+                  >
                     Explore specialized {topic.topic} modules and track your progress.
                   </Typography>
                 </CardContent>
@@ -205,8 +242,8 @@ export default function GenericPracticeTopics({ category, title, icon: Icon, fet
         </Box>
       )}
       {/* Test Configuration Modal */}
-      <Dialog 
-        open={showTestModal} 
+      <Dialog
+        open={showTestModal}
         onClose={() => setShowTestModal(false)}
         maxWidth="sm"
         fullWidth
@@ -235,9 +272,9 @@ export default function GenericPracticeTopics({ category, title, icon: Icon, fet
                   label={topic.topic}
                   onClick={() => {
                     if (isSelected) {
-                      setSelectedTopics(prev => prev.filter(t => t !== topic.topic));
+                      setSelectedTopics((prev) => prev.filter((t) => t !== topic.topic));
                     } else {
-                      setSelectedTopics(prev => [...prev, topic.topic]);
+                      setSelectedTopics((prev) => [...prev, topic.topic]);
                     }
                   }}
                   sx={{
@@ -262,10 +299,7 @@ export default function GenericPracticeTopics({ category, title, icon: Icon, fet
           </Box>
         </DialogContent>
         <DialogActions sx={{ p: 3, pt: 0 }}>
-          <Button 
-            onClick={() => setShowTestModal(false)}
-            sx={{ fontWeight: 700, color: '#64748b' }}
-          >
+          <Button onClick={() => setShowTestModal(false)} sx={{ fontWeight: 700, color: '#64748b' }}>
             Cancel
           </Button>
           <Button

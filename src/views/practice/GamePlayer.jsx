@@ -1,11 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Box,
-  Typography,
-  Button,
-  IconButton,
-  Dialog
-} from '@mui/material';
+import { Box, Typography, Button, IconButton, Dialog } from '@mui/material';
 import { ArrowBack, Lightbulb, Close, AccessTime } from '@mui/icons-material';
 import { useNavigate, useParams } from 'react-router-dom';
 import MainCard from 'ui-component/cards/MainCard';
@@ -90,7 +84,7 @@ const GamePlayer = () => {
   useEffect(() => {
     if (game && timeLeft > 0 && !gameCompleted) {
       const timer = setInterval(() => {
-        setTimeLeft(prev => {
+        setTimeLeft((prev) => {
           if (prev <= 1) {
             setGameCompleted(true);
             return 0;
@@ -106,67 +100,67 @@ const GamePlayer = () => {
     try {
       if (subtopicId === 'subtopic-gamified-maze-games') {
         const mazeQs = getMazeQuestions(subtopicId);
-        const mazeGame = mazeQs.find(q => q._id === questionId);
+        const mazeGame = mazeQs.find((q) => q._id === questionId);
         if (mazeGame) {
           setGame(mazeGame);
           setTimeLeft(mazeGame.totalTimeLimit || 1200);
           return;
         }
       }
-      
+
       if (subtopicId === 'subtopic-gamified-memory-games') {
         const memoryQs = getMemoryGameQuestions(subtopicId);
-        const memoryGame = memoryQs.find(q => q._id === questionId);
+        const memoryGame = memoryQs.find((q) => q._id === questionId);
         if (memoryGame) {
           setGame(memoryGame);
           setTimeLeft(memoryGame.totalTimeLimit || 1200);
           return;
         }
       }
-      
+
       if (subtopicId === 'subtopic-gamified-puzzle-games') {
         const puzzleQs = getPuzzleGameQuestions(subtopicId);
-        const puzzleGame = puzzleQs.find(q => q._id === questionId);
+        const puzzleGame = puzzleQs.find((q) => q._id === questionId);
         if (puzzleGame) {
           setGame(puzzleGame);
           setTimeLeft(puzzleGame.totalTimeLimit || 1200);
           return;
         }
       }
-      
+
       if (subtopicId === 'subtopic-gamified-balloon-pop-games') {
         const balloonQs = getBalloonPopGameQuestions(subtopicId);
-        const balloonGame = balloonQs.find(q => q._id === questionId);
+        const balloonGame = balloonQs.find((q) => q._id === questionId);
         if (balloonGame) {
           setGame(balloonGame);
           setTimeLeft(balloonGame.totalTimeLimit || 1200);
           return;
         }
       }
-      
+
       if (subtopicId === 'subtopic-gamified-digit-challenge') {
         const digitQs = getDigitChallengeQuestions(subtopicId);
-        const digitGame = digitQs.find(q => q._id === questionId);
+        const digitGame = digitQs.find((q) => q._id === questionId);
         if (digitGame) {
           setGame(digitGame);
           setTimeLeft(digitGame.totalTimeLimit || 300);
           return;
         }
       }
-      
+
       if (subtopicId.startsWith('subtopic-accenture-')) {
         const accentureQs = getAccentureGames(subtopicId);
-        const accentureGame = accentureQs.find(q => q._id === questionId);
+        const accentureGame = accentureQs.find((q) => q._id === questionId);
         if (accentureGame) {
           setGame(accentureGame);
           setTimeLeft(accentureGame.totalTimeLimit || 300);
           return;
         }
       }
-      
+
       if (subtopicId.startsWith('subtopic-aptitude-')) {
         const aptitudeQs = getAptitudeGames(subtopicId);
-        const aptitudeGame = aptitudeQs.find(q => q._id === questionId);
+        const aptitudeGame = aptitudeQs.find((q) => q._id === questionId);
         if (aptitudeGame) {
           setGame(aptitudeGame);
           setTimeLeft(aptitudeGame.totalTimeLimit || 300);
@@ -181,11 +175,11 @@ const GamePlayer = () => {
   const handleSubmitAnswer = async () => {
     const level = game.levels[currentLevel];
     let correct = false;
-    
+
     console.log('Submit - selectedAnswer:', selectedAnswer, 'mazeHasPath:', mazeHasPath);
-    
+
     if (level.questionType === 'MCQ') {
-      const selectedOption = shuffledOptions.find(opt => opt.displayId === selectedDisplayId);
+      const selectedOption = shuffledOptions.find((opt) => opt.displayId === selectedDisplayId);
       correct = selectedOption && selectedOption.id === level.correctAnswer;
     } else if (level.questionType === 'FillBlank') {
       correct = selectedAnswer.trim().toLowerCase() === level.correctAnswer.toLowerCase();
@@ -194,20 +188,18 @@ const GamePlayer = () => {
         correct = !mazeHasPath;
         console.log('No-path answer - correct:', correct);
         if (correct) {
-          setScore(prev => prev + level.pointsForLevel);
+          setScore((prev) => prev + level.pointsForLevel);
         }
       } else {
         correct = selectedAnswer === 'completed';
         if (correct) {
-          setScore(prev => prev + level.pointsForLevel);
+          setScore((prev) => prev + level.pointsForLevel);
         }
       }
     }
-    
+
     setIsCorrect(correct);
     setShowResult(true);
-
-
   };
 
   const handleNextLevel = async () => {
@@ -221,7 +213,6 @@ const GamePlayer = () => {
       setMazeDisabled(false);
       setMazeHasPath(null);
     } else {
-
       setGameCompleted(true);
     }
   };
@@ -230,7 +221,7 @@ const GamePlayer = () => {
     if (!usedHints.includes(hint.hintNumber)) {
       setUsedHints([...usedHints, hint.hintNumber]);
       setScore(Math.max(0, score - hint.pointsDeduction));
-      
+
       if (level.questionType === 'Interactive') {
         setShowMazePath(true);
         setTimeout(() => setShowMazePath(false), 2000);
@@ -248,8 +239,8 @@ const GamePlayer = () => {
 
   const level = game.levels[currentLevel];
   const progress = ((currentLevel + 1) / game.levels.length) * 100;
-  
-  const displayQuestionInfo = aptitudeQuestionInfo 
+
+  const displayQuestionInfo = aptitudeQuestionInfo
     ? `Question ${aptitudeQuestionInfo.current} of ${aptitudeQuestionInfo.total}`
     : `Question ${currentLevel + 1} of ${game.levels.length}`;
 
@@ -262,16 +253,46 @@ const GamePlayer = () => {
           </IconButton>
           <Box>
             <Typography variant="h3">{game.title}</Typography>
-            <Typography variant="body2" color="text.secondary">{displayQuestionInfo}</Typography>
+            <Typography variant="body2" color="text.secondary">
+              {displayQuestionInfo}
+            </Typography>
           </Box>
         </Box>
         <Box sx={{ display: 'flex', gap: 2 }}>
-          <Box sx={{ px: 2, py: 1, borderRadius: 2, bgcolor: 'background.paper', border: 1, borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box
+            sx={{
+              px: 2,
+              py: 1,
+              borderRadius: 2,
+              bgcolor: 'background.paper',
+              border: 1,
+              borderColor: 'divider',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1
+            }}
+          >
             <AccessTime fontSize="small" />
-            <Typography>{Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}</Typography>
+            <Typography>
+              {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
+            </Typography>
           </Box>
-          <Box sx={{ px: 2, py: 1, borderRadius: 2, bgcolor: 'background.paper', border: 1, borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Typography>Score: {score} / {game.points}</Typography>
+          <Box
+            sx={{
+              px: 2,
+              py: 1,
+              borderRadius: 2,
+              bgcolor: 'background.paper',
+              border: 1,
+              borderColor: 'divider',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1
+            }}
+          >
+            <Typography>
+              Score: {score} / {game.points}
+            </Typography>
           </Box>
         </Box>
       </Box>
@@ -280,73 +301,549 @@ const GamePlayer = () => {
       </Box>
 
       <Box>
-          {/* Interactive Maze Game */}
-          {level.questionType === 'Interactive' && !showResult && (
-            <Box sx={{ maxWidth: 700, mx: 'auto' }}>
-              <MazeGame 
+        {/* Interactive Maze Game */}
+        {level.questionType === 'Interactive' && !showResult && (
+          <Box sx={{ maxWidth: 700, mx: 'auto' }}>
+            <MazeGame
+              level={level}
+              themeColor={themeColor}
+              onComplete={(finalScore) => {
+                setSelectedAnswer('completed');
+                setIsCorrect(true);
+                setScore(score + finalScore);
+                // Auto-advance to next level
+                if (currentLevel < game.levels.length - 1) {
+                  setTimeout(() => {
+                    setCurrentLevel(currentLevel + 1);
+                    setSelectedAnswer('');
+                    setSelectedDisplayId('');
+                    setShowResult(false);
+                    setUsedHints([]);
+                    setShowMazePath(false);
+                    setMazeDisabled(false);
+                    setMazeHasPath(null);
+                  }, 1500);
+                } else {
+                  setTimeout(() => setGameCompleted(true), 1500);
+                }
+              }}
+            />
+          </Box>
+        )}
+
+        {level.questionType === 'MemoryCard' ? (
+          <Box>
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="h5" sx={{ fontWeight: 700, color: themeColor, lineHeight: 1.6 }}>
+                {level.question} {level.question}
+              </Typography>
+            </Box>
+
+            {!showResult && (
+              <MemoryCardGame
                 level={level}
                 themeColor={themeColor}
-                onComplete={(finalScore) => {
+                onSubmit={(success) => {
                   setSelectedAnswer('completed');
-                  setIsCorrect(true);
-                  setScore(score + finalScore);
-                  // Auto-advance to next level
-                  if (currentLevel < game.levels.length - 1) {
-                    setTimeout(() => {
-                      setCurrentLevel(currentLevel + 1);
-                      setSelectedAnswer('');
-                      setSelectedDisplayId('');
-                      setShowResult(false);
-                      setUsedHints([]);
-                      setShowMazePath(false);
-                      setMazeDisabled(false);
-                      setMazeHasPath(null);
-                    }, 1500);
-                  } else {
-                    setTimeout(() => setGameCompleted(true), 1500);
+                  setIsCorrect(success);
+                  setShowResult(true);
+                  if (success) setScore(score + level.pointsForLevel);
+                }}
+              />
+            )}
+
+            {showResult && (
+              <Box
+                sx={{
+                  mb: 3,
+                  p: 3,
+                  borderRadius: 3,
+                  border: '2px solid',
+                  borderColor: isCorrect ? '#10b981' : '#ef4444',
+                  background: isCorrect ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)'
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+                  <Typography sx={{ fontSize: '2.5rem' }}>{isCorrect ? '🎉' : '😔'}</Typography>
+                  <Typography variant="h5" sx={{ fontWeight: 700, color: isCorrect ? '#059669' : '#dc2626' }}>
+                    {isCorrect ? 'Correct!' : 'Incorrect'}
+                  </Typography>
+                </Box>
+                <Typography sx={{ color: '#374151', fontSize: '1.125rem' }}>
+                  {isCorrect ? `+${level.pointsForLevel} points earned!` : 'Try again!'}
+                </Typography>
+              </Box>
+            )}
+
+            {showResult && (
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <Button
+                  onClick={handleNextLevel}
+                  sx={{
+                    px: 4,
+                    py: 1.5,
+                    borderRadius: 2,
+                    fontWeight: 700,
+                    fontSize: '1.125rem',
+                    background: 'linear-gradient(to right, #6a0dad, #c77dff)',
+                    color: 'white',
+                    boxShadow: '0 10px 30px rgba(106,13,173,0.5)',
+                    '&:hover': { background: 'linear-gradient(to right, #560bad, #b5179e)', transform: 'scale(1.05)' },
+                    transition: 'all 0.3s'
+                  }}
+                >
+                  {currentLevel < game.levels.length - 1 ? 'Next Level →' : 'Finish Game 🏆'}
+                </Button>
+              </Box>
+            )}
+          </Box>
+        ) : (
+          <Box>
+            {/* Question */}
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="h5" sx={{ fontWeight: 700, color: themeColor, lineHeight: 1.6 }}>
+                {level.question}
+              </Typography>
+            </Box>
+
+            {/* Options */}
+            {level.questionType === 'MCQ' && !level.correctAnswer.includes('dataset') && (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mb: 3 }}>
+                {shuffledOptions.map((option) => {
+                  const isSelected = selectedDisplayId === option.displayId;
+                  const isCorrectAnswer = showResult && option.id === level.correctAnswer;
+                  const isWrongAnswer = showResult && isSelected && option.id !== level.correctAnswer;
+
+                  return (
+                    <Box
+                      key={option.id}
+                      onClick={() => !showResult && (setSelectedAnswer(option.id), setSelectedDisplayId(option.displayId))}
+                      sx={{
+                        p: 2,
+                        borderRadius: 2,
+                        border: '2px solid',
+                        borderColor: isCorrectAnswer ? '#10b981' : isWrongAnswer ? '#ef4444' : isSelected ? themeColor : `${themeColor}4D`,
+                        background: isCorrectAnswer
+                          ? 'linear-gradient(to right, #10b981, #059669)'
+                          : isWrongAnswer
+                            ? 'linear-gradient(to right, #ef4444, #dc2626)'
+                            : isSelected
+                              ? 'linear-gradient(to right, #6a0dad, #9d4edd)'
+                              : '#faf5ff',
+                        cursor: showResult ? 'default' : 'pointer',
+                        transition: 'all 0.3s',
+                        boxShadow: isCorrectAnswer || isWrongAnswer || isSelected ? '0 10px 30px rgba(0,0,0,0.3)' : 'none',
+                        '&:hover': showResult ? {} : { bgcolor: `${themeColor}14`, borderColor: themeColor, transform: 'scale(1.02)' },
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 2
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          width: 40,
+                          height: 40,
+                          borderRadius: '50%',
+                          bgcolor: 'rgba(255,255,255,0.2)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontWeight: 700,
+                          fontSize: '1.125rem',
+                          color: 'white'
+                        }}
+                      >
+                        {option.displayId}
+                      </Box>
+                      <Typography
+                        sx={{
+                          color: isSelected || isCorrectAnswer || isWrongAnswer ? 'white' : '#6a0dad',
+                          fontWeight: 500,
+                          fontSize: '1.125rem',
+                          flex: 1
+                        }}
+                      >
+                        {option.text}
+                      </Typography>
+                      {isCorrectAnswer && <Typography sx={{ fontSize: '1.5rem' }}>✓</Typography>}
+                      {isWrongAnswer && <Typography sx={{ fontSize: '1.5rem' }}>✗</Typography>}
+                    </Box>
+                  );
+                })}
+              </Box>
+            )}
+
+            {/* Fill in the Blank */}
+            {level.questionType === 'FillBlank' && (
+              <Box sx={{ mb: 3 }}>
+                <Box
+                  component="input"
+                  type="text"
+                  value={selectedAnswer}
+                  onChange={(e) => setSelectedAnswer(e.target.value)}
+                  disabled={showResult}
+                  placeholder="Type your answer here..."
+                  sx={{
+                    width: '100%',
+                    p: 2,
+                    fontSize: '1.125rem',
+                    borderRadius: 2,
+                    border: '2px solid',
+                    borderColor: showResult ? (isCorrect ? '#10b981' : '#ef4444') : themeColor,
+                    bgcolor: showResult ? (isCorrect ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)') : 'white',
+                    color: '#6a0dad',
+                    fontWeight: 500,
+                    outline: 'none',
+                    transition: 'all 0.3s',
+                    '&:focus': {
+                      borderColor: themeColor,
+                      boxShadow: `0 0 0 3px ${themeColor}1A`
+                    },
+                    '&:disabled': {
+                      cursor: 'not-allowed',
+                      opacity: 0.7
+                    }
+                  }}
+                />
+              </Box>
+            )}
+
+            {/* Interactive Maze */}
+            {level.questionType === 'Interactive' && !showResult && <Box />}
+
+            {/* Drag and Drop */}
+            {level.questionType === 'DragDrop' && !showResult && (
+              <DragDropGame
+                level={level}
+                onComplete={(success) => {
+                  setSelectedAnswer('completed');
+                  setIsCorrect(success);
+                  setShowResult(true);
+                  if (success) setScore(score + level.pointsForLevel);
+                }}
+              />
+            )}
+
+            {/* Ordering */}
+            {level.questionType === 'Ordering' && !showResult && (
+              <OrderingGame
+                level={level}
+                onComplete={(success) => {
+                  setSelectedAnswer('completed');
+                  setIsCorrect(success);
+                  setShowResult(true);
+                  if (success) setScore(score + level.pointsForLevel);
+                }}
+              />
+            )}
+
+            {/* Balloon Pop */}
+            {level.questionType === 'BalloonPop' && !showResult && (
+              <BalloonPopGame
+                level={level}
+                themeColor={themeColor}
+                onSubmit={(success) => {
+                  setSelectedAnswer('completed');
+                  setIsCorrect(success);
+                  setShowResult(true);
+                  if (success) setScore(score + level.pointsForLevel);
+                }}
+                onHint={() => {
+                  if (level.hints?.[0] && !usedHints.includes(1)) {
+                    setUsedHints([...usedHints, 1]);
+                    setScore(Math.max(0, score - level.hints[0].pointsDeduction));
                   }
                 }}
               />
-            </Box>
-          )}
+            )}
 
-          {level.questionType === 'MemoryCard' ? (
-            <Box>
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="h5" sx={{ fontWeight: 700, color: themeColor, lineHeight: 1.6 }}>
-                  {level.question} {level.question}
-                </Typography>
-              </Box>
+            {/* Sliding Puzzle */}
+            {level.questionType === 'SlidingPuzzle' && !showResult && (
+              <SlidingPuzzle
+                level={level}
+                themeColor={themeColor}
+                onSubmit={(success) => {
+                  setSelectedAnswer('completed');
+                  setIsCorrect(success);
+                  setShowResult(true);
+                  if (success) setScore(score + level.pointsForLevel);
+                }}
+              />
+            )}
 
-              {!showResult && (
-                <MemoryCardGame 
-                  level={level} 
-                  themeColor={themeColor}
-                  onSubmit={(success) => {
+            {/* Escape Room */}
+            {level.questionType === 'EscapeRoom' && !showResult && (
+              <EscapeRoomGame
+                key={currentLevel}
+                level={level}
+                onSubmit={(success) => {
+                  setSelectedAnswer('completed');
+                  setIsCorrect(success);
+                  setShowResult(true);
+                  if (success) setScore(score + level.pointsForLevel);
+                }}
+              />
+            )}
+
+            {/* Technical MCQ from CSV */}
+            {level.questionType === 'MCQ' && level.correctAnswer.includes('dataset') && !showResult && (
+              <TechnicalMCQGame
+                dataset={JSON.parse(level.correctAnswer).dataset}
+                onSubmit={(success) => {
+                  setSelectedAnswer('completed');
+                  setIsCorrect(success);
+                  setShowResult(true);
+                  if (success) setScore(score + level.pointsForLevel);
+                }}
+              />
+            )}
+
+            {/* Digit Challenge Game */}
+            {level.questionType === 'DigitChallenge' && !showResult && (
+              <DigitChallengeGame
+                difficulty={level.difficulty}
+                onComplete={(finalScore) => {
+                  setSelectedAnswer('completed');
+                  setIsCorrect(true);
+                  setShowResult(true);
+                  setScore(score + level.pointsForLevel);
+                }}
+              />
+            )}
+
+            {/* Geo-Sudo Game */}
+            {level.questionType === 'GeoSudo' && !showResult && (
+              <Box sx={{ maxWidth: 700, mx: 'auto' }}>
+                <GeoSudoGame
+                  level={level}
+                  difficulty={level.difficulty}
+                  onComplete={(finalScore) => {
                     setSelectedAnswer('completed');
-                    setIsCorrect(success);
-                    setShowResult(true);
-                    if (success) setScore(score + level.pointsForLevel);
+                    setIsCorrect(true);
+                    setScore(score + finalScore);
+                    // Auto-advance to next level
+                    if (currentLevel < game.levels.length - 1) {
+                      setTimeout(() => {
+                        setCurrentLevel(currentLevel + 1);
+                        setSelectedAnswer('');
+                        setSelectedDisplayId('');
+                        setShowResult(false);
+                        setUsedHints([]);
+                        setShowMazePath(false);
+                        setMazeDisabled(false);
+                        setMazeHasPath(null);
+                      }, 1200);
+                    } else {
+                      setTimeout(() => setGameCompleted(true), 1200);
+                    }
                   }}
                 />
-              )}
+              </Box>
+            )}
 
-              {showResult && (
-                <Box sx={{ mb: 3, p: 3, borderRadius: 3, border: '2px solid', borderColor: isCorrect ? '#10b981' : '#ef4444', background: isCorrect ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-                    <Typography sx={{ fontSize: '2.5rem' }}>{isCorrect ? '🎉' : '😔'}</Typography>
-                    <Typography variant="h5" sx={{ fontWeight: 700, color: isCorrect ? '#059669' : '#dc2626' }}>
-                      {isCorrect ? 'Correct!' : 'Incorrect'}
-                    </Typography>
-                  </Box>
-                  <Typography sx={{ color: '#374151', fontSize: '1.125rem' }}>
-                    {isCorrect ? `+${level.pointsForLevel} points earned!` : 'Try again!'}
+            {/* Inductive Logic Game */}
+            {level.questionType === 'InductiveLogic' && !showResult && (
+              <InductiveLogicGame
+                difficulty={level.difficulty}
+                onComplete={(finalScore) => {
+                  setSelectedAnswer('completed');
+                  setIsCorrect(true);
+                  setShowResult(true);
+                  setScore(score + level.pointsForLevel);
+                }}
+              />
+            )}
+
+            {/* Grid Challenge Game */}
+            {level.questionType === 'GridChallenge' && !showResult && (
+              <GridChallengeGame
+                difficulty={level.difficulty}
+                onComplete={(finalScore) => {
+                  setSelectedAnswer('completed');
+                  setIsCorrect(true);
+                  setShowResult(true);
+                  setScore(score + level.pointsForLevel);
+                }}
+              />
+            )}
+
+            {/* Motion Challenge Game */}
+            {level.questionType === 'MotionChallenge' && !showResult && (
+              <Box sx={{ maxWidth: 700, mx: 'auto' }}>
+                <MotionChallengeGame
+                  level={level}
+                  difficulty={level.difficulty}
+                  onComplete={(finalScore) => {
+                    setSelectedAnswer('completed');
+                    setIsCorrect(true);
+                    setScore(score + finalScore);
+                    // Auto-advance to next level
+                    if (currentLevel < game.levels.length - 1) {
+                      setTimeout(() => {
+                        setCurrentLevel(currentLevel + 1);
+                        setSelectedAnswer('');
+                        setSelectedDisplayId('');
+                        setShowResult(false);
+                        setUsedHints([]);
+                        setShowMazePath(false);
+                        setMazeDisabled(false);
+                        setMazeHasPath(null);
+                      }, 1200);
+                    } else {
+                      setTimeout(() => setGameCompleted(true), 1200);
+                    }
+                  }}
+                />
+              </Box>
+            )}
+
+            {/* Switch Challenge Game */}
+            {level.questionType === 'SwitchChallenge' && !showResult && (
+              <SwitchChallengeGame
+                difficulty={level.difficulty}
+                onComplete={(finalScore) => {
+                  setSelectedAnswer('completed');
+                  setIsCorrect(true);
+                  setShowResult(true);
+                  setScore(score + level.pointsForLevel);
+                }}
+              />
+            )}
+
+            {/* Verbal Ability Game */}
+            {level.questionType === 'VerbalAbility' && !showResult && (
+              <VerbalAbilityGame
+                difficulty={level.difficulty}
+                onQuestionChange={(current, total) => setAptitudeQuestionInfo({ current, total })}
+                onComplete={(finalScore) => {
+                  setSelectedAnswer('completed');
+                  setIsCorrect(true);
+                  setShowResult(true);
+                  setScore(score + level.pointsForLevel);
+                }}
+              />
+            )}
+
+            {/* Quantitative Game */}
+            {level.questionType === 'Quantitative' && !showResult && (
+              <QuantitativeGame
+                difficulty={level.difficulty}
+                onQuestionChange={(current, total) => setAptitudeQuestionInfo({ current, total })}
+                onComplete={(finalScore) => {
+                  setSelectedAnswer('completed');
+                  setIsCorrect(true);
+                  setShowResult(true);
+                  setScore(score + level.pointsForLevel);
+                }}
+              />
+            )}
+
+            {/* Logical Reasoning Game */}
+            {level.questionType === 'LogicalReasoning' && !showResult && (
+              <LogicalReasoningGame
+                difficulty={level.difficulty}
+                onQuestionChange={(current, total) => setAptitudeQuestionInfo({ current, total })}
+                onComplete={(finalScore) => {
+                  setSelectedAnswer('completed');
+                  setIsCorrect(true);
+                  setShowResult(true);
+                  setScore(score + level.pointsForLevel);
+                }}
+              />
+            )}
+
+            {/* Hints - hide for self-managing games */}
+            {!['MotionChallenge', 'GeoSudo'].includes(level.questionType) && level.hints && level.hints.length > 0 && !showResult && (
+              <Box sx={{ mb: 3, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                {level.hints.map((hint) => (
+                  <Button
+                    key={hint.hintNumber}
+                    onClick={() => handleUseHint(hint)}
+                    disabled={usedHints.includes(hint.hintNumber)}
+                    startIcon={<Lightbulb />}
+                    sx={{
+                      px: 2,
+                      py: 1,
+                      borderRadius: 2,
+                      fontWeight: 600,
+                      bgcolor: usedHints.includes(hint.hintNumber) ? 'rgba(251,191,36,0.2)' : '#fbbf24',
+                      color: usedHints.includes(hint.hintNumber) ? '#92400e' : 'white',
+                      border: '1px solid',
+                      borderColor: usedHints.includes(hint.hintNumber) ? 'rgba(251,191,36,0.4)' : '#f59e0b',
+                      '&:hover': {
+                        bgcolor: usedHints.includes(hint.hintNumber) ? 'rgba(251,191,36,0.2)' : '#f59e0b',
+                        boxShadow: '0 5px 20px rgba(251,191,36,0.3)'
+                      }
+                    }}
+                  >
+                    {usedHints.includes(hint.hintNumber) ? hint.hintText : `Hint (-${hint.pointsDeduction} pts)`}
+                  </Button>
+                ))}
+              </Box>
+            )}
+
+            {/* Result - hide for self-managing games */}
+            {!['MotionChallenge', 'GeoSudo'].includes(level.questionType) && showResult && (
+              <Box
+                sx={{
+                  mb: 3,
+                  p: 3,
+                  borderRadius: 3,
+                  border: '2px solid',
+                  borderColor: isCorrect ? '#10b981' : '#ef4444',
+                  background: isCorrect ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)'
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+                  <Typography sx={{ fontSize: '2.5rem' }}>{isCorrect ? '🎉' : '😔'}</Typography>
+                  <Typography variant="h5" sx={{ fontWeight: 700, color: isCorrect ? '#059669' : '#dc2626' }}>
+                    {isCorrect ? 'Correct!' : 'Incorrect'}
                   </Typography>
                 </Box>
-              )}
+                <Typography sx={{ color: '#374151', fontSize: '1.125rem' }}>
+                  {isCorrect ? (
+                    `+${level.pointsForLevel} points earned!`
+                  ) : level.questionType === 'DragDrop' ? (
+                    <Box sx={{ mt: 2 }}>
+                      <Typography sx={{ fontWeight: 600, mb: 1 }}>Correct Matches:</Typography>
+                      {Object.entries(JSON.parse(level.correctAnswer).correct).map(([item, zone]) => (
+                        <Typography key={item} sx={{ ml: 2 }}>
+                          • {item} → {zone}
+                        </Typography>
+                      ))}
+                    </Box>
+                  ) : (
+                    `Correct answer: ${level.correctAnswer}`
+                  )}
+                </Typography>
+              </Box>
+            )}
 
-              {showResult && (
-                <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+            {/* Action Button - hide for self-managing games */}
+            {!['MotionChallenge', 'GeoSudo'].includes(level.questionType) && (
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                {!showResult ? (
+                  <Button
+                    onClick={handleSubmitAnswer}
+                    disabled={!selectedAnswer}
+                    sx={{
+                      px: 4,
+                      py: 1.5,
+                      borderRadius: 2,
+                      fontWeight: 700,
+                      fontSize: '1.125rem',
+                      background: selectedAnswer ? 'linear-gradient(to right, #10b981, #059669)' : `${themeColor}4D`,
+                      color: selectedAnswer ? 'white' : themeColor,
+                      boxShadow: selectedAnswer ? '0 10px 30px rgba(16,185,129,0.5)' : 'none',
+                      '&:hover': selectedAnswer
+                        ? { background: 'linear-gradient(to right, #059669, #047857)', transform: 'scale(1.05)' }
+                        : {},
+                      transition: 'all 0.3s'
+                    }}
+                  >
+                    Submit Answer
+                  </Button>
+                ) : (
                   <Button
                     onClick={handleNextLevel}
                     sx={{
@@ -355,481 +852,52 @@ const GamePlayer = () => {
                       borderRadius: 2,
                       fontWeight: 700,
                       fontSize: '1.125rem',
-                      background: 'linear-gradient(to right, #6a0dad, #c77dff)',
+                      bgcolor: themeColor,
                       color: 'white',
-                      boxShadow: '0 10px 30px rgba(106,13,173,0.5)',
-                      '&:hover': { background: 'linear-gradient(to right, #560bad, #b5179e)', transform: 'scale(1.05)' },
+                      boxShadow: `0 10px 30px ${themeColor}80`,
+                      '&:hover': { bgcolor: themeColor, filter: 'brightness(0.9)', transform: 'scale(1.05)' },
                       transition: 'all 0.3s'
                     }}
                   >
                     {currentLevel < game.levels.length - 1 ? 'Next Level →' : 'Finish Game 🏆'}
                   </Button>
-                </Box>
-              )}
-            </Box>
-          ) : (
-            <Box>
-          {/* Question */}
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="h5" sx={{ fontWeight: 700, color: themeColor, lineHeight: 1.6 }}>
-              {level.question}
-            </Typography>
-          </Box>
-
-          {/* Options */}
-          {level.questionType === 'MCQ' && !level.correctAnswer.includes('dataset') && (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mb: 3 }}>
-              {shuffledOptions.map((option) => {
-                const isSelected = selectedDisplayId === option.displayId;
-                const isCorrectAnswer = showResult && option.id === level.correctAnswer;
-                const isWrongAnswer = showResult && isSelected && option.id !== level.correctAnswer;
-                
-                return (
-                  <Box
-                    key={option.id}
-                    onClick={() => !showResult && (setSelectedAnswer(option.id), setSelectedDisplayId(option.displayId))}
-                    sx={{
-                      p: 2,
-                      borderRadius: 2,
-                      border: '2px solid',
-                    borderColor: isCorrectAnswer ? '#10b981' : isWrongAnswer ? '#ef4444' : isSelected ? themeColor : `${themeColor}4D`,
-                      background: isCorrectAnswer ? 'linear-gradient(to right, #10b981, #059669)' : isWrongAnswer ? 'linear-gradient(to right, #ef4444, #dc2626)' : isSelected ? 'linear-gradient(to right, #6a0dad, #9d4edd)' : '#faf5ff',
-                      cursor: showResult ? 'default' : 'pointer',
-                      transition: 'all 0.3s',
-                      boxShadow: isCorrectAnswer || isWrongAnswer || isSelected ? '0 10px 30px rgba(0,0,0,0.3)' : 'none',
-                      '&:hover': showResult ? {} : { bgcolor: `${themeColor}14`, borderColor: themeColor, transform: 'scale(1.02)' },
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 2
-                    }}
-                  >
-                    <Box sx={{ width: 40, height: 40, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '1.125rem', color: 'white' }}>
-                      {option.displayId}
-                    </Box>
-                    <Typography sx={{ color: isSelected || isCorrectAnswer || isWrongAnswer ? 'white' : '#6a0dad', fontWeight: 500, fontSize: '1.125rem', flex: 1 }}>{option.text}</Typography>
-                    {isCorrectAnswer && <Typography sx={{ fontSize: '1.5rem' }}>✓</Typography>}
-                    {isWrongAnswer && <Typography sx={{ fontSize: '1.5rem' }}>✗</Typography>}
-                  </Box>
-                );
-              })}
-            </Box>
-          )}
-
-          {/* Fill in the Blank */}
-          {level.questionType === 'FillBlank' && (
-            <Box sx={{ mb: 3 }}>
-              <Box
-                component="input"
-                type="text"
-                value={selectedAnswer}
-                onChange={(e) => setSelectedAnswer(e.target.value)}
-                disabled={showResult}
-                placeholder="Type your answer here..."
-                sx={{
-                  width: '100%',
-                  p: 2,
-                  fontSize: '1.125rem',
-                  borderRadius: 2,
-                  border: '2px solid',
-                  borderColor: showResult ? (isCorrect ? '#10b981' : '#ef4444') : themeColor,
-                  bgcolor: showResult ? (isCorrect ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)') : 'white',
-                  color: '#6a0dad',
-                  fontWeight: 500,
-                  outline: 'none',
-                  transition: 'all 0.3s',
-                  '&:focus': {
-                    borderColor: themeColor,
-                    boxShadow: `0 0 0 3px ${themeColor}1A`
-                  },
-                  '&:disabled': {
-                    cursor: 'not-allowed',
-                    opacity: 0.7
-                  }
-                }}
-              />
-            </Box>
-          )}
-
-          {/* Interactive Maze */}
-          {level.questionType === 'Interactive' && !showResult && (
-            <Box />
-          )}
-
-          {/* Drag and Drop */}
-          {level.questionType === 'DragDrop' && !showResult && (
-            <DragDropGame 
-              level={level} 
-              onComplete={(success) => {
-                setSelectedAnswer('completed');
-                setIsCorrect(success);
-                setShowResult(true);
-                if (success) setScore(score + level.pointsForLevel);
-              }} 
-            />
-          )}
-
-          {/* Ordering */}
-          {level.questionType === 'Ordering' && !showResult && (
-            <OrderingGame 
-              level={level} 
-              onComplete={(success) => {
-                setSelectedAnswer('completed');
-                setIsCorrect(success);
-                setShowResult(true);
-                if (success) setScore(score + level.pointsForLevel);
-              }} 
-            />
-          )}
-
-          {/* Balloon Pop */}
-          {level.questionType === 'BalloonPop' && !showResult && (
-            <BalloonPopGame 
-              level={level} 
-              themeColor={themeColor}
-              onSubmit={(success) => {
-                setSelectedAnswer('completed');
-                setIsCorrect(success);
-                setShowResult(true);
-                if (success) setScore(score + level.pointsForLevel);
-              }}
-              onHint={() => {
-                if (level.hints?.[0] && !usedHints.includes(1)) {
-                  setUsedHints([...usedHints, 1]);
-                  setScore(Math.max(0, score - level.hints[0].pointsDeduction));
-                }
-              }}
-            />
-          )}
-
-
-
-          {/* Sliding Puzzle */}
-          {level.questionType === 'SlidingPuzzle' && !showResult && (
-            <SlidingPuzzle 
-              level={level} 
-              themeColor={themeColor}
-              onSubmit={(success) => {
-                setSelectedAnswer('completed');
-                setIsCorrect(success);
-                setShowResult(true);
-                if (success) setScore(score + level.pointsForLevel);
-              }}
-            />
-          )}
-
-          {/* Escape Room */}
-          {level.questionType === 'EscapeRoom' && !showResult && (
-            <EscapeRoomGame 
-              key={currentLevel}
-              level={level} 
-              onSubmit={(success) => {
-                setSelectedAnswer('completed');
-                setIsCorrect(success);
-                setShowResult(true);
-                if (success) setScore(score + level.pointsForLevel);
-              }}
-            />
-          )}
-
-          {/* Technical MCQ from CSV */}
-          {level.questionType === 'MCQ' && level.correctAnswer.includes('dataset') && !showResult && (
-            <TechnicalMCQGame 
-              dataset={JSON.parse(level.correctAnswer).dataset}
-              onSubmit={(success) => {
-                setSelectedAnswer('completed');
-                setIsCorrect(success);
-                setShowResult(true);
-                if (success) setScore(score + level.pointsForLevel);
-              }}
-            />
-          )}
-
-          {/* Digit Challenge Game */}
-          {level.questionType === 'DigitChallenge' && !showResult && (
-            <DigitChallengeGame 
-              difficulty={level.difficulty}
-              onComplete={(finalScore) => {
-                setSelectedAnswer('completed');
-                setIsCorrect(true);
-                setShowResult(true);
-                setScore(score + level.pointsForLevel);
-              }}
-            />
-          )}
-
-          {/* Geo-Sudo Game */}
-          {level.questionType === 'GeoSudo' && !showResult && (
-            <Box sx={{ maxWidth: 700, mx: 'auto' }}>
-              <GeoSudoGame 
-                level={level}
-                difficulty={level.difficulty}
-                onComplete={(finalScore) => {
-                  setSelectedAnswer('completed');
-                  setIsCorrect(true);
-                  setScore(score + finalScore);
-                  // Auto-advance to next level
-                  if (currentLevel < game.levels.length - 1) {
-                    setTimeout(() => {
-                      setCurrentLevel(currentLevel + 1);
-                      setSelectedAnswer('');
-                      setSelectedDisplayId('');
-                      setShowResult(false);
-                      setUsedHints([]);
-                      setShowMazePath(false);
-                      setMazeDisabled(false);
-                      setMazeHasPath(null);
-                    }, 1200);
-                  } else {
-                    setTimeout(() => setGameCompleted(true), 1200);
-                  }
-                }}
-              />
-            </Box>
-          )}
-
-          {/* Inductive Logic Game */}
-          {level.questionType === 'InductiveLogic' && !showResult && (
-            <InductiveLogicGame 
-              difficulty={level.difficulty}
-              onComplete={(finalScore) => {
-                setSelectedAnswer('completed');
-                setIsCorrect(true);
-                setShowResult(true);
-                setScore(score + level.pointsForLevel);
-              }}
-            />
-          )}
-
-          {/* Grid Challenge Game */}
-          {level.questionType === 'GridChallenge' && !showResult && (
-            <GridChallengeGame 
-              difficulty={level.difficulty}
-              onComplete={(finalScore) => {
-                setSelectedAnswer('completed');
-                setIsCorrect(true);
-                setShowResult(true);
-                setScore(score + level.pointsForLevel);
-              }}
-            />
-          )}
-
-          {/* Motion Challenge Game */}
-          {level.questionType === 'MotionChallenge' && !showResult && (
-            <Box sx={{ maxWidth: 700, mx: 'auto' }}>
-              <MotionChallengeGame 
-                level={level}
-                difficulty={level.difficulty}
-                onComplete={(finalScore) => {
-                  setSelectedAnswer('completed');
-                  setIsCorrect(true);
-                  setScore(score + finalScore);
-                  // Auto-advance to next level
-                  if (currentLevel < game.levels.length - 1) {
-                    setTimeout(() => {
-                      setCurrentLevel(currentLevel + 1);
-                      setSelectedAnswer('');
-                      setSelectedDisplayId('');
-                      setShowResult(false);
-                      setUsedHints([]);
-                      setShowMazePath(false);
-                      setMazeDisabled(false);
-                      setMazeHasPath(null);
-                    }, 1200);
-                  } else {
-                    setTimeout(() => setGameCompleted(true), 1200);
-                  }
-                }}
-              />
-            </Box>
-          )}
-
-          {/* Switch Challenge Game */}
-          {level.questionType === 'SwitchChallenge' && !showResult && (
-            <SwitchChallengeGame 
-              difficulty={level.difficulty}
-              onComplete={(finalScore) => {
-                setSelectedAnswer('completed');
-                setIsCorrect(true);
-                setShowResult(true);
-                setScore(score + level.pointsForLevel);
-              }}
-            />
-          )}
-
-          {/* Verbal Ability Game */}
-          {level.questionType === 'VerbalAbility' && !showResult && (
-            <VerbalAbilityGame 
-              difficulty={level.difficulty}
-              onQuestionChange={(current, total) => setAptitudeQuestionInfo({ current, total })}
-              onComplete={(finalScore) => {
-                setSelectedAnswer('completed');
-                setIsCorrect(true);
-                setShowResult(true);
-                setScore(score + level.pointsForLevel);
-              }}
-            />
-          )}
-
-          {/* Quantitative Game */}
-          {level.questionType === 'Quantitative' && !showResult && (
-            <QuantitativeGame 
-              difficulty={level.difficulty}
-              onQuestionChange={(current, total) => setAptitudeQuestionInfo({ current, total })}
-              onComplete={(finalScore) => {
-                setSelectedAnswer('completed');
-                setIsCorrect(true);
-                setShowResult(true);
-                setScore(score + level.pointsForLevel);
-              }}
-            />
-          )}
-
-          {/* Logical Reasoning Game */}
-          {level.questionType === 'LogicalReasoning' && !showResult && (
-            <LogicalReasoningGame 
-              difficulty={level.difficulty}
-              onQuestionChange={(current, total) => setAptitudeQuestionInfo({ current, total })}
-              onComplete={(finalScore) => {
-                setSelectedAnswer('completed');
-                setIsCorrect(true);
-                setShowResult(true);
-                setScore(score + level.pointsForLevel);
-              }}
-            />
-          )}
-
-          {/* Hints - hide for self-managing games */}
-          {!['MotionChallenge', 'GeoSudo'].includes(level.questionType) && level.hints && level.hints.length > 0 && !showResult && (
-            <Box sx={{ mb: 3, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-              {level.hints.map((hint) => (
-                <Button
-                  key={hint.hintNumber}
-                  onClick={() => handleUseHint(hint)}
-                  disabled={usedHints.includes(hint.hintNumber)}
-                  startIcon={<Lightbulb />}
-                  sx={{
-                    px: 2,
-                    py: 1,
-                    borderRadius: 2,
-                    fontWeight: 600,
-                    bgcolor: usedHints.includes(hint.hintNumber) ? 'rgba(251,191,36,0.2)' : '#fbbf24',
-                    color: usedHints.includes(hint.hintNumber) ? '#92400e' : 'white',
-                    border: '1px solid',
-                    borderColor: usedHints.includes(hint.hintNumber) ? 'rgba(251,191,36,0.4)' : '#f59e0b',
-                    '&:hover': { bgcolor: usedHints.includes(hint.hintNumber) ? 'rgba(251,191,36,0.2)' : '#f59e0b', boxShadow: '0 5px 20px rgba(251,191,36,0.3)' }
-                  }}
-                >
-                  {usedHints.includes(hint.hintNumber) ? hint.hintText : `Hint (-${hint.pointsDeduction} pts)`}
-                </Button>
-              ))}
-            </Box>
-          )}
-
-          {/* Result - hide for self-managing games */}
-          {!['MotionChallenge', 'GeoSudo'].includes(level.questionType) && showResult && (
-            <Box sx={{ mb: 3, p: 3, borderRadius: 3, border: '2px solid', borderColor: isCorrect ? '#10b981' : '#ef4444', background: isCorrect ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-                <Typography sx={{ fontSize: '2.5rem' }}>{isCorrect ? '🎉' : '😔'}</Typography>
-                <Typography variant="h5" sx={{ fontWeight: 700, color: isCorrect ? '#059669' : '#dc2626' }}>
-                  {isCorrect ? 'Correct!' : 'Incorrect'}
-                </Typography>
-              </Box>
-              <Typography sx={{ color: '#374151', fontSize: '1.125rem' }}>
-                {isCorrect ? `+${level.pointsForLevel} points earned!` : (
-                  level.questionType === 'DragDrop' ? (
-                    <Box sx={{ mt: 2 }}>
-                      <Typography sx={{ fontWeight: 600, mb: 1 }}>Correct Matches:</Typography>
-                      {Object.entries(JSON.parse(level.correctAnswer).correct).map(([item, zone]) => (
-                        <Typography key={item} sx={{ ml: 2 }}>• {item} → {zone}</Typography>
-                      ))}
-                    </Box>
-                  ) : `Correct answer: ${level.correctAnswer}`
                 )}
-              </Typography>
-            </Box>
-          )}
-
-          {/* Action Button - hide for self-managing games */}
-          {!['MotionChallenge', 'GeoSudo'].includes(level.questionType) && (
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-            {!showResult ? (
-              <Button
-                onClick={handleSubmitAnswer}
-                disabled={!selectedAnswer}
-                sx={{
-                  px: 4,
-                  py: 1.5,
-                  borderRadius: 2,
-                  fontWeight: 700,
-                  fontSize: '1.125rem',
-                  background: selectedAnswer ? 'linear-gradient(to right, #10b981, #059669)' : `${themeColor}4D`,
-                  color: selectedAnswer ? 'white' : themeColor,
-                  boxShadow: selectedAnswer ? '0 10px 30px rgba(16,185,129,0.5)' : 'none',
-                  '&:hover': selectedAnswer ? { background: 'linear-gradient(to right, #059669, #047857)', transform: 'scale(1.05)' } : {},
-                  transition: 'all 0.3s'
-                }}
-              >
-                Submit Answer
-              </Button>
-            ) : (
-              <Button
-                onClick={handleNextLevel}
-                sx={{
-                  px: 4,
-                  py: 1.5,
-                  borderRadius: 2,
-                  fontWeight: 700,
-                  fontSize: '1.125rem',
-                  bgcolor: themeColor,
-                  color: 'white',
-                  boxShadow: `0 10px 30px ${themeColor}80`,
-                  '&:hover': { bgcolor: themeColor, filter: 'brightness(0.9)', transform: 'scale(1.05)' },
-                  transition: 'all 0.3s'
-                }}
-              >
-                {currentLevel < game.levels.length - 1 ? 'Next Level →' : 'Finish Game 🏆'}
-              </Button>
+              </Box>
             )}
           </Box>
-          )}
-            </Box>
-          )}
-        </Box>
+        )}
+      </Box>
 
       <Dialog open={gameCompleted} maxWidth="sm" fullWidth>
         <Box sx={{ p: 4, position: 'relative' }}>
           <IconButton onClick={() => navigate(`/practice/gamified/${subtopicId}`)} sx={{ position: 'absolute', top: 16, right: 16 }}>
             <Close />
           </IconButton>
-          
+
           <Box sx={{ textAlign: 'center' }}>
-            <Typography variant="h2" sx={{ mb: 2 }}>🎉</Typography>
-            <Typography variant="h4" sx={{ mb: 3 }}>Game Completed!</Typography>
-            
+            <Typography variant="h2" sx={{ mb: 2 }}>
+              🎉
+            </Typography>
+            <Typography variant="h4" sx={{ mb: 3 }}>
+              Game Completed!
+            </Typography>
+
             <Box sx={{ bgcolor: 'grey.100', borderRadius: 2, p: 3, mb: 3 }}>
               <Typography variant="h2" color="primary">
                 {score}
               </Typography>
               <Typography>out of {game.points} points</Typography>
             </Box>
-            
+
             <Typography sx={{ mb: 3 }}>
               You completed {currentLevel + 1} of {game.levels.length} levels!
             </Typography>
-            
+
             <Box sx={{ display: 'flex', gap: 2 }}>
-              <Button
-                variant="outlined"
-                fullWidth
-                onClick={() => navigate(`/practice/gamified/${subtopicId}`)}
-              >
+              <Button variant="outlined" fullWidth onClick={() => navigate(`/practice/gamified/${subtopicId}`)}>
                 Back to Questions
               </Button>
-              <Button
-                variant="contained"
-                fullWidth
-                onClick={() => window.location.reload()}
-              >
+              <Button variant="contained" fullWidth onClick={() => window.location.reload()}>
                 Play Again
               </Button>
             </Box>

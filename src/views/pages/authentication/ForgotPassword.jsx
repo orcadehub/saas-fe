@@ -11,38 +11,61 @@ const API_BASE_URL = import.meta.env.DEV ? 'http://localhost:4000/api' : 'https:
 const AnimatedGridBackground = () => (
   <Box sx={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0, overflow: 'hidden', pointerEvents: 'none' }}>
     <Box sx={{ position: 'absolute', inset: 0, bgcolor: '#0a0a0f' }} />
-    <Box sx={{
-      position: 'absolute', inset: 0,
-      backgroundImage: `
+    <Box
+      sx={{
+        position: 'absolute',
+        inset: 0,
+        backgroundImage: `
         linear-gradient(rgba(139, 92, 246, 0.03) 1px, transparent 1px),
         linear-gradient(90deg, rgba(139, 92, 246, 0.03) 1px, transparent 1px)
       `,
-      backgroundSize: '60px 60px',
-      animation: 'gridMove 20s linear infinite',
-    }} />
-    <Box sx={{
-      position: 'absolute', top: '-15%', left: '-10%',
-      width: '70vw', height: '70vw',
-      background: 'radial-gradient(circle, rgba(139,92,246,0.12) 0%, transparent 65%)',
-      borderRadius: '50%', filter: 'blur(80px)',
-      animation: 'floatOrb1 18s ease-in-out infinite alternate',
-    }} />
-    <Box sx={{
-      position: 'absolute', bottom: '-20%', right: '-15%',
-      width: '60vw', height: '60vw',
-      background: 'radial-gradient(circle, rgba(6,182,212,0.08) 0%, transparent 65%)',
-      borderRadius: '50%', filter: 'blur(100px)',
-      animation: 'floatOrb2 22s ease-in-out infinite alternate',
-    }} />
-    <Box sx={{
-      position: 'absolute', inset: 0, opacity: 0.03,
-      backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-    }} />
-    <style dangerouslySetInnerHTML={{ __html: `
+        backgroundSize: '60px 60px',
+        animation: 'gridMove 20s linear infinite'
+      }}
+    />
+    <Box
+      sx={{
+        position: 'absolute',
+        top: '-15%',
+        left: '-10%',
+        width: '70vw',
+        height: '70vw',
+        background: 'radial-gradient(circle, rgba(139,92,246,0.12) 0%, transparent 65%)',
+        borderRadius: '50%',
+        filter: 'blur(80px)',
+        animation: 'floatOrb1 18s ease-in-out infinite alternate'
+      }}
+    />
+    <Box
+      sx={{
+        position: 'absolute',
+        bottom: '-20%',
+        right: '-15%',
+        width: '60vw',
+        height: '60vw',
+        background: 'radial-gradient(circle, rgba(6,182,212,0.08) 0%, transparent 65%)',
+        borderRadius: '50%',
+        filter: 'blur(100px)',
+        animation: 'floatOrb2 22s ease-in-out infinite alternate'
+      }}
+    />
+    <Box
+      sx={{
+        position: 'absolute',
+        inset: 0,
+        opacity: 0.03,
+        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`
+      }}
+    />
+    <style
+      dangerouslySetInnerHTML={{
+        __html: `
       @keyframes gridMove { 0% { transform: translate(0, 0); } 100% { transform: translate(60px, 60px); } }
       @keyframes floatOrb1 { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(8%, 12%) scale(1.15); } }
       @keyframes floatOrb2 { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(-10%, -8%) scale(1.1); } }
-    ` }} />
+    `
+      }}
+    />
   </Box>
 );
 
@@ -67,20 +90,31 @@ const InteractiveCursor = () => {
   return (
     <motion.div
       style={{
-        position: 'fixed', top: 0, left: 0, width: 32, height: 32,
-        borderRadius: '50%', pointerEvents: 'none', zIndex: 9999,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: 32,
+        height: 32,
+        borderRadius: '50%',
+        pointerEvents: 'none',
+        zIndex: 9999,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
       }}
       animate={{ x: mousePos.x - 16, y: mousePos.y - 16, scale: isHovering ? 2.5 : 1 }}
       transition={{ type: 'spring', stiffness: 500, damping: 28, mass: 0.5 }}
     >
-      <Box sx={{
-        width: '8px', height: '8px',
-        background: 'linear-gradient(135deg, #8b5cf6, #06b6d4)',
-        borderRadius: '50%',
-        boxShadow: '0 0 20px 4px rgba(139,92,246,0.5), 0 0 40px 8px rgba(6,182,212,0.2)',
-        opacity: 0.8,
-      }} />
+      <Box
+        sx={{
+          width: '8px',
+          height: '8px',
+          background: 'linear-gradient(135deg, #8b5cf6, #06b6d4)',
+          borderRadius: '50%',
+          boxShadow: '0 0 20px 4px rgba(139,92,246,0.5), 0 0 40px 8px rgba(6,182,212,0.2)',
+          opacity: 0.8
+        }}
+      />
     </motion.div>
   );
 };
@@ -94,35 +128,35 @@ const darkTextFieldSx = {
     backdropFilter: 'blur(10px)',
     '& fieldset': {
       borderColor: 'rgba(255, 255, 255, 0.08)',
-      transition: 'border-color 0.3s',
+      transition: 'border-color 0.3s'
     },
     '&:hover fieldset': {
-      borderColor: 'rgba(139, 92, 246, 0.3)',
+      borderColor: 'rgba(139, 92, 246, 0.3)'
     },
     '&.Mui-focused fieldset': {
       borderColor: '#8b5cf6',
       borderWidth: '1.5px',
-      boxShadow: '0 0 0 3px rgba(139, 92, 246, 0.1)',
+      boxShadow: '0 0 0 3px rgba(139, 92, 246, 0.1)'
     },
     '& input': {
       color: '#e2e8f0',
       '&::placeholder': {
         color: 'rgba(255, 255, 255, 0.25)',
-        opacity: 1,
+        opacity: 1
       },
       '&:-webkit-autofill': {
         WebkitBoxShadow: '0 0 0 100px rgba(15, 15, 25, 0.95) inset',
         WebkitTextFillColor: '#e2e8f0',
-        borderRadius: '14px',
-      },
-    },
+        borderRadius: '14px'
+      }
+    }
   },
   '& .MuiInputLabel-root': {
     color: 'rgba(255, 255, 255, 0.4)',
     '&.Mui-focused': {
-      color: '#8b5cf6',
-    },
-  },
+      color: '#8b5cf6'
+    }
+  }
 };
 
 export default function ForgotPassword() {
@@ -155,7 +189,7 @@ export default function ForgotPassword() {
 
       const response = await fetch(`${API_BASE_URL}/auth/student/forgot-password`, {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'x-api-key': config.apiKey || '',
           'x-tenant-id': config.tenantId || ''
@@ -205,7 +239,7 @@ export default function ForgotPassword() {
 
       const response = await fetch(`${API_BASE_URL}/auth/student/reset-password`, {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'x-api-key': config.apiKey || '',
           'x-tenant-id': config.tenantId || ''
@@ -242,7 +276,7 @@ export default function ForgotPassword() {
           alignItems: 'center',
           px: { xs: 2, sm: 3 },
           position: 'relative',
-          zIndex: 10,
+          zIndex: 10
         }}
       >
         <motion.div
@@ -250,37 +284,44 @@ export default function ForgotPassword() {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
         >
-          <Box sx={{
-            width: { xs: '100%', sm: 560 },
-            maxWidth: '100%',
-            p: { xs: 3, sm: 5 },
-            borderRadius: '28px',
-            border: '1px solid rgba(255, 255, 255, 0.06)',
-            background: 'rgba(255, 255, 255, 0.03)',
-            backdropFilter: 'blur(24px)',
-            WebkitBackdropFilter: 'blur(24px)',
-            boxShadow: '0 30px 80px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(139, 92, 246, 0.05)',
-            position: 'relative',
-            overflow: 'hidden',
-            '&::before': {
-              content: '""',
-              position: 'absolute',
-              top: 0, left: 0, right: 0,
-              height: '2px',
-              background: 'linear-gradient(90deg, transparent, #8b5cf6, #06b6d4, transparent)',
-              opacity: 0.6,
-            },
-          }}>
+          <Box
+            sx={{
+              width: { xs: '100%', sm: 560 },
+              maxWidth: '100%',
+              p: { xs: 3, sm: 5 },
+              borderRadius: '28px',
+              border: '1px solid rgba(255, 255, 255, 0.06)',
+              background: 'rgba(255, 255, 255, 0.03)',
+              backdropFilter: 'blur(24px)',
+              WebkitBackdropFilter: 'blur(24px)',
+              boxShadow: '0 30px 80px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(139, 92, 246, 0.05)',
+              position: 'relative',
+              overflow: 'hidden',
+              '&::before': {
+                content: '""',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: '2px',
+                background: 'linear-gradient(90deg, transparent, #8b5cf6, #06b6d4, transparent)',
+                opacity: 0.6
+              }
+            }}
+          >
             <Stack spacing={3}>
               {/* Heading */}
               <Stack spacing={1} alignItems="center">
-                <Typography variant="h2" sx={{
-                  fontWeight: 800,
-                  fontSize: { xs: '1.5rem', sm: '2rem' },
-                  background: 'linear-gradient(135deg, #ffffff 0%, #c4b5fd 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                }}>
+                <Typography
+                  variant="h2"
+                  sx={{
+                    fontWeight: 800,
+                    fontSize: { xs: '1.5rem', sm: '2rem' },
+                    background: 'linear-gradient(135deg, #ffffff 0%, #c4b5fd 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent'
+                  }}
+                >
                   {step === 1 ? 'Forgot Password' : 'Reset Password'}
                 </Typography>
                 <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center' }}>
@@ -290,24 +331,30 @@ export default function ForgotPassword() {
 
               {/* Alerts */}
               {error && (
-                <Alert severity="error" sx={{
-                  borderRadius: '12px',
-                  bgcolor: 'rgba(239, 68, 68, 0.1)',
-                  color: '#fca5a5',
-                  border: '1px solid rgba(239, 68, 68, 0.2)',
-                  '& .MuiAlert-icon': { color: '#ef4444' },
-                }}>
+                <Alert
+                  severity="error"
+                  sx={{
+                    borderRadius: '12px',
+                    bgcolor: 'rgba(239, 68, 68, 0.1)',
+                    color: '#fca5a5',
+                    border: '1px solid rgba(239, 68, 68, 0.2)',
+                    '& .MuiAlert-icon': { color: '#ef4444' }
+                  }}
+                >
                   {error}
                 </Alert>
               )}
               {success && (
-                <Alert severity="success" sx={{
-                  borderRadius: '12px',
-                  bgcolor: 'rgba(34, 197, 94, 0.1)',
-                  color: '#86efac',
-                  border: '1px solid rgba(34, 197, 94, 0.2)',
-                  '& .MuiAlert-icon': { color: '#22c55e' },
-                }}>
+                <Alert
+                  severity="success"
+                  sx={{
+                    borderRadius: '12px',
+                    bgcolor: 'rgba(34, 197, 94, 0.1)',
+                    color: '#86efac',
+                    border: '1px solid rgba(34, 197, 94, 0.2)',
+                    '& .MuiAlert-icon': { color: '#22c55e' }
+                  }}
+                >
                   {success}
                 </Alert>
               )}
@@ -344,13 +391,13 @@ export default function ForgotPassword() {
                         '&:hover': {
                           background: 'linear-gradient(135deg, #7c3aed, #6d28d9)',
                           transform: 'translateY(-2px)',
-                          boxShadow: '0 12px 40px rgba(139, 92, 246, 0.4)',
+                          boxShadow: '0 12px 40px rgba(139, 92, 246, 0.4)'
                         },
                         '&:disabled': {
                           background: 'rgba(139, 92, 246, 0.3)',
-                          color: 'rgba(255,255,255,0.5)',
+                          color: 'rgba(255,255,255,0.5)'
                         },
-                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
                       }}
                     >
                       {loading ? 'Sending...' : 'Send OTP'}
@@ -364,7 +411,7 @@ export default function ForgotPassword() {
                         textTransform: 'none',
                         fontWeight: 500,
                         '&:hover': { color: '#8b5cf6', background: 'rgba(139,92,246,0.05)' },
-                        transition: 'all 0.3s',
+                        transition: 'all 0.3s'
                       }}
                     >
                       Back to Login
@@ -421,13 +468,13 @@ export default function ForgotPassword() {
                         '&:hover': {
                           background: 'linear-gradient(135deg, #7c3aed, #6d28d9)',
                           transform: 'translateY(-2px)',
-                          boxShadow: '0 12px 40px rgba(139, 92, 246, 0.4)',
+                          boxShadow: '0 12px 40px rgba(139, 92, 246, 0.4)'
                         },
                         '&:disabled': {
                           background: 'rgba(139, 92, 246, 0.3)',
-                          color: 'rgba(255,255,255,0.5)',
+                          color: 'rgba(255,255,255,0.5)'
                         },
-                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
                       }}
                     >
                       {loading ? 'Resetting...' : 'Reset Password'}
@@ -441,7 +488,7 @@ export default function ForgotPassword() {
                         textTransform: 'none',
                         fontWeight: 500,
                         '&:hover': { color: '#8b5cf6', background: 'rgba(139,92,246,0.05)' },
-                        transition: 'all 0.3s',
+                        transition: 'all 0.3s'
                       }}
                     >
                       Resend OTP
@@ -464,7 +511,7 @@ export default function ForgotPassword() {
               color: 'rgba(255,255,255,0.25)',
               textDecoration: 'none',
               '&:hover': { color: '#8b5cf6' },
-              transition: 'color 0.3s',
+              transition: 'color 0.3s'
             }}
           >
             Orcadehub Innovations LLP

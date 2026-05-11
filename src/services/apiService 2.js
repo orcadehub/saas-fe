@@ -7,25 +7,25 @@ class ApiService {
     this.baseURL = import.meta.env.DEV ? 'http://localhost:4000/api' : 'https://backend.orcode.in/api';
     this.apiKey = '';
     this.tenantId = '';
-    
+
     this.client = axios.create({
       baseURL: this.baseURL,
       headers: {
         'Content-Type': 'application/json'
       }
     });
-    
+
     this.setupInterceptors();
   }
 
   async initialize() {
     const config = await tenantConfig.load();
-    this.baseURL = import.meta.env.DEV ? 'http://localhost:4000/api' : (config.apiEndpoint || 'https://backend.orcode.in/api');
+    this.baseURL = import.meta.env.DEV ? 'http://localhost:4000/api' : config.apiEndpoint || 'https://backend.orcode.in/api';
     this.apiKey = config.apiKey || '';
     this.tenantId = config.tenantId || '';
     this.client.defaults.baseURL = this.baseURL;
   }
-  
+
   setupInterceptors() {
     // Request interceptor
     this.client.interceptors.request.use(
@@ -39,7 +39,7 @@ class ApiService {
       },
       (error) => Promise.reject(error)
     );
-    
+
     // Response interceptor
     this.client.interceptors.response.use(
       (response) => response,
@@ -51,18 +51,18 @@ class ApiService {
       }
     );
   }
-  
+
   // Get tenant configuration
   async getTenantConfig() {
     return tenantConfig.get();
   }
-  
+
   // Student authentication
   async loginStudent(credentials) {
     const response = await this.client.post('/auth/student/login', credentials);
     return response.data;
   }
-  
+
   // Get student profile
   async getStudentProfile(token) {
     const response = await this.client.get('/auth/student/profile', {
@@ -70,7 +70,7 @@ class ApiService {
     });
     return response.data;
   }
-  
+
   // Get student batches
   async getStudentBatches(token) {
     const response = await this.client.get('/auth/student/batches', {
@@ -78,7 +78,7 @@ class ApiService {
     });
     return response.data;
   }
-  
+
   // Get student quizzes
   async getStudentQuizzes(token) {
     const response = await this.client.get('/auth/student/quizzes', {
@@ -86,7 +86,7 @@ class ApiService {
     });
     return response.data;
   }
-  
+
   // Get quiz details
   async getQuizDetails(token, quizId) {
     const response = await this.client.get(`/auth/student/quiz/${quizId}`, {
@@ -113,9 +113,13 @@ class ApiService {
 
   // Start new quiz attempt
   async startQuizAttempt(token, quizId) {
-    const response = await this.client.post(`/auth/student/quiz/${quizId}/start`, {}, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
+    const response = await this.client.post(
+      `/auth/student/quiz/${quizId}/start`,
+      {},
+      {
+        headers: { Authorization: `Bearer ${token}` }
+      }
+    );
     return response.data;
   }
 
@@ -137,8 +141,9 @@ class ApiService {
 
   // Update attempt status
   async updateAttemptStatus(token, attemptId, status) {
-    const response = await this.client.patch(`/auth/student/attempt/${attemptId}/status`, 
-      { status }, 
+    const response = await this.client.patch(
+      `/auth/student/attempt/${attemptId}/status`,
+      { status },
       { headers: { Authorization: `Bearer ${token}` } }
     );
     return response.data;
@@ -155,9 +160,13 @@ class ApiService {
   // Resume quiz
   async resumeQuiz(token, attemptId) {
     console.log('API Service: Calling resume quiz for attempt:', attemptId);
-    const response = await this.client.post(`/auth/student/attempt/${attemptId}/resume`, {}, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
+    const response = await this.client.post(
+      `/auth/student/attempt/${attemptId}/resume`,
+      {},
+      {
+        headers: { Authorization: `Bearer ${token}` }
+      }
+    );
     return response.data;
   }
 
@@ -171,8 +180,9 @@ class ApiService {
 
   // Update tab switch count
   async updateTabSwitchCount(token, attemptId) {
-    const response = await this.client.patch(`/auth/student/attempt/${attemptId}/tab-switch`, 
-      {}, 
+    const response = await this.client.patch(
+      `/auth/student/attempt/${attemptId}/tab-switch`,
+      {},
       { headers: { Authorization: `Bearer ${token}` } }
     );
     return response.data;
@@ -180,8 +190,9 @@ class ApiService {
 
   // Update fullscreen exit count
   async updateFullscreenExitCount(token, attemptId) {
-    const response = await this.client.patch(`/auth/student/attempt/${attemptId}/fullscreen-exit`, 
-      {}, 
+    const response = await this.client.patch(
+      `/auth/student/attempt/${attemptId}/fullscreen-exit`,
+      {},
       { headers: { Authorization: `Bearer ${token}` } }
     );
     return response.data;
@@ -189,8 +200,9 @@ class ApiService {
 
   // Update system info periodically
   async updateSystemInfo(token, attemptId, systemInfo) {
-    const response = await this.client.post(`/auth/student/attempt/${attemptId}/system-info`, 
-      { systemInfo }, 
+    const response = await this.client.post(
+      `/auth/student/attempt/${attemptId}/system-info`,
+      { systemInfo },
       { headers: { Authorization: `Bearer ${token}` } }
     );
     return response.data;
@@ -198,8 +210,9 @@ class ApiService {
 
   // Update system info periodically
   async updateSystemInfo(token, attemptId, systemInfo) {
-    const response = await this.client.post(`/auth/student/attempt/${attemptId}/system-info`, 
-      { systemInfo }, 
+    const response = await this.client.post(
+      `/auth/student/attempt/${attemptId}/system-info`,
+      { systemInfo },
       { headers: { Authorization: `Bearer ${token}` } }
     );
     return response.data;
@@ -343,7 +356,8 @@ class ApiService {
 
   // Gamified Attempt APIs
   async startGamifiedAttempt(token, questionId, data) {
-    const response = await this.client.post(`/student/gamified-attempts/start`, 
+    const response = await this.client.post(
+      `/student/gamified-attempts/start`,
       { questionId, ...data },
       { headers: { Authorization: `Bearer ${token}` } }
     );
@@ -351,18 +365,16 @@ class ApiService {
   }
 
   async saveGamifiedAnswer(token, attemptId, data) {
-    const response = await this.client.post(`/student/gamified-attempts/${attemptId}/answer`, 
-      data,
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
+    const response = await this.client.post(`/student/gamified-attempts/${attemptId}/answer`, data, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
     return response.data;
   }
 
   async completeGamifiedAttempt(token, attemptId, data) {
-    const response = await this.client.post(`/student/gamified-attempts/${attemptId}/complete`, 
-      data,
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
+    const response = await this.client.post(`/student/gamified-attempts/${attemptId}/complete`, data, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
     return response.data;
   }
 
@@ -404,8 +416,9 @@ class ApiService {
   }
 
   async startAssessmentAttempt(token, assessmentId, systemInfo, startIP) {
-    const response = await this.client.post(`/auth/student/assessment/${assessmentId}/start`, 
-      { systemInfo, startIP }, 
+    const response = await this.client.post(
+      `/auth/student/assessment/${assessmentId}/start`,
+      { systemInfo, startIP },
       {
         headers: { Authorization: `Bearer ${token}` }
       }
@@ -415,8 +428,9 @@ class ApiService {
 
   // Update tab switch count
   async updateTabSwitchCount(token, attemptId, count) {
-    const response = await this.client.patch(`/auth/student/attempt/${attemptId}/tab-switch`, 
-      { tabSwitchCount: count }, 
+    const response = await this.client.patch(
+      `/auth/student/attempt/${attemptId}/tab-switch`,
+      { tabSwitchCount: count },
       { headers: { Authorization: `Bearer ${token}` } }
     );
     return response.data;
@@ -440,8 +454,9 @@ class ApiService {
 
   // Save assessment code
   async saveAssessmentCode(token, attemptId, questionId, language, code, isSuccessful = false, testResults = null) {
-    const response = await this.client.post(`/auth/student/assessment-attempt/${attemptId}/save-code`, 
-      { questionId, language, code, isSuccessful, testResults }, 
+    const response = await this.client.post(
+      `/auth/student/assessment-attempt/${attemptId}/save-code`,
+      { questionId, language, code, isSuccessful, testResults },
       { headers: { Authorization: `Bearer ${token}` } }
     );
     return response.data;
@@ -449,8 +464,9 @@ class ApiService {
 
   // Save quiz answer
   async saveQuizAnswer(token, attemptId, questionId, selectedAnswer) {
-    const response = await this.client.post(`/auth/student/assessment-attempt/${attemptId}/save-quiz-answer`, 
-      { questionId, selectedAnswer }, 
+    const response = await this.client.post(
+      `/auth/student/assessment-attempt/${attemptId}/save-quiz-answer`,
+      { questionId, selectedAnswer },
       { headers: { Authorization: `Bearer ${token}` } }
     );
     return response.data;
@@ -458,8 +474,9 @@ class ApiService {
 
   // Update assessment system info with end IP
   async updateAssessmentSystemInfo(token, attemptId, systemInfo, endIP) {
-    const response = await this.client.post(`/auth/student/assessment-attempt/${attemptId}/system-info`, 
-      { systemInfo, endIP }, 
+    const response = await this.client.post(
+      `/auth/student/assessment-attempt/${attemptId}/system-info`,
+      { systemInfo, endIP },
       { headers: { Authorization: `Bearer ${token}` } }
     );
     return response.data;

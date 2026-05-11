@@ -15,13 +15,19 @@ export default function LandingHeader() {
   }, []);
 
   return (
-    <Box component="nav" sx={{
-      position: 'fixed', top: 0, width: '100%', zIndex: 100,
-      borderBottom: '1px solid rgba(0,0,0,0.05)',
-      background: 'rgba(255, 255, 255, 0.8)',
-      backdropFilter: 'blur(24px)',
-      WebkitBackdropFilter: 'blur(24px)',
-    }}>
+    <Box
+      component="nav"
+      sx={{
+        position: 'fixed',
+        top: 0,
+        width: '100%',
+        zIndex: 100,
+        borderBottom: '1px solid rgba(0,0,0,0.05)',
+        background: 'rgba(255, 255, 255, 0.8)',
+        backdropFilter: 'blur(24px)',
+        WebkitBackdropFilter: 'blur(24px)'
+      }}
+    >
       <Container maxWidth="xl">
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ py: 1.5 }}>
           {/* Logo */}
@@ -32,16 +38,24 @@ export default function LandingHeader() {
                 src={config.logoUrl}
                 alt="Logo"
                 sx={{ height: 40, objectFit: 'contain', filter: 'none', borderRadius: '10px' }}
-                onError={(e) => { e.target.style.display = 'none'; }}
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                }}
               />
             ) : (
-              <Typography variant="h5" sx={{
-                fontWeight: 800, letterSpacing: '-0.5px',
-                display: 'flex', alignItems: 'center', gap: 1,
-                background: 'linear-gradient(135deg, #7c3aed, #4f46e5)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-              }}>
+              <Typography
+                variant="h5"
+                sx={{
+                  fontWeight: 800,
+                  letterSpacing: '-0.5px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  background: 'linear-gradient(135deg, #7c3aed, #4f46e5)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent'
+                }}
+              >
                 <AutoAwesomeRounded sx={{ color: '#7c3aed' }} />
                 {config?.tenantName || 'ORCADEHUB'}
               </Typography>
@@ -50,7 +64,11 @@ export default function LandingHeader() {
 
           {/* Desktop Nav */}
           <Stack direction="row" spacing={1} sx={{ display: { xs: 'none', md: 'flex' } }}>
-            {[{ label: 'Home', path: '/' }, { label: 'Services', path: '/services' }, { label: 'Pricing', path: '/pricing' }].map((item) => (
+            {[
+              { label: 'Home', path: '/' },
+              { label: 'Services', path: '/services' },
+              { label: 'Pricing', path: '/pricing' }
+            ].map((item) => (
               <Button
                 key={item.path}
                 variant="text"
@@ -59,8 +77,11 @@ export default function LandingHeader() {
                 sx={{
                   color: '#64748b',
                   '&:hover': { color: '#1e293b', background: 'rgba(0,0,0,0.04)' },
-                  textTransform: 'none', fontSize: '0.95rem', fontWeight: 600, px: 2,
-                  transition: 'all 0.3s',
+                  textTransform: 'none',
+                  fontSize: '0.95rem',
+                  fontWeight: 600,
+                  px: 2,
+                  transition: 'all 0.3s'
                 }}
               >
                 {item.label}
@@ -87,17 +108,14 @@ export default function LandingHeader() {
                 '&:hover': {
                   background: 'linear-gradient(135deg, #6d28d9, #4338ca)',
                   transform: 'translateY(-2px)',
-                  boxShadow: '0 8px 30px rgba(124, 58, 237, 0.3)',
+                  boxShadow: '0 8px 30px rgba(124, 58, 237, 0.3)'
                 },
-                transition: 'all 0.3s',
+                transition: 'all 0.3s'
               }}
             >
               Login
             </Button>
-            <IconButton
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              sx={{ display: { xs: 'flex', md: 'none' }, color: '#1e293b' }}
-            >
+            <IconButton onClick={() => setMobileMenuOpen(!mobileMenuOpen)} sx={{ display: { xs: 'flex', md: 'none' }, color: '#1e293b' }}>
               {mobileMenuOpen ? <CloseIcon /> : <MenuIcon />}
             </IconButton>
           </Stack>
@@ -113,27 +131,45 @@ export default function LandingHeader() {
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <Box sx={{
-              display: { xs: 'flex', md: 'none' },
-              flexDirection: 'column', px: 3, pb: 3, gap: 1,
-              borderTop: '1px solid rgba(0,0,0,0.05)',
-              background: '#ffffff',
-            }}>
-              {[{ label: 'Home', path: '/' }, { label: 'Services', path: '/services' }, { label: 'Pricing', path: '/pricing' }].map((item) => (
+            <Box
+              sx={{
+                display: { xs: 'flex', md: 'none' },
+                flexDirection: 'column',
+                px: 3,
+                pb: 3,
+                gap: 1,
+                borderTop: '1px solid rgba(0,0,0,0.05)',
+                background: '#ffffff'
+              }}
+            >
+              {[
+                { label: 'Home', path: '/' },
+                { label: 'Services', path: '/services' },
+                { label: 'Pricing', path: '/pricing' }
+              ].map((item) => (
                 <Button
                   key={item.path}
-                  onClick={() => { navigate(item.path); setMobileMenuOpen(false); }}
+                  onClick={() => {
+                    navigate(item.path);
+                    setMobileMenuOpen(false);
+                  }}
                   sx={{ color: '#64748b', textTransform: 'none', justifyContent: 'flex-start', fontWeight: 600 }}
                 >
                   {item.label}
                 </Button>
               ))}
               <Button
-                onClick={() => { navigate('/login'); setMobileMenuOpen(false); }}
+                onClick={() => {
+                  navigate('/login');
+                  setMobileMenuOpen(false);
+                }}
                 sx={{
                   background: 'linear-gradient(135deg, #7c3aed, #4f46e5)',
-                  color: '#fff', borderRadius: '12px', mt: 1,
-                  textTransform: 'none', fontWeight: 700,
+                  color: '#fff',
+                  borderRadius: '12px',
+                  mt: 1,
+                  textTransform: 'none',
+                  fontWeight: 700
                 }}
               >
                 Login
@@ -143,6 +179,5 @@ export default function LandingHeader() {
         )}
       </AnimatePresence>
     </Box>
-
   );
 }

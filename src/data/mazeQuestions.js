@@ -1,52 +1,61 @@
 const generateMaze = (rows, cols, seed) => {
-  const grid = Array(rows).fill(null).map(() => Array(cols).fill(1));
+  const grid = Array(rows)
+    .fill(null)
+    .map(() => Array(cols).fill(1));
   let rng = seed;
   const random = () => (rng = (rng * 9301 + 49297) % 233280) / 233280;
-  
+
   const startRow = Math.floor(random() * rows);
   const endRow = Math.floor(random() * rows);
-  
+
   let row = startRow;
   let col = 0;
-  
+
   const turn1Col = Math.floor(random() * (cols - 2)) + 1;
   for (let c = 0; c <= turn1Col; c++) {
     grid[row][c] = 0;
   }
-  
-  const turn2Row = row < endRow 
-    ? Math.min(endRow, row + Math.floor(random() * (endRow - row + 1))) 
-    : Math.max(endRow, row - Math.floor(random() * (row - endRow + 1)));
-  
+
+  const turn2Row =
+    row < endRow
+      ? Math.min(endRow, row + Math.floor(random() * (endRow - row + 1)))
+      : Math.max(endRow, row - Math.floor(random() * (row - endRow + 1)));
+
   const step = row < turn2Row ? 1 : -1;
   for (let r = row; r !== turn2Row; r += step) {
     grid[r][turn1Col] = 0;
   }
   row = turn2Row;
   grid[row][turn1Col] = 0;
-  
+
   for (let c = turn1Col; c < cols; c++) {
     grid[row][c] = 0;
   }
-  
+
   const numBranches = Math.floor(rows * cols * 0.3);
   for (let i = 0; i < numBranches; i++) {
     const r = Math.floor(random() * rows);
     const c = Math.floor(random() * cols);
     const branchLength = 2 + Math.floor(random() * 4);
-    
-    let br = r, bc = c;
+
+    let br = r,
+      bc = c;
     for (let j = 0; j < branchLength; j++) {
       if (br >= 0 && br < rows && bc >= 0 && bc < cols) {
         grid[br][bc] = 0;
-        const dirs = [[0, 1], [1, 0], [0, -1], [-1, 0]];
+        const dirs = [
+          [0, 1],
+          [1, 0],
+          [0, -1],
+          [-1, 0]
+        ];
         const dir = dirs[Math.floor(random() * 4)];
         br += dir[0];
         bc += dir[1];
       }
     }
   }
-  
+
   return { grid, start: [startRow, 0], end: [endRow, cols - 1] };
 };
 
@@ -138,5 +147,5 @@ export const mazeQuestions = [
 ];
 
 export const getMazeQuestions = (subtopicId) => {
-  return mazeQuestions.map(q => ({ ...q, subtopicId }));
+  return mazeQuestions.map((q) => ({ ...q, subtopicId }));
 };

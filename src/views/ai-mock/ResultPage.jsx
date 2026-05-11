@@ -21,8 +21,12 @@ export default function ResultPage() {
 
         <Card sx={{ maxWidth: 400, mx: 'auto', mb: 4 }}>
           <CardContent>
-            <Typography variant="h6" sx={{ mb: 1 }}>Your Score</Typography>
-            <Typography variant="h2" color="primary">{score}%</Typography>
+            <Typography variant="h6" sx={{ mb: 1 }}>
+              Your Score
+            </Typography>
+            <Typography variant="h2" color="primary">
+              {score}%
+            </Typography>
           </CardContent>
         </Card>
 

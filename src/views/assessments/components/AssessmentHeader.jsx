@@ -1,15 +1,7 @@
 import { Box, Typography, Button, Stack, Chip } from '@mui/material';
 import { AccessTime, Person, Logout } from '@mui/icons-material';
 
-export default function AssessmentHeader({ 
-  logoUrl, 
-  assessmentTitle, 
-  studentName, 
-  studentEmail, 
-  timeRemaining, 
-  duration,
-  onSubmit 
-}) {
+export default function AssessmentHeader({ logoUrl, assessmentTitle, studentName, studentEmail, timeRemaining, duration, onSubmit }) {
   const formatTime = (seconds) => {
     const hours = Math.floor(seconds / 3600);
     const mins = Math.floor((seconds % 3600) / 60);
@@ -33,71 +25,92 @@ export default function AssessmentHeader({
   };
 
   return (
-    <Box sx={{ 
-      px: { xs: 2, md: 4 }, 
-      py: 1.5,
-      bgcolor: 'white',
-      display: 'flex', 
-      alignItems: 'center', 
-      justifyContent: 'space-between',
-      gap: 3, 
-      minHeight: '76px',
-      borderBottom: '1px solid #f1f5f9',
-      position: 'relative',
-      zIndex: 1000
-    }}>
+    <Box
+      sx={{
+        px: { xs: 2, md: 4 },
+        py: 1.5,
+        bgcolor: 'white',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 3,
+        minHeight: '76px',
+        borderBottom: '1px solid #f1f5f9',
+        position: 'relative',
+        zIndex: 1000
+      }}
+    >
       {/* Brand & Assessment Title */}
       <Stack direction="row" alignItems="center" spacing={3} sx={{ minWidth: 0, flex: 1 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
           {logoUrl ? (
-            <img 
-              src={logoUrl} 
-              alt="Logo" 
-              style={{ height: '36px', width: 'auto' }}
-            />
+            <img src={logoUrl} alt="Logo" style={{ height: '36px', width: 'auto' }} />
           ) : (
-             <Box sx={{ width: 36, height: 36, borderRadius: '10px', bgcolor: '#6366f1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Typography sx={{ color: 'white', fontWeight: 900, fontSize: '1.2rem' }}>O</Typography>
-             </Box>
+            <Box
+              sx={{
+                width: 36,
+                height: 36,
+                borderRadius: '10px',
+                bgcolor: '#6366f1',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              <Typography sx={{ color: 'white', fontWeight: 900, fontSize: '1.2rem' }}>O</Typography>
+            </Box>
           )}
         </Box>
-        
+
         <Box sx={{ minWidth: 0 }}>
-          <Typography variant="h4" sx={{ 
-            fontWeight: 800, 
-            color: '#0f172a',
-            letterSpacing: '-0.02em',
-            overflow: 'hidden', 
-            textOverflow: 'ellipsis', 
-            whiteSpace: 'nowrap'
-          }}>
+          <Typography
+            variant="h4"
+            sx={{
+              fontWeight: 800,
+              color: '#0f172a',
+              letterSpacing: '-0.02em',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap'
+            }}
+          >
             {assessmentTitle}
           </Typography>
           <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
-             <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#10b981' }} /> Active Assessment Session
+            <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#10b981' }} /> Active Assessment Session
           </Typography>
         </Box>
       </Stack>
-      
+
       {/* Student & Timer Section */}
       <Stack direction="row" alignItems="center" spacing={4} sx={{ flexShrink: 0 }}>
         {/* Student Info */}
-        <Box sx={{ 
-          display: { xs: 'none', lg: 'flex' }, 
-          alignItems: 'center', 
-          gap: 1.5,
-          bgcolor: '#f8fafc',
-          pl: 1,
-          pr: 2.5,
-          py: 0.75,
-          borderRadius: '16px',
-          border: '1px solid #f1f5f9'
-        }}>
-          <Box sx={{ 
-            width: 36, height: 36, borderRadius: '12px', 
-            bgcolor: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            border: '1px solid #e2e8f0', color: '#6366f1'
-          }}>
+        <Box
+          sx={{
+            display: { xs: 'none', lg: 'flex' },
+            alignItems: 'center',
+            gap: 1.5,
+            bgcolor: '#f8fafc',
+            pl: 1,
+            pr: 2.5,
+            py: 0.75,
+            borderRadius: '16px',
+            border: '1px solid #f1f5f9'
+          }}
+        >
+          <Box
+            sx={{
+              width: 36,
+              height: 36,
+              borderRadius: '12px',
+              bgcolor: 'white',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              border: '1px solid #e2e8f0',
+              color: '#6366f1'
+            }}
+          >
             <Person sx={{ fontSize: '1.1rem' }} />
           </Box>
           <Box sx={{ textAlign: 'left' }}>
@@ -111,37 +124,45 @@ export default function AssessmentHeader({
         </Box>
 
         {/* Timer Display */}
-        <Box sx={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: 1.5, 
-          bgcolor: '#0f172a',
-          borderRadius: '16px',
-          pl: 2,
-          pr: 2.5,
-          py: 1,
-          flexShrink: 0,
-          boxShadow: '0 10px 15px -3px rgba(15, 23, 42, 0.2)',
-          animation: timeRemaining <= 300 ? 'timer-pulse 2s infinite' : 'none',
-          '@keyframes timer-pulse': {
-            '0%': { boxShadow: '0 0 0 0px rgba(239, 68, 68, 0.4)' },
-            '70%': { boxShadow: '0 0 0 10px rgba(239, 68, 68, 0)' },
-            '100%': { boxShadow: '0 0 0 0px rgba(239, 68, 68, 0)' }
-          }
-        }}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.5,
+            bgcolor: '#0f172a',
+            borderRadius: '16px',
+            pl: 2,
+            pr: 2.5,
+            py: 1,
+            flexShrink: 0,
+            boxShadow: '0 10px 15px -3px rgba(15, 23, 42, 0.2)',
+            animation: timeRemaining <= 300 ? 'timer-pulse 2s infinite' : 'none',
+            '@keyframes timer-pulse': {
+              '0%': { boxShadow: '0 0 0 0px rgba(239, 68, 68, 0.4)' },
+              '70%': { boxShadow: '0 0 0 10px rgba(239, 68, 68, 0)' },
+              '100%': { boxShadow: '0 0 0 0px rgba(239, 68, 68, 0)' }
+            }
+          }}
+        >
           <AccessTime sx={{ color: getTimerColor(), fontSize: '1.25rem' }} />
           <Box sx={{ minWidth: '70px' }}>
-            <Typography variant="h4" sx={{ 
-              fontWeight: 900, 
-              color: 'white', 
-              fontFamily: 'JetBrains Mono, monospace',
-              letterSpacing: '-0.02em',
-              lineHeight: 1
-            }}>
+            <Typography
+              variant="h4"
+              sx={{
+                fontWeight: 900,
+                color: 'white',
+                fontFamily: 'JetBrains Mono, monospace',
+                letterSpacing: '-0.02em',
+                lineHeight: 1
+              }}
+            >
               {formatTime(timeRemaining)}
             </Typography>
-            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.4)', fontWeight: 800, fontSize: '0.65rem', textTransform: 'uppercase' }}>
-               Remains
+            <Typography
+              variant="caption"
+              sx={{ color: 'rgba(255,255,255,0.4)', fontWeight: 800, fontSize: '0.65rem', textTransform: 'uppercase' }}
+            >
+              Remains
             </Typography>
           </Box>
         </Box>
@@ -152,11 +173,11 @@ export default function AssessmentHeader({
           onClick={onSubmit}
           disabled={timeRemaining <= 5}
           startIcon={<Logout />}
-          sx={{ 
-            px: 4, 
-            py: 1.4, 
-            fontWeight: 900, 
-            textTransform: 'none', 
+          sx={{
+            px: 4,
+            py: 1.4,
+            fontWeight: 900,
+            textTransform: 'none',
             borderRadius: '16px',
             bgcolor: '#ef4444',
             color: 'white',

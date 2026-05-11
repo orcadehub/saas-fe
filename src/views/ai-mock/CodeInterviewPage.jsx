@@ -39,7 +39,7 @@ export default function CodeInterviewPage() {
   useEffect(() => {
     if (isRecording && timeLeft > 0) {
       timerRef.current = setInterval(() => {
-        setTimeLeft(prev => (prev <= 1 ? 0 : prev - 1));
+        setTimeLeft((prev) => (prev <= 1 ? 0 : prev - 1));
       }, 1000);
     }
     return () => clearInterval(timerRef.current);
@@ -62,16 +62,16 @@ export default function CodeInterviewPage() {
 
   const startRecording = async () => {
     try {
-      const displayStream = await navigator.mediaDevices.getDisplayMedia({ 
+      const displayStream = await navigator.mediaDevices.getDisplayMedia({
         video: { displaySurface: 'monitor' },
         audio: { systemAudio: 'include' }
       });
-      
+
       displayStream.getVideoTracks()[0].onended = () => {
         alert('⚠️ Screen sharing stopped!');
         navigate('/ai-mock');
       };
-      
+
       const cameraStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
       setStream(cameraStream);
       if (videoRef.current) videoRef.current.srcObject = cameraStream;
@@ -99,7 +99,7 @@ export default function CodeInterviewPage() {
       } else {
         resolve();
       }
-      if (stream) stream.getTracks().forEach(track => track.stop());
+      if (stream) stream.getTracks().forEach((track) => track.stop());
     });
   };
 
@@ -143,13 +143,13 @@ export default function CodeInterviewPage() {
       setAnswers({ ...answers, [currentIndex]: code });
     }
     setCode('');
-    
+
     if (currentIndex < questions.length - 1) {
       setCurrentIndex(currentIndex + 1);
     } else {
       setIsFinishing(true);
       await stopRecording();
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       downloadRecording();
       const result = await completeInterview(id);
       navigate('/ai-mock/result', { state: { score: result.score } });
@@ -160,85 +160,111 @@ export default function CodeInterviewPage() {
 
   return (
     <>
-    {isFinishing && (
-      <Box sx={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, bgcolor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
-        <Box sx={{ textAlign: 'center' }}>
-          <Typography variant="h5" sx={{ color: 'white', mb: 1 }}>Finishing Interview...</Typography>
-          <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)' }}>Saving recording</Typography>
-        </Box>
-      </Box>
-    )}
-    <Box sx={{ minHeight: '100vh', bgcolor: '#f5f5f5', display: 'flex' }}>
-      <Box sx={{ width: '40%', display: 'flex', flexDirection: 'column' }}>
-        <Box sx={{ height: '50vh', bgcolor: '#000', position: 'relative' }}>
-          <video ref={videoRef} autoPlay muted style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          <Box sx={{ position: 'absolute', top: 20, left: 20 }}>
-            <Alert severity="error" sx={{ bgcolor: 'rgba(211, 47, 47, 0.9)' }}>
-              <Videocam /> {isRecording ? 'REC' : 'Not Recording'}
-            </Alert>
+      {isFinishing && (
+        <Box
+          sx={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            bgcolor: 'rgba(0,0,0,0.8)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999
+          }}
+        >
+          <Box sx={{ textAlign: 'center' }}>
+            <Typography variant="h5" sx={{ color: 'white', mb: 1 }}>
+              Finishing Interview...
+            </Typography>
+            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+              Saving recording
+            </Typography>
           </Box>
         </Box>
-        <Box sx={{ height: '50vh', bgcolor: '#1a1a2e', position: 'relative', overflow: 'hidden' }}>
-          <Avatar3D isSpeaking={isSpeaking} />
-          <Box sx={{ position: 'absolute', bottom: 20, left: '50%', transform: 'translateX(-50%)' }}>
-            <Button variant="contained" color="primary" onClick={handleReExplain} startIcon={<VolumeUp />}>
-              Speak Question
-            </Button>
-          </Box>
-        </Box>
-      </Box>
-
-      <Box sx={{ flex: 1, p: 4, overflowY: 'auto', bgcolor: '#f5f5f5' }}>
-        <Container maxWidth="md">
-          <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Box>
-              <Typography variant="body2" color="text.secondary">Problem {currentIndex + 1} of {questions.length}</Typography>
-              <LinearProgress variant="determinate" value={progress} sx={{ height: 8, borderRadius: 4, mt: 1, width: 200 }} />
-            </Box>
-            <Box sx={{ textAlign: 'right' }}>
-              <Typography variant="h4" sx={{ fontWeight: 700, color: timeLeft < 60 ? 'error.main' : 'primary.main' }}>
-                {formatTime(timeLeft)}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">Time Remaining</Typography>
+      )}
+      <Box sx={{ minHeight: '100vh', bgcolor: '#f5f5f5', display: 'flex' }}>
+        <Box sx={{ width: '40%', display: 'flex', flexDirection: 'column' }}>
+          <Box sx={{ height: '50vh', bgcolor: '#000', position: 'relative' }}>
+            <video ref={videoRef} autoPlay muted style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <Box sx={{ position: 'absolute', top: 20, left: 20 }}>
+              <Alert severity="error" sx={{ bgcolor: 'rgba(211, 47, 47, 0.9)' }}>
+                <Videocam /> {isRecording ? 'REC' : 'Not Recording'}
+              </Alert>
             </Box>
           </Box>
-
-          <Card sx={{ mb: 3, boxShadow: 3 }}>
-            <CardContent sx={{ p: 4 }}>
-              <Chip label={questions[currentIndex]?.category} color="primary" sx={{ mb: 2 }} />
-              <Typography variant="h4" sx={{ mb: 3, fontWeight: 500, lineHeight: 1.6 }}>
-                {questions[currentIndex]?.question}
-              </Typography>
-              <textarea
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                placeholder="Write your code here..."
-                style={{
-                  width: '100%',
-                  minHeight: '400px',
-                  fontFamily: 'monospace',
-                  fontSize: '14px',
-                  padding: '16px',
-                  border: '1px solid #ddd',
-                  borderRadius: '8px',
-                  resize: 'vertical'
-                }}
-              />
-            </CardContent>
-          </Card>
-
-          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Button disabled={currentIndex === 0 || isSpeaking} onClick={() => setCurrentIndex(currentIndex - 1)} size="large">
-              Previous
-            </Button>
-            <Button variant="contained" onClick={handleSubmitAnswer} disabled={isSpeaking} size="large"
-              color={currentIndex === questions.length - 1 ? 'error' : 'primary'}>
-              {currentIndex === questions.length - 1 ? 'Finish Interview' : 'Next Problem'}
-            </Button>
+          <Box sx={{ height: '50vh', bgcolor: '#1a1a2e', position: 'relative', overflow: 'hidden' }}>
+            <Avatar3D isSpeaking={isSpeaking} />
+            <Box sx={{ position: 'absolute', bottom: 20, left: '50%', transform: 'translateX(-50%)' }}>
+              <Button variant="contained" color="primary" onClick={handleReExplain} startIcon={<VolumeUp />}>
+                Speak Question
+              </Button>
+            </Box>
           </Box>
-        </Container>
+        </Box>
+
+        <Box sx={{ flex: 1, p: 4, overflowY: 'auto', bgcolor: '#f5f5f5' }}>
+          <Container maxWidth="md">
+            <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Box>
+                <Typography variant="body2" color="text.secondary">
+                  Problem {currentIndex + 1} of {questions.length}
+                </Typography>
+                <LinearProgress variant="determinate" value={progress} sx={{ height: 8, borderRadius: 4, mt: 1, width: 200 }} />
+              </Box>
+              <Box sx={{ textAlign: 'right' }}>
+                <Typography variant="h4" sx={{ fontWeight: 700, color: timeLeft < 60 ? 'error.main' : 'primary.main' }}>
+                  {formatTime(timeLeft)}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Time Remaining
+                </Typography>
+              </Box>
+            </Box>
+
+            <Card sx={{ mb: 3, boxShadow: 3 }}>
+              <CardContent sx={{ p: 4 }}>
+                <Chip label={questions[currentIndex]?.category} color="primary" sx={{ mb: 2 }} />
+                <Typography variant="h4" sx={{ mb: 3, fontWeight: 500, lineHeight: 1.6 }}>
+                  {questions[currentIndex]?.question}
+                </Typography>
+                <textarea
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  placeholder="Write your code here..."
+                  style={{
+                    width: '100%',
+                    minHeight: '400px',
+                    fontFamily: 'monospace',
+                    fontSize: '14px',
+                    padding: '16px',
+                    border: '1px solid #ddd',
+                    borderRadius: '8px',
+                    resize: 'vertical'
+                  }}
+                />
+              </CardContent>
+            </Card>
+
+            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+              <Button disabled={currentIndex === 0 || isSpeaking} onClick={() => setCurrentIndex(currentIndex - 1)} size="large">
+                Previous
+              </Button>
+              <Button
+                variant="contained"
+                onClick={handleSubmitAnswer}
+                disabled={isSpeaking}
+                size="large"
+                color={currentIndex === questions.length - 1 ? 'error' : 'primary'}
+              >
+                {currentIndex === questions.length - 1 ? 'Finish Interview' : 'Next Problem'}
+              </Button>
+            </Box>
+          </Container>
+        </Box>
       </Box>
-    </Box>
     </>
   );
 }

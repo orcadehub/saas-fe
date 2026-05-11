@@ -145,7 +145,7 @@ export default function NavCollapse({ menu, level, parentId }) {
           transition: 'all 0.3s',
           ...(drawerOpen && level !== 1 && { ml: `${level * 18}px` }),
           ...(!drawerOpen && { pl: 1.25 }),
-          '&:hover': { 
+          '&:hover': {
             bgcolor: 'rgba(99, 102, 241, 0.04)'
           },
           ...((isSelected || anchorEl) && {
@@ -190,12 +190,12 @@ export default function NavCollapse({ menu, level, parentId }) {
                 <Typography
                   ref={ref}
                   noWrap
-                  variant={(isSelected || anchorEl) ? 'subtitle1' : 'body2'}
+                  variant={isSelected || anchorEl ? 'subtitle1' : 'body2'}
                   sx={{
                     color: 'inherit',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
-                    fontWeight: (isSelected || anchorEl) ? 800 : 600,
+                    fontWeight: isSelected || anchorEl ? 800 : 600,
                     fontSize: '0.875rem'
                   }}
                 >

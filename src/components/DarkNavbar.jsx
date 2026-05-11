@@ -15,13 +15,19 @@ const DarkNavbar = ({ config }) => {
   ];
 
   return (
-    <Box component="nav" sx={{
-      position: 'fixed', top: 0, width: '100%', zIndex: 100,
-      borderBottom: '1px solid rgba(0,0,0,0.06)',
-      background: 'rgba(255, 255, 255, 0.8)',
-      backdropFilter: 'blur(20px)',
-      WebkitBackdropFilter: 'blur(20px)',
-    }}>
+    <Box
+      component="nav"
+      sx={{
+        position: 'fixed',
+        top: 0,
+        width: '100%',
+        zIndex: 100,
+        borderBottom: '1px solid rgba(0,0,0,0.06)',
+        background: 'rgba(255, 255, 255, 0.8)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)'
+      }}
+    >
       <Container maxWidth="xl">
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ py: 1.5 }}>
           {/* Logo */}
@@ -35,17 +41,26 @@ const DarkNavbar = ({ config }) => {
                   height: { xs: 36, md: 42 },
                   objectFit: 'contain',
                   filter: 'none',
-                  borderRadius: '12px',
+                  borderRadius: '12px'
                 }}
-                onError={(e) => { e.target.style.display = 'none'; }}
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                }}
               />
             ) : (
-              <Typography variant="h5" sx={{
-                fontWeight: 800, letterSpacing: '-0.5px',
-                display: 'flex', alignItems: 'center', gap: 1,
-                background: 'linear-gradient(135deg, #7c3aed, #2563eb)',
-                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-              }}>
+              <Typography
+                variant="h5"
+                sx={{
+                  fontWeight: 800,
+                  letterSpacing: '-0.5px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  background: 'linear-gradient(135deg, #7c3aed, #2563eb)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent'
+                }}
+              >
                 <AutoAwesomeRounded sx={{ color: '#7c3aed' }} />
                 {config?.tenantName || 'ORCADEHUB'}
               </Typography>
@@ -63,8 +78,11 @@ const DarkNavbar = ({ config }) => {
                 sx={{
                   color: '#475569',
                   '&:hover': { color: '#0f172a', background: 'rgba(0,0,0,0.03)' },
-                  textTransform: 'none', fontSize: '0.95rem', fontWeight: 600, px: 2,
-                  transition: 'all 0.3s',
+                  textTransform: 'none',
+                  fontSize: '0.95rem',
+                  fontWeight: 600,
+                  px: 2,
+                  transition: 'all 0.3s'
                 }}
               >
                 {item.label}
@@ -91,17 +109,14 @@ const DarkNavbar = ({ config }) => {
                 '&:hover': {
                   background: 'linear-gradient(135deg, #6d28d9, #4338ca)',
                   transform: 'translateY(-2px)',
-                  boxShadow: '0 8px 20px rgba(124, 58, 237, 0.3)',
+                  boxShadow: '0 8px 20px rgba(124, 58, 237, 0.3)'
                 },
-                transition: 'all 0.3s',
+                transition: 'all 0.3s'
               }}
             >
               Login
             </Button>
-            <IconButton
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              sx={{ display: { xs: 'flex', md: 'none' }, color: '#0f172a' }}
-            >
+            <IconButton onClick={() => setMobileMenuOpen(!mobileMenuOpen)} sx={{ display: { xs: 'flex', md: 'none' }, color: '#0f172a' }}>
               {mobileMenuOpen ? <CloseIcon /> : <MenuIcon />}
             </IconButton>
           </Stack>
@@ -117,28 +132,41 @@ const DarkNavbar = ({ config }) => {
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <Box sx={{
-              display: { xs: 'flex', md: 'none' },
-              flexDirection: 'column',
-              px: 3, pb: 3, gap: 1,
-              borderTop: '1px solid rgba(0,0,0,0.05)',
-              background: '#fff',
-            }}>
+            <Box
+              sx={{
+                display: { xs: 'flex', md: 'none' },
+                flexDirection: 'column',
+                px: 3,
+                pb: 3,
+                gap: 1,
+                borderTop: '1px solid rgba(0,0,0,0.05)',
+                background: '#fff'
+              }}
+            >
               {navItems.map((item) => (
                 <Button
                   key={item.path}
-                  onClick={() => { navigate(item.path); setMobileMenuOpen(false); }}
+                  onClick={() => {
+                    navigate(item.path);
+                    setMobileMenuOpen(false);
+                  }}
                   sx={{ color: '#475569', textTransform: 'none', justifyContent: 'flex-start', fontWeight: 600 }}
                 >
                   {item.label}
                 </Button>
               ))}
               <Button
-                onClick={() => { navigate('/login'); setMobileMenuOpen(false); }}
+                onClick={() => {
+                  navigate('/login');
+                  setMobileMenuOpen(false);
+                }}
                 sx={{
                   background: 'linear-gradient(135deg, #7c3aed, #4f46e5)',
-                  color: '#fff', borderRadius: '12px', mt: 1,
-                  textTransform: 'none', fontWeight: 600,
+                  color: '#fff',
+                  borderRadius: '12px',
+                  mt: 1,
+                  textTransform: 'none',
+                  fontWeight: 600
                 }}
               >
                 Login
@@ -150,6 +178,5 @@ const DarkNavbar = ({ config }) => {
     </Box>
   );
 };
-
 
 export default DarkNavbar;

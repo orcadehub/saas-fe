@@ -89,11 +89,11 @@ export default function ProfileSection() {
     <>
       <Chip
         slotProps={{ label: { sx: { lineHeight: 0 } } }}
-        sx={{ 
-          ml: 2, 
-          height: '48px', 
-          alignItems: 'center', 
-          borderRadius: '27px', 
+        sx={{
+          ml: 2,
+          height: '48px',
+          alignItems: 'center',
+          borderRadius: '27px',
           bgcolor: '#6366f1 !important',
           color: '#fff !important',
           border: 'none',
@@ -106,11 +106,11 @@ export default function ProfileSection() {
           <Avatar
             src={studentData?.profile?.profilePic || studentData?.profilePic}
             alt="user-images"
-            sx={{ 
-              typography: 'mediumAvatar', 
-              margin: '8px 0 8px 8px !important', 
-              cursor: 'pointer', 
-              bgcolor: 'rgba(255, 255, 255, 0.2)', 
+            sx={{
+              typography: 'mediumAvatar',
+              margin: '8px 0 8px 8px !important',
+              cursor: 'pointer',
+              bgcolor: 'rgba(255, 255, 255, 0.2)',
               color: '#fff !important'
             }}
             ref={anchorRef}
@@ -152,12 +152,16 @@ export default function ProfileSection() {
                     <Box sx={{ p: 2.5, pb: 0 }}>
                       <Stack>
                         <Stack direction="row" sx={{ alignItems: 'center', gap: 0.5 }}>
-                          <Typography variant="h4" sx={{ fontWeight: 800, color: '#1e293b' }}>Good Morning,</Typography>
+                          <Typography variant="h4" sx={{ fontWeight: 800, color: '#1e293b' }}>
+                            Good Morning,
+                          </Typography>
                           <Typography component="span" variant="h4" sx={{ fontWeight: 800, color: '#6366f1' }}>
                             {studentData?.name?.split(' ')[0] || 'User'}
                           </Typography>
                         </Stack>
-                        <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600, mt: 0.5 }}>{studentData?.email || ''}</Typography>
+                        <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600, mt: 0.5 }}>
+                          {studentData?.email || ''}
+                        </Typography>
                       </Stack>
                       <Divider sx={{ mt: 2.5, opacity: 0.6 }} />
                     </Box>
@@ -181,7 +185,7 @@ export default function ProfileSection() {
                           '& .MuiListItemButton-root': { mt: 0.5 }
                         }}
                       >
-                        <ListItemButton 
+                        <ListItemButton
                           sx={{ borderRadius: '12px', mb: 0.5, '&:hover': { bgcolor: 'rgba(99, 102, 241, 0.04)' } }}
                           onClick={() => {
                             setOpen(false);
@@ -191,9 +195,13 @@ export default function ProfileSection() {
                           <ListItemIcon sx={{ color: '#64748b', minWidth: 40 }}>
                             <IconSettings stroke={2} size="18px" />
                           </ListItemIcon>
-                          <ListItemText primary={<Typography sx={{ fontWeight: 700, fontSize: '0.875rem', color: '#1e293b' }}>Account Settings</Typography>} />
+                          <ListItemText
+                            primary={
+                              <Typography sx={{ fontWeight: 700, fontSize: '0.875rem', color: '#1e293b' }}>Account Settings</Typography>
+                            }
+                          />
                         </ListItemButton>
-                        <ListItemButton 
+                        <ListItemButton
                           sx={{ borderRadius: '12px', mb: 0.5, '&:hover': { bgcolor: 'rgba(99, 102, 241, 0.04)' } }}
                           onClick={() => {
                             setOpen(false);
@@ -210,12 +218,12 @@ export default function ProfileSection() {
                                 <Chip
                                   label="New"
                                   size="small"
-                                  sx={{ 
-                                    height: 20, 
-                                    bgcolor: 'rgba(245, 158, 11, 0.12)', 
-                                    color: '#f59e0b', 
-                                    fontWeight: 800, 
-                                    fontSize: '0.625rem' 
+                                  sx={{
+                                    height: 20,
+                                    bgcolor: 'rgba(245, 158, 11, 0.12)',
+                                    color: '#f59e0b',
+                                    fontWeight: 800,
+                                    fontSize: '0.625rem'
                                   }}
                                 />
                               </Stack>
@@ -223,12 +231,12 @@ export default function ProfileSection() {
                           />
                         </ListItemButton>
                         <Divider sx={{ my: 1, opacity: 0.6 }} />
-                        <ListItemButton 
-                          sx={{ 
+                        <ListItemButton
+                          sx={{
                             borderRadius: '12px',
                             color: '#ef4444',
                             '&:hover': { bgcolor: 'rgba(239, 68, 68, 0.05)' }
-                          }} 
+                          }}
                           onClick={handleLogout}
                         >
                           <ListItemIcon sx={{ color: 'inherit', minWidth: 40 }}>

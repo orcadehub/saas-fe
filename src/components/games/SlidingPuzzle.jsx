@@ -9,23 +9,23 @@ const SlidingPuzzle = ({ level, onSubmit, themeColor = '#6a0dad' }) => {
   const shufflePuzzle = (initialTiles, rows, cols) => {
     const tiles = [...initialTiles];
     let emptyIndex = tiles.indexOf(0);
-    
+
     // Make 200 random valid moves
     for (let i = 0; i < 200; i++) {
       const emptyRow = Math.floor(emptyIndex / cols);
       const emptyCol = emptyIndex % cols;
       const validMoves = [];
-      
+
       if (emptyRow > 0) validMoves.push(emptyIndex - cols);
       if (emptyRow < rows - 1) validMoves.push(emptyIndex + cols);
       if (emptyCol > 0) validMoves.push(emptyIndex - 1);
       if (emptyCol < cols - 1) validMoves.push(emptyIndex + 1);
-      
+
       const moveIndex = validMoves[Math.floor(Math.random() * validMoves.length)];
       [tiles[emptyIndex], tiles[moveIndex]] = [tiles[moveIndex], tiles[emptyIndex]];
       emptyIndex = moveIndex;
     }
-    
+
     return tiles;
   };
 
@@ -33,14 +33,14 @@ const SlidingPuzzle = ({ level, onSubmit, themeColor = '#6a0dad' }) => {
     if (level?.correctAnswer) {
       const data = JSON.parse(level.correctAnswer);
       setGameData(data);
-      
+
       // Create ordered tiles
       const orderedTiles = [];
       for (let i = 1; i < data.rows * data.cols; i++) {
         orderedTiles.push(i);
       }
       orderedTiles.push(0);
-      
+
       // Shuffle them
       setTiles(shufflePuzzle(orderedTiles, data.rows, data.cols));
     }
@@ -63,9 +63,7 @@ const SlidingPuzzle = ({ level, onSubmit, themeColor = '#6a0dad' }) => {
     const emptyCol = emptyIndex % gameData.cols;
 
     // Check if tile is adjacent to empty space
-    const isAdjacent = 
-      (row === emptyRow && Math.abs(col - emptyCol) === 1) ||
-      (col === emptyCol && Math.abs(row - emptyRow) === 1);
+    const isAdjacent = (row === emptyRow && Math.abs(col - emptyCol) === 1) || (col === emptyCol && Math.abs(row - emptyRow) === 1);
 
     if (isAdjacent) {
       const newTiles = [...tiles];
@@ -94,25 +92,22 @@ const SlidingPuzzle = ({ level, onSubmit, themeColor = '#6a0dad' }) => {
         <Typography variant="h6" sx={{ color: themeColor, fontWeight: 600 }}>
           Slide tiles to arrange them in order (1 to {gameData.rows * gameData.cols - 1})
         </Typography>
-        <Button
-          variant="outlined"
-          startIcon={<Refresh />}
-          onClick={handleReset}
-          sx={{ borderColor: themeColor, color: themeColor }}
-        >
+        <Button variant="outlined" startIcon={<Refresh />} onClick={handleReset} sx={{ borderColor: themeColor, color: themeColor }}>
           Reset
         </Button>
       </Box>
 
-      <Box sx={{
-        display: 'grid',
-        gridTemplateColumns: `repeat(${gameData.cols}, ${tileSize}px)`,
-        gap: 1,
-        p: 2,
-        bgcolor: `${themeColor}14`,
-        borderRadius: 2,
-        border: `2px solid ${themeColor}`
-      }}>
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: `repeat(${gameData.cols}, ${tileSize}px)`,
+          gap: 1,
+          p: 2,
+          bgcolor: `${themeColor}14`,
+          borderRadius: 2,
+          border: `2px solid ${themeColor}`
+        }}
+      >
         {tiles.map((tile, index) => {
           const isEmpty = tile === 0;
           const isCorrect = isEmpty ? index === tiles.length - 1 : tile === index + 1;
@@ -136,10 +131,12 @@ const SlidingPuzzle = ({ level, onSubmit, themeColor = '#6a0dad' }) => {
                 fontWeight: 700,
                 color: themeColor,
                 transition: 'all 0.2s',
-                '&:hover': isEmpty ? {} : {
-                  transform: 'scale(1.05)',
-                  boxShadow: `0 4px 12px ${themeColor}4D`
-                }
+                '&:hover': isEmpty
+                  ? {}
+                  : {
+                      transform: 'scale(1.05)',
+                      boxShadow: `0 4px 12px ${themeColor}4D`
+                    }
               }}
             >
               {!isEmpty && tile}

@@ -92,9 +92,7 @@ class FrontendTestValidator {
           return matchers;
         },
         toContain: (expected) => {
-          const passed = Array.isArray(value)
-            ? value.includes(expected)
-            : String(value).includes(String(expected));
+          const passed = Array.isArray(value) ? value.includes(expected) : String(value).includes(String(expected));
           assertions.push({ type: 'toContain', value, expected, passed });
           return matchers;
         },
@@ -151,23 +149,31 @@ class FrontendTestValidator {
       // If beforeEach exists: set window.__JS__ and run beforeEach (which sets up DOM via eval)
       // If no beforeEach: render HTML + run JS normally
       const mainScript = beforeEachBody
-        ? 'window.__JS__=' + JSON.stringify(safeJs) + ';\n' +
-          safeDataJs + '\n' +
-          beforeEachBody.replace(/<\/script>/gi, '<\/script>') + '\n' +
-          'window.__testBody=' + JSON.stringify(safeTestBody) + ';'
-        : safeDataJs + '\n' +
-          safeJs + '\n' +
-          'window.__testBody=' + JSON.stringify(safeTestBody) + ';';
+        ? 'window.__JS__=' +
+          JSON.stringify(safeJs) +
+          ';\n' +
+          safeDataJs +
+          '\n' +
+          beforeEachBody.replace(/<\/script>/gi, '<\/script>') +
+          '\n' +
+          'window.__testBody=' +
+          JSON.stringify(safeTestBody) +
+          ';'
+        : safeDataJs + '\n' + safeJs + '\n' + 'window.__testBody=' + JSON.stringify(safeTestBody) + ';';
 
       const bodyHTML = beforeEachBody ? '' : safeHTML;
 
       const docContent =
         '<!DOCTYPE html><html><head>' +
-        '<style>' + safeCSS + '</style>' +
+        '<style>' +
+        safeCSS +
+        '</style>' +
         '<script>window.__scriptErrors=[];window.onerror=function(m){window.__scriptErrors.push(m);};<\/script>' +
         '</head><body>' +
         bodyHTML +
-        '<script>' + mainScript + '<\/script>' +
+        '<script>' +
+        mainScript +
+        '<\/script>' +
         '</body></html>';
 
       iframeDoc.open();
@@ -188,7 +194,7 @@ class FrontendTestValidator {
             const runInScope = iframeWindow.Function('expect', 'document', iframeWindow.__testBody || safeTestBody);
             runInScope(expect, iframeDoc);
 
-            const allPassed = assertions.length > 0 && assertions.every(a => a.passed);
+            const allPassed = assertions.length > 0 && assertions.every((a) => a.passed);
 
             document.body.removeChild(iframe);
 
@@ -240,8 +246,8 @@ class FrontendTestValidator {
         results.push(result);
       }
 
-      const passed = results.filter(r => r.passed).length;
-      const failed = results.filter(r => !r.passed).length;
+      const passed = results.filter((r) => r.passed).length;
+      const failed = results.filter((r) => !r.passed).length;
       const total = results.length;
       const percentage = total > 0 ? Math.round((passed / total) * 100) : 0;
 

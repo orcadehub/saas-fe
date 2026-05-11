@@ -30,7 +30,9 @@ export default function MainCard({
   ...others
 }) {
   const defaultShadow = '0 2px 14px 0 rgb(32 40 45 / 8%)';
-  const { state: { borderRadius } } = useConfig();
+  const {
+    state: { borderRadius }
+  } = useConfig();
 
   return (
     <Card

@@ -30,10 +30,10 @@ const JigsawPuzzle = ({ level, onSubmit }) => {
 
     const newPieces = [...currentPieces];
     [newPieces[draggedPiece], newPieces[dropIndex]] = [newPieces[dropIndex], newPieces[draggedPiece]];
-    
+
     newPieces[draggedPiece].currentPosition = draggedPiece;
     newPieces[dropIndex].currentPosition = dropIndex;
-    
+
     setCurrentPieces(newPieces);
     setDraggedPiece(null);
 
@@ -54,15 +54,17 @@ const JigsawPuzzle = ({ level, onSubmit }) => {
         {gameData.pattern.name} Puzzle
       </Typography>
 
-      <Box sx={{
-        display: 'grid',
-        gridTemplateColumns: `repeat(${gameData.cols}, ${pieceSize}px)`,
-        gap: 1,
-        p: 2,
-        bgcolor: '#f3e8ff',
-        borderRadius: 2,
-        border: '2px solid #6a0dad'
-      }}>
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: `repeat(${gameData.cols}, ${pieceSize}px)`,
+          gap: 1,
+          p: 2,
+          bgcolor: '#f3e8ff',
+          borderRadius: 2,
+          border: '2px solid #6a0dad'
+        }}
+      >
         {currentPieces.map((piece, index) => {
           const row = Math.floor(piece.correctPosition / gameData.cols);
           const col = piece.correctPosition % gameData.cols;
@@ -101,21 +103,23 @@ const JigsawPuzzle = ({ level, onSubmit }) => {
               }}
             >
               <Typography sx={{ fontSize: '3rem' }}>{gameData.pattern.emoji}</Typography>
-              <Box sx={{
-                position: 'absolute',
-                top: 2,
-                left: 2,
-                bgcolor: 'rgba(106,13,173,0.8)',
-                color: 'white',
-                borderRadius: '50%',
-                width: 20,
-                height: 20,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '0.7rem',
-                fontWeight: 600
-              }}>
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: 2,
+                  left: 2,
+                  bgcolor: 'rgba(106,13,173,0.8)',
+                  color: 'white',
+                  borderRadius: '50%',
+                  width: 20,
+                  height: 20,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '0.7rem',
+                  fontWeight: 600
+                }}
+              >
                 {piece.id + 1}
               </Box>
             </Box>
@@ -123,9 +127,7 @@ const JigsawPuzzle = ({ level, onSubmit }) => {
         })}
       </Box>
 
-      <Typography sx={{ mt: 2, color: '#9d4edd', fontSize: '0.9rem' }}>
-        Drag and drop pieces to complete the puzzle
-      </Typography>
+      <Typography sx={{ mt: 2, color: '#9d4edd', fontSize: '0.9rem' }}>Drag and drop pieces to complete the puzzle</Typography>
     </Box>
   );
 };

@@ -88,7 +88,7 @@ const readingComp = [
 const generateQuestion = () => {
   const types = ['synonym', 'antonym', 'sentence', 'spelling', 'idiom', 'oneword', 'reading'];
   const type = types[Math.floor(Math.random() * types.length)];
-  
+
   if (type === 'synonym') {
     const [word, correct, wrongs] = synonymPairs[Math.floor(Math.random() * synonymPairs.length)];
     const options = [correct, ...wrongs].sort(() => Math.random() - 0.5);
@@ -135,7 +135,12 @@ const verbalQuestions = [
   { type: 'sentence', question: 'They _____ playing cricket now.', options: ['is', 'are', 'was', 'were'], answer: 'are' },
   { type: 'synonym', word: 'RAPID', options: ['Slow', 'Fast', 'Steady', 'Gradual'], answer: 'Fast' },
   { type: 'antonym', word: 'GENEROUS', options: ['Kind', 'Giving', 'Selfish', 'Charitable'], answer: 'Selfish' },
-  { type: 'sentence', question: 'She has _____ her homework.', options: ['complete', 'completed', 'completing', 'completes'], answer: 'completed' },
+  {
+    type: 'sentence',
+    question: 'She has _____ her homework.',
+    options: ['complete', 'completed', 'completing', 'completes'],
+    answer: 'completed'
+  },
   { type: 'synonym', word: 'VITAL', options: ['Unimportant', 'Essential', 'Minor', 'Trivial'], answer: 'Essential' },
   { type: 'antonym', word: 'INNOCENT', options: ['Pure', 'Guilty', 'Blameless', 'Virtuous'], answer: 'Guilty' },
   { type: 'sentence', question: 'He _____ a doctor.', options: ['is', 'are', 'am', 'be'], answer: 'is' },
@@ -159,7 +164,7 @@ const VerbalAbilityGame = ({ difficulty = 'Easy', onComplete, onQuestionChange }
 
   const handleSubmit = () => {
     const isCorrect = selected === question.answer;
-    
+
     if (isCorrect) {
       setScore(score + 1);
       setFeedback('✓ Correct!');
@@ -182,10 +187,18 @@ const VerbalAbilityGame = ({ difficulty = 'Easy', onComplete, onQuestionChange }
   if (gameOver) {
     return (
       <Box sx={{ textAlign: 'center', p: 4 }}>
-        <Typography variant="h4" sx={{ mb: 2 }}>Game Complete!</Typography>
-        <Typography variant="h5" sx={{ mb: 3 }}>Score: {score}/{totalQuestions}</Typography>
-        <Typography variant="h6" sx={{ mb: 2 }}>Accuracy: {((score / totalQuestions) * 100).toFixed(1)}%</Typography>
-        <Button variant="contained" onClick={() => window.location.reload()}>Play Again</Button>
+        <Typography variant="h4" sx={{ mb: 2 }}>
+          Game Complete!
+        </Typography>
+        <Typography variant="h5" sx={{ mb: 3 }}>
+          Score: {score}/{totalQuestions}
+        </Typography>
+        <Typography variant="h6" sx={{ mb: 2 }}>
+          Accuracy: {((score / totalQuestions) * 100).toFixed(1)}%
+        </Typography>
+        <Button variant="contained" onClick={() => window.location.reload()}>
+          Play Again
+        </Button>
       </Box>
     );
   }
@@ -204,15 +217,21 @@ const VerbalAbilityGame = ({ difficulty = 'Easy', onComplete, onQuestionChange }
           {question.type === 'oneword' && question.question}
           {question.type === 'reading' && 'Read and answer:'}
         </Typography>
-        
+
         {question.type === 'sentence' && (
-          <Typography variant="h5" sx={{ mb: 3, fontWeight: 600 }}>{question.question}</Typography>
+          <Typography variant="h5" sx={{ mb: 3, fontWeight: 600 }}>
+            {question.question}
+          </Typography>
         )}
-        
+
         {question.type === 'reading' && (
           <Box sx={{ mb: 3, p: 2, bgcolor: 'grey.100', borderRadius: 2 }}>
-            <Typography variant="body1" sx={{ mb: 2 }}>{question.passage}</Typography>
-            <Typography variant="h6" sx={{ fontWeight: 600 }}>{question.question}</Typography>
+            <Typography variant="body1" sx={{ mb: 2 }}>
+              {question.passage}
+            </Typography>
+            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+              {question.question}
+            </Typography>
           </Box>
         )}
 
@@ -242,7 +261,7 @@ const VerbalAbilityGame = ({ difficulty = 'Easy', onComplete, onQuestionChange }
             {feedback}
           </Typography>
         )}
-        
+
         {!feedback && (
           <Button variant="contained" onClick={handleSubmit} disabled={!selected} sx={{ px: 4, py: 1.5 }}>
             Submit

@@ -17,7 +17,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const token = localStorage.getItem('studentToken');
     const studentData = localStorage.getItem('studentData');
-    
+
     if (token && studentData) {
       const parsed = JSON.parse(studentData);
       setUser({ ...parsed, token });
@@ -38,9 +38,5 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('studentData');
   };
 
-  return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={{ user, login, logout, loading }}>{children}</AuthContext.Provider>;
 };

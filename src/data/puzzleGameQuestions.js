@@ -86,5 +86,5 @@ export const puzzleGameQuestions = [
 ];
 
 export const getPuzzleGameQuestions = (subtopicId) => {
-  return puzzleGameQuestions.map(q => ({ ...q, subtopicId }));
+  return puzzleGameQuestions.map((q) => ({ ...q, subtopicId }));
 };

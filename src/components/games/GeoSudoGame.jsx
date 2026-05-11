@@ -18,35 +18,47 @@ const ShapeIcon = ({ shape, color, size = 40 }) => {
 
 // Generate a random Latin Square of size N (guarantees rows and cols have unique symbols)
 const generateRandomLatinSquare = (n) => {
-  const base = Array(n).fill(0).map((_, i) =>
-    Array(n).fill(0).map((_, j) => (i + j) % n)
-  );
+  const base = Array(n)
+    .fill(0)
+    .map((_, i) =>
+      Array(n)
+        .fill(0)
+        .map((_, j) => (i + j) % n)
+    );
 
-  let rows = Array(n).fill(0).map((_, i) => i);
+  let rows = Array(n)
+    .fill(0)
+    .map((_, i) => i);
   for (let i = n - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [rows[i], rows[j]] = [rows[j], rows[i]];
   }
 
-  let cols = Array(n).fill(0).map((_, i) => i);
+  let cols = Array(n)
+    .fill(0)
+    .map((_, i) => i);
   for (let i = n - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [cols[i], cols[j]] = [cols[j], cols[i]];
   }
 
-  let symbols = Array(n).fill(0).map((_, i) => i);
+  let symbols = Array(n)
+    .fill(0)
+    .map((_, i) => i);
   for (let i = n - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [symbols[i], symbols[j]] = [symbols[j], symbols[i]];
   }
 
-  const result = Array(n).fill(0).map(() => Array(n).fill(0));
+  const result = Array(n)
+    .fill(0)
+    .map(() => Array(n).fill(0));
   for (let i = 0; i < n; i++) {
     for (let j = 0; j < n; j++) {
       result[i][j] = symbols[base[rows[i]][cols[j]]];
     }
   }
-  
+
   return result;
 };
 
@@ -56,12 +68,16 @@ const generateGeoSudo = (difficulty) => {
 
   // Build the full solved grid using Latin square
   const ls = generateRandomLatinSquare(n);
-  const grid = Array(n).fill(null).map((_, i) =>
-    Array(n).fill(null).map((_, j) => {
-      const val = ls[i][j];
-      return { shape: SHAPES[val], color: COLORS[val], value: val };
-    })
-  );
+  const grid = Array(n)
+    .fill(null)
+    .map((_, i) =>
+      Array(n)
+        .fill(null)
+        .map((_, j) => {
+          const val = ls[i][j];
+          return { shape: SHAPES[val], color: COLORS[val], value: val };
+        })
+    );
 
   // Determine how many cells to blank out
   const emptyCells = difficulty === 'Easy' ? 4 : difficulty === 'Medium' ? 8 : 12;
@@ -81,7 +97,7 @@ const generateGeoSudo = (difficulty) => {
   const answer = grid[questionPos[0]][questionPos[1]];
 
   // Create the puzzle with blanked cells
-  const puzzle = grid.map(row => row.map(cell => ({ ...cell })));
+  const puzzle = grid.map((row) => row.map((cell) => ({ ...cell })));
   for (let i = 0; i < emptyCells; i++) {
     const [row, col] = positions[i];
     puzzle[row][col] = null;
@@ -115,7 +131,7 @@ const GeoSudoGame = ({ level, difficulty, onComplete }) => {
 
   const handleSelect = (shape, color) => {
     if (isSubmitting || feedback) return;
-    
+
     const selection = { shape, color };
     setSelected(selection);
     setIsSubmitting(true);
@@ -123,7 +139,7 @@ const GeoSudoGame = ({ level, difficulty, onComplete }) => {
     const isCorrect = shape === answer.shape && color === answer.color;
 
     // Show selected in grid
-    const newPuzzle = puzzle.map(row => row.map(cell => cell ? { ...cell } : null));
+    const newPuzzle = puzzle.map((row) => row.map((cell) => (cell ? { ...cell } : null)));
     newPuzzle[questionPos[0]][questionPos[1]] = { shape, color, isGuess: true, isCorrect };
     setPuzzle(newPuzzle);
 
@@ -161,14 +177,16 @@ const GeoSudoGame = ({ level, difficulty, onComplete }) => {
         </Typography>
 
         {/* Puzzle Grid */}
-        <Box sx={{
-          display: 'inline-block',
-          mb: 4,
-          p: { xs: 1, sm: 2 },
-          bgcolor: '#f8fafc',
-          borderRadius: '20px',
-          border: '2px dashed #e2e8f0'
-        }}>
+        <Box
+          sx={{
+            display: 'inline-block',
+            mb: 4,
+            p: { xs: 1, sm: 2 },
+            bgcolor: '#f8fafc',
+            borderRadius: '20px',
+            border: '2px dashed #e2e8f0'
+          }}
+        >
           {puzzle.map((row, rowIdx) => (
             <Box key={rowIdx} sx={{ display: 'flex', gap: 1, mb: rowIdx < boardSize - 1 ? 1 : 0 }}>
               {row.map((cell, colIdx) => {
@@ -187,28 +205,33 @@ const GeoSudoGame = ({ level, difficulty, onComplete }) => {
                       justifyContent: 'center',
                       borderRadius: '12px',
                       border: isQuestion
-                        ? (cell?.isGuess 
-                          ? `3px solid ${cell.isCorrect ? '#10b981' : '#ef4444'}` 
-                          : '3px dashed #f59e0b')
+                        ? cell?.isGuess
+                          ? `3px solid ${cell.isCorrect ? '#10b981' : '#ef4444'}`
+                          : '3px dashed #f59e0b'
                         : '2px solid #e2e8f0',
                       bgcolor: isQuestion
-                        ? (cell?.isGuess
-                          ? (cell.isCorrect ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)')
-                          : 'rgba(245,158,11,0.06)')
+                        ? cell?.isGuess
+                          ? cell.isCorrect
+                            ? 'rgba(16,185,129,0.08)'
+                            : 'rgba(239,68,68,0.08)'
+                          : 'rgba(245,158,11,0.06)'
                         : '#fff',
                       boxShadow: isQuestion && !cell?.isGuess ? '0 0 15px rgba(245,158,11,0.15)' : 'none',
                       transition: 'all 0.2s'
                     }}
                   >
                     {isQuestion && !cell ? (
-                      <MotionBox
-                        animate={{ scale: [1, 1.2, 1], opacity: [0.6, 1, 0.6] }}
-                        transition={{ repeat: Infinity, duration: 1.5 }}
-                      >
-                        <Typography variant={boardSize === 6 ? "h5" : "h4"} sx={{ fontWeight: 900, color: '#f59e0b' }}>?</Typography>
+                      <MotionBox animate={{ scale: [1, 1.2, 1], opacity: [0.6, 1, 0.6] }} transition={{ repeat: Infinity, duration: 1.5 }}>
+                        <Typography variant={boardSize === 6 ? 'h5' : 'h4'} sx={{ fontWeight: 900, color: '#f59e0b' }}>
+                          ?
+                        </Typography>
                       </MotionBox>
                     ) : cell ? (
-                      <ShapeIcon shape={cell.shape} color={cell.color} size={cell.isGuess ? (boardSize === 6 ? 30 : 36) : (boardSize === 6 ? 26 : 30)} />
+                      <ShapeIcon
+                        shape={cell.shape}
+                        color={cell.color}
+                        size={cell.isGuess ? (boardSize === 6 ? 30 : 36) : boardSize === 6 ? 26 : 30}
+                      />
                     ) : (
                       <Box sx={{ width: '40%', height: '40%', bgcolor: '#f1f5f9', borderRadius: '8px' }} />
                     )}
@@ -251,7 +274,10 @@ const GeoSudoGame = ({ level, difficulty, onComplete }) => {
                   }}
                 >
                   <ShapeIcon shape={SHAPES[idx]} color={COLORS[idx]} size={30} />
-                  <Typography variant="caption" sx={{ color: '#94a3b8', fontWeight: 600, mt: 0.5, fontSize: '0.65rem', display: { xs: 'none', sm: 'block' } }}>
+                  <Typography
+                    variant="caption"
+                    sx={{ color: '#94a3b8', fontWeight: 600, mt: 0.5, fontSize: '0.65rem', display: { xs: 'none', sm: 'block' } }}
+                  >
                     {COLOR_NAMES[idx]}
                   </Typography>
                 </MotionBox>

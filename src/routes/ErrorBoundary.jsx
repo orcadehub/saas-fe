@@ -65,7 +65,7 @@ export default function ErrorBoundary() {
           >
             {errorCode}
           </Typography>
-          
+
           <Stack spacing={2}>
             <Typography variant="h2" sx={{ fontWeight: 600 }}>
               {errorTitle}
@@ -76,20 +76,10 @@ export default function ErrorBoundary() {
           </Stack>
 
           <Stack direction="row" spacing={2}>
-            <Button
-              variant="contained"
-              size="large"
-              startIcon={<IconHome />}
-              onClick={() => navigate('/')}
-            >
+            <Button variant="contained" size="large" startIcon={<IconHome />} onClick={() => navigate('/')}>
               Go Home
             </Button>
-            <Button
-              variant="outlined"
-              size="large"
-              startIcon={<IconRefresh />}
-              onClick={() => window.location.reload()}
-            >
+            <Button variant="outlined" size="large" startIcon={<IconRefresh />} onClick={() => window.location.reload()}>
               Refresh
             </Button>
           </Stack>

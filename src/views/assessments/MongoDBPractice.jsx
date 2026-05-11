@@ -59,7 +59,7 @@ export default function MongoDBPractice() {
       const token = localStorage.getItem('studentToken');
       const assessmentData = await apiService.getAssessmentDetails(token, id);
       setAssessment(assessmentData);
-      
+
       const questionsData = await apiService.getAssessmentQuestions(token, id);
       setQuestions(questionsData.mongodbPlaygroundQuestions || []);
     } catch (error) {
@@ -91,7 +91,7 @@ export default function MongoDBPractice() {
   useEffect(() => {
     if (!assessment) return;
     const startTime = new Date(assessment.startTime).getTime();
-    const endTime = startTime + (assessment.duration * 60 * 1000);
+    const endTime = startTime + assessment.duration * 60 * 1000;
     const tick = () => {
       const now = Date.now();
       setTimeToUnlock(now >= endTime ? 0 : endTime - now);
@@ -104,7 +104,14 @@ export default function MongoDBPractice() {
   if (loading) {
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#fbfcfe' }}>
-        <Box sx={{ p: 2, borderBottom: '1px solid rgba(226, 232, 240, 0.8)', bgcolor: 'rgba(255, 255, 255, 0.8)', backdropFilter: 'blur(10px)' }}>
+        <Box
+          sx={{
+            p: 2,
+            borderBottom: '1px solid rgba(226, 232, 240, 0.8)',
+            bgcolor: 'rgba(255, 255, 255, 0.8)',
+            backdropFilter: 'blur(10px)'
+          }}
+        >
           <Skeleton variant="rectangular" height={48} sx={{ borderRadius: '12px' }} />
         </Box>
         <Box sx={{ display: 'grid', gridTemplateColumns: '50% 1px 50%', flexGrow: 1 }}>
@@ -128,17 +135,49 @@ export default function MongoDBPractice() {
     const seconds = Math.floor((timeToUnlock % (1000 * 60)) / 1000);
     return (
       <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 3, bgcolor: '#f8fafc' }}>
-        <Card sx={{ maxWidth: 550, textAlign: 'center', p: 6, borderRadius: '40px', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', border: '1px solid #f1f5f9' }}>
-          <Box sx={{ width: 100, height: 100, bgcolor: '#fef2f2', borderRadius: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', mx: 'auto', mb: 4 }}>
+        <Card
+          sx={{
+            maxWidth: 550,
+            textAlign: 'center',
+            p: 6,
+            borderRadius: '40px',
+            boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)',
+            border: '1px solid #f1f5f9'
+          }}
+        >
+          <Box
+            sx={{
+              width: 100,
+              height: 100,
+              bgcolor: '#fef2f2',
+              borderRadius: '30px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              mx: 'auto',
+              mb: 4
+            }}
+          >
             <Lock sx={{ fontSize: 50, color: '#ef4444' }} />
           </Box>
-          <Typography variant="h2" gutterBottom sx={{ fontWeight: 900, color: '#0f172a', fontSize: '2.25rem' }}>Practice Locked</Typography>
-          <Typography variant="body1" sx={{ color: '#64748b', mb: 5, fontSize: '1.1rem', fontWeight: 500 }}>Practice mode will be available after the assessment window expires.</Typography>
+          <Typography variant="h2" gutterBottom sx={{ fontWeight: 900, color: '#0f172a', fontSize: '2.25rem' }}>
+            Practice Locked
+          </Typography>
+          <Typography variant="body1" sx={{ color: '#64748b', mb: 5, fontSize: '1.1rem', fontWeight: 500 }}>
+            Practice mode will be available after the assessment window expires.
+          </Typography>
           <Box sx={{ bgcolor: '#6366f1', color: 'white', borderRadius: '24px', p: 3, mb: 4 }}>
-            <Typography variant="h2" sx={{ fontWeight: 900, fontFamily: "'JetBrains Mono', monospace" }}>{hours > 0 ? `${hours}h ` : ''}{minutes}m {seconds}s</Typography>
-            <Typography variant="caption" sx={{ fontWeight: 700, textTransform: 'uppercase', opacity: 0.8 }}>Time Until Practice Unlocks</Typography>
+            <Typography variant="h2" sx={{ fontWeight: 900, fontFamily: "'JetBrains Mono', monospace" }}>
+              {hours > 0 ? `${hours}h ` : ''}
+              {minutes}m {seconds}s
+            </Typography>
+            <Typography variant="caption" sx={{ fontWeight: 700, textTransform: 'uppercase', opacity: 0.8 }}>
+              Time Until Practice Unlocks
+            </Typography>
           </Box>
-          <Button startIcon={<ArrowBack />} onClick={() => navigate('/assessments')} sx={{ fontWeight: 800, color: '#6366f1' }}>Return to Assessments</Button>
+          <Button startIcon={<ArrowBack />} onClick={() => navigate('/assessments')} sx={{ fontWeight: 800, color: '#6366f1' }}>
+            Return to Assessments
+          </Button>
         </Card>
       </Box>
     );
@@ -148,7 +187,9 @@ export default function MongoDBPractice() {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', flexDirection: 'column', gap: 2 }}>
         <Typography variant="h5">Assessment not found</Typography>
-        <Button variant="outlined" onClick={() => navigate('/assessments')}>Back to Assessments</Button>
+        <Button variant="outlined" onClick={() => navigate('/assessments')}>
+          Back to Assessments
+        </Button>
       </Box>
     );
   }
@@ -158,30 +199,35 @@ export default function MongoDBPractice() {
   return (
     <Box ref={containerRef} sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#fbfcfe' }}>
       {!isFullscreen && (
-        <Box sx={{ 
-          p: 2, 
-          borderBottom: '1px solid rgba(226, 232, 240, 0.8)', 
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: 2, 
-          bgcolor: 'rgba(255, 255, 255, 0.9)',
-          backdropFilter: 'blur(10px)',
-          zIndex: 100
-        }}>
+        <Box
+          sx={{
+            p: 2,
+            borderBottom: '1px solid rgba(226, 232, 240, 0.8)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+            bgcolor: 'rgba(255, 255, 255, 0.9)',
+            backdropFilter: 'blur(10px)',
+            zIndex: 100
+          }}
+        >
           <IconButton onClick={() => navigate('/assessments')} sx={{ color: '#64748b' }}>
             <ArrowBack />
           </IconButton>
           <Typography variant="h5" sx={{ fontWeight: 800, flexGrow: 1, color: '#1e293b' }}>
-            {assessment.title} <Typography component="span" sx={{ fontWeight: 600, color: '#64748b', fontSize: '0.9rem', ml: 1 }}>• MongoDB Practice</Typography>
+            {assessment.title}{' '}
+            <Typography component="span" sx={{ fontWeight: 600, color: '#64748b', fontSize: '0.9rem', ml: 1 }}>
+              • MongoDB Practice
+            </Typography>
           </Typography>
-          <Chip 
-            label="Practice Active" 
-            sx={{ 
-              fontWeight: 800, 
-              bgcolor: 'rgba(34, 197, 94, 0.1)', 
+          <Chip
+            label="Practice Active"
+            sx={{
+              fontWeight: 800,
+              bgcolor: 'rgba(34, 197, 94, 0.1)',
               color: '#22c55e',
               border: 'none'
-            }} 
+            }}
           />
           <IconButton onClick={toggleFullscreen} sx={{ color: '#64748b' }}>
             <Fullscreen />
@@ -191,7 +237,17 @@ export default function MongoDBPractice() {
 
       <Box sx={{ display: 'grid', gridTemplateColumns: `${leftWidth}% 4px 1fr`, flexGrow: 1, height: '100%', overflow: 'hidden' }}>
         <Box sx={{ overflow: 'auto', height: '100%', bgcolor: '#fff', borderRight: '1px solid rgba(226, 232, 240, 0.8)' }}>
-          <Box sx={{ p: 2, borderBottom: '1px solid rgba(226, 232, 240, 0.6)', bgcolor: 'rgba(248, 250, 252, 0.8)', backdropFilter: 'blur(5px)', position: 'sticky', top: 0, zIndex: 10 }}>
+          <Box
+            sx={{
+              p: 2,
+              borderBottom: '1px solid rgba(226, 232, 240, 0.6)',
+              bgcolor: 'rgba(248, 250, 252, 0.8)',
+              backdropFilter: 'blur(5px)',
+              position: 'sticky',
+              top: 0,
+              zIndex: 10
+            }}
+          >
             <Box sx={{ display: 'flex', gap: 1, overflow: 'auto', pb: 1 }}>
               {questions.map((q, index) => (
                 <Button
@@ -233,34 +289,36 @@ export default function MongoDBPractice() {
             {currentQuestion.tags && currentQuestion.tags.length > 0 && (
               <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 4 }}>
                 {currentQuestion.tags.map((tag, idx) => (
-                  <Chip 
-                    key={idx} 
-                    label={tag} 
-                    size="small" 
-                    sx={{ 
-                      fontWeight: 700, 
-                      bgcolor: 'rgba(99, 102, 241, 0.05)', 
+                  <Chip
+                    key={idx}
+                    label={tag}
+                    size="small"
+                    sx={{
+                      fontWeight: 700,
+                      bgcolor: 'rgba(99, 102, 241, 0.05)',
                       color: '#6366f1',
                       borderRadius: '8px',
                       border: '1px solid rgba(99, 102, 241, 0.1)'
-                    }} 
+                    }}
                   />
                 ))}
               </Box>
             )}
 
             <Box sx={{ mb: 5 }}>
-              <Typography sx={{ 
-                fontWeight: 800, 
-                color: '#6366f1', 
-                textTransform: 'uppercase', 
-                fontSize: '0.85rem', 
-                letterSpacing: '0.1em',
-                mb: 2,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1
-              }}>
+              <Typography
+                sx={{
+                  fontWeight: 800,
+                  color: '#6366f1',
+                  textTransform: 'uppercase',
+                  fontSize: '0.85rem',
+                  letterSpacing: '0.1em',
+                  mb: 2,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1
+                }}
+              >
                 <Box sx={{ width: 4, height: 16, bgcolor: '#6366f1', borderRadius: 1 }} />
                 Problem Statement
               </Typography>
@@ -271,17 +329,17 @@ export default function MongoDBPractice() {
           </Box>
         </Box>
 
-        <Box 
+        <Box
           onMouseDown={startResizing}
-          sx={{ 
+          sx={{
             width: '4px',
-            bgcolor: 'rgba(226, 232, 240, 0.8)', 
-            cursor: 'col-resize', 
+            bgcolor: 'rgba(226, 232, 240, 0.8)',
+            cursor: 'col-resize',
             transition: 'background 0.2s',
             zIndex: 100,
             '&:hover': { bgcolor: '#6366f1' },
             '&:active': { bgcolor: '#4f46e5' }
-          }} 
+          }}
         />
 
         <Box sx={{ bgcolor: '#fff', height: '100%', minWidth: 0 }}>

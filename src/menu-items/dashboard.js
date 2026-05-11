@@ -1,7 +1,20 @@
-import { IconDashboard, IconClipboardList, IconTrophy, IconCode, IconTerminal2, IconBrain, IconRobot, IconDeviceGamepad2, IconBook, IconBooks, IconSparkles, IconCertificate } from '@tabler/icons-react';
+import {
+  IconDashboard,
+  IconClipboardList,
+  IconTrophy,
+  IconCode,
+  IconTerminal2,
+  IconBrain,
+  IconRobot,
+  IconDeviceGamepad2,
+  IconBook,
+  IconBooks,
+  IconSparkles,
+  IconCertificate
+} from '@tabler/icons-react';
 
 // constant
-const icons = { 
+const icons = {
   IconDashboard,
   IconClipboardList,
   IconTrophy,
@@ -29,6 +42,14 @@ const dashboard = {
       type: 'item',
       url: '/dashboard',
       icon: icons.IconDashboard,
+      breadcrumbs: false
+    },
+    {
+      id: 'courses',
+      title: 'Courses',
+      type: 'item',
+      url: '/courses',
+      icon: icons.IconBook,
       breadcrumbs: false
     },
     {
@@ -90,9 +111,10 @@ const dashboard = {
     },
     {
       id: 'ai-mock',
-      title: 'AI Mock',
+      title: 'AI Mock (Coming Soon)',
       type: 'item',
-      url: '/ai-mock',
+      url: '#',
+      disabled: true,
       icon: icons.IconRobot,
       breadcrumbs: false
     },

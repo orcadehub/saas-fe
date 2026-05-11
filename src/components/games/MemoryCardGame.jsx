@@ -16,21 +16,21 @@ const generateMemoryCards = (rows, cols) => {
   const totalPairs = (rows * cols) / 2;
   const emojiSet = emojiSets[Math.floor(Math.random() * emojiSets.length)];
   const selectedEmojis = [];
-  
+
   while (selectedEmojis.length < totalPairs) {
     const emoji = emojiSet[Math.floor(Math.random() * emojiSet.length)];
     if (!selectedEmojis.includes(emoji)) {
       selectedEmojis.push(emoji);
     }
   }
-  
+
   const cards = [...selectedEmojis, ...selectedEmojis];
-  
+
   for (let i = cards.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [cards[i], cards[j]] = [cards[j], cards[i]];
   }
-  
+
   return { rows, cols, cards };
 };
 
@@ -56,13 +56,13 @@ const MemoryCardGame = ({ level, onSubmit, themeColor = '#6a0dad' }) => {
     if (newFlipped.length === 2) {
       setIsChecking(true);
       const [first, second] = newFlipped;
-      
+
       if (gameData.cards[first] === gameData.cards[second]) {
         const newMatched = [...matchedCards, first, second];
         setMatchedCards(newMatched);
         setFlippedCards([]);
         setIsChecking(false);
-        
+
         // Check if all cards are matched
         if (newMatched.length === gameData.cards.length) {
           setTimeout(() => onSubmit(true), 500);
@@ -80,12 +80,14 @@ const MemoryCardGame = ({ level, onSubmit, themeColor = '#6a0dad' }) => {
 
   return (
     <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', p: 3 }}>
-      <Box sx={{
-        display: 'grid',
-        gridTemplateColumns: `repeat(${gameData.cols}, 1fr)`,
-        gap: 2,
-        maxWidth: '600px'
-      }}>
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: `repeat(${gameData.cols}, 1fr)`,
+          gap: 2,
+          maxWidth: '600px'
+        }}
+      >
         {gameData.cards.map((emoji, index) => {
           const isFlipped = flippedCards.includes(index) || matchedCards.includes(index);
           const isMatched = matchedCards.includes(index);
@@ -102,51 +104,60 @@ const MemoryCardGame = ({ level, onSubmit, themeColor = '#6a0dad' }) => {
                 perspective: '1000px'
               }}
             >
-              <Box sx={{
-                position: 'relative',
-                width: '100%',
-                height: '100%',
-                transformStyle: 'preserve-3d',
-                transition: 'transform 0.6s',
-                transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)'
-              }}>
-                {/* Back of card */}
-                <Box sx={{
-                  position: 'absolute',
+              <Box
+                sx={{
+                  position: 'relative',
                   width: '100%',
                   height: '100%',
-                  backfaceVisibility: 'hidden',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  bgcolor: themeColor,
-                  borderRadius: 2,
-                  boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
-                  background: `linear-gradient(135deg, ${themeColor} 0%, ${themeColor}CC 100%)`,
-                  '&:hover': !isMatched && !isChecking ? {
-                    transform: 'scale(1.05)',
-                    boxShadow: `0 6px 12px ${themeColor}66`
-                  } : {}
-                }}>
+                  transformStyle: 'preserve-3d',
+                  transition: 'transform 0.6s',
+                  transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)'
+                }}
+              >
+                {/* Back of card */}
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    width: '100%',
+                    height: '100%',
+                    backfaceVisibility: 'hidden',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    bgcolor: themeColor,
+                    borderRadius: 2,
+                    boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
+                    background: `linear-gradient(135deg, ${themeColor} 0%, ${themeColor}CC 100%)`,
+                    '&:hover':
+                      !isMatched && !isChecking
+                        ? {
+                            transform: 'scale(1.05)',
+                            boxShadow: `0 6px 12px ${themeColor}66`
+                          }
+                        : {}
+                  }}
+                >
                   <Typography sx={{ fontSize: '2rem', color: 'white' }}>?</Typography>
                 </Box>
 
                 {/* Front of card */}
-                <Box sx={{
-                  position: 'absolute',
-                  width: '100%',
-                  height: '100%',
-                  backfaceVisibility: 'hidden',
-                  transform: 'rotateY(180deg)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  bgcolor: isMatched ? '#10b981' : 'white',
-                  borderRadius: 2,
-                  boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
-                  border: '2px solid',
-                  borderColor: isMatched ? '#059669' : '#e5e7eb'
-                }}>
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    width: '100%',
+                    height: '100%',
+                    backfaceVisibility: 'hidden',
+                    transform: 'rotateY(180deg)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    bgcolor: isMatched ? '#10b981' : 'white',
+                    borderRadius: 2,
+                    boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
+                    border: '2px solid',
+                    borderColor: isMatched ? '#059669' : '#e5e7eb'
+                  }}
+                >
                   <Typography sx={{ fontSize: '2.5rem' }}>{emoji}</Typography>
                 </Box>
               </Box>

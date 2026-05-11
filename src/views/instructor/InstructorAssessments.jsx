@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Box, 
-  Typography, 
-  Button, 
-  Card, 
+import {
+  Box,
+  Typography,
+  Button,
+  Card,
   CardContent,
   Chip,
   Tabs,
@@ -36,7 +36,7 @@ const InstructorAssessments = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(`${API_BASE_URL}/assessments`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` }
       });
       const data = await response.json();
       setAssessments(data);
@@ -51,7 +51,7 @@ const InstructorAssessments = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(`${API_BASE_URL}/assessments/${assessmentId}/results`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` }
       });
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
@@ -80,7 +80,7 @@ const InstructorAssessments = () => {
       const token = localStorage.getItem('token');
       await fetch(`${API_BASE_URL}/assessments/${assessmentToDelete}`, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` }
       });
       fetchAssessments();
     } catch (error) {
@@ -91,8 +91,8 @@ const InstructorAssessments = () => {
     }
   };
 
-  const availableAssessments = assessments.filter(a => a.status === 'active' || a.status === 'draft');
-  const completedAssessments = assessments.filter(a => a.status === 'completed' || a.status === 'expired');
+  const availableAssessments = assessments.filter((a) => a.status === 'active' || a.status === 'draft');
+  const completedAssessments = assessments.filter((a) => a.status === 'completed' || a.status === 'expired');
 
   const renderAssessmentCards = (assessmentList) => (
     <Box
@@ -110,7 +110,7 @@ const InstructorAssessments = () => {
         assessmentList.map((assessment) => (
           <Card
             key={assessment._id}
-            sx={{ 
+            sx={{
               cursor: 'pointer',
               transition: 'all 0.3s',
               '&:hover': {
@@ -124,92 +124,75 @@ const InstructorAssessments = () => {
             onClick={() => navigate(`/instructor/assessments/${assessment._id}`)}
           >
             <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', p: 3 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', mb: 2 }}>
-                  <Typography variant="h4" sx={{ fontWeight: 600, flex: 1 }}>
-                    {assessment.title}
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', mb: 2 }}>
+                <Typography variant="h4" sx={{ fontWeight: 600, flex: 1 }}>
+                  {assessment.title}
+                </Typography>
+                {assessment.status === 'active' && <Chip label="Active" color="success" size="small" icon={<IconChecks size={16} />} />}
+                {assessment.status === 'draft' && <Chip label="Draft" size="small" />}
+              </Box>
+
+              <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
+                <Chip
+                  icon={<IconClock size={16} />}
+                  label={`${assessment.duration || 0} min`}
+                  size="small"
+                  color="primary"
+                  variant="outlined"
+                />
+                <Chip label={`${assessment.questions?.length || 0} questions`} size="small" color="secondary" variant="outlined" />
+              </Box>
+
+              {assessment.batches && assessment.batches.length > 0 && (
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
+                    Batches:
                   </Typography>
-                  {assessment.status === 'active' && (
-                    <Chip label="Active" color="success" size="small" icon={<IconChecks size={16} />} />
-                  )}
-                  {assessment.status === 'draft' && (
-                    <Chip label="Draft" size="small" />
-                  )}
-                </Box>
-                
-                <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
-                  <Chip 
-                    icon={<IconClock size={16} />}
-                    label={`${assessment.duration || 0} min`}
-                    size="small"
-                    color="primary"
-                    variant="outlined"
-                  />
-                  <Chip 
-                    label={`${assessment.questions?.length || 0} questions`}
-                    size="small"
-                    color="secondary"
-                    variant="outlined"
-                  />
-                </Box>
-
-                {assessment.batches && assessment.batches.length > 0 && (
-                  <Box sx={{ mb: 2 }}>
-                    <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
-                      Batches:
-                    </Typography>
-                    <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
-                      {assessment.batches.map((batch) => (
-                        <Chip key={batch._id} label={batch.name} size="small" />
-                      ))}
-                    </Box>
+                  <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                    {assessment.batches.map((batch) => (
+                      <Chip key={batch._id} label={batch.name} size="small" />
+                    ))}
                   </Box>
-                )}
+                </Box>
+              )}
 
-                {assessment.startTime && (
-                  <Box sx={{ mb: 2 }}>
-                    <Chip 
-                      label={new Date(assessment.startTime).toLocaleString()}
-                      size="small"
-                      variant="outlined"
-                    />
-                  </Box>
-                )}
+              {assessment.startTime && (
+                <Box sx={{ mb: 2 }}>
+                  <Chip label={new Date(assessment.startTime).toLocaleString()} size="small" variant="outlined" />
+                </Box>
+              )}
 
-                <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
+              <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  startIcon={<IconEye size={16} />}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/instructor/assessments/${assessment._id}/view`);
+                  }}
+                  sx={{ flex: 1 }}
+                >
+                  View
+                </Button>
+                {(assessment.status === 'completed' || assessment.status === 'expired') && (
                   <Button
                     size="small"
-                    variant="outlined"
-                    startIcon={<IconEye size={16} />}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/instructor/assessments/${assessment._id}/view`);
-                    }}
+                    variant="contained"
+                    startIcon={<IconDownload size={16} />}
+                    onClick={(e) => handleDownloadResults(e, assessment._id, assessment.title)}
+                    disabled={downloadingAssessment === assessment._id}
                     sx={{ flex: 1 }}
                   >
-                    View
+                    Results
                   </Button>
-                  {(assessment.status === 'completed' || assessment.status === 'expired') && (
-                    <Button
-                      size="small"
-                      variant="contained"
-                      startIcon={<IconDownload size={16} />}
-                      onClick={(e) => handleDownloadResults(e, assessment._id, assessment.title)}
-                      disabled={downloadingAssessment === assessment._id}
-                      sx={{ flex: 1 }}
-                    >
-                      Results
-                    </Button>
-                  )}
-                  <IconButton
-                    size="small"
-                    color="error"
-                    onClick={(e) => handleDeleteAssessment(e, assessment._id)}
-                  >
-                    <IconTrash size={18} />
-                  </IconButton>
-                </Box>
-              </CardContent>
-            </Card>
+                )}
+                <IconButton size="small" color="error" onClick={(e) => handleDeleteAssessment(e, assessment._id)}>
+                  <IconTrash size={18} />
+                </IconButton>
+              </Box>
+            </CardContent>
+          </Card>
         ))
       ) : (
         <Box sx={{ gridColumn: '1 / -1' }}>
@@ -236,11 +219,7 @@ const InstructorAssessments = () => {
             Create and manage assessments for your students
           </Typography>
         </Box>
-        <Button
-          variant="contained"
-          startIcon={<IconPlus />}
-          onClick={() => navigate('/instructor/assessments/create')}
-        >
+        <Button variant="contained" startIcon={<IconPlus />} onClick={() => navigate('/instructor/assessments/create')}>
           Create Assessment
         </Button>
       </Box>
@@ -251,7 +230,7 @@ const InstructorAssessments = () => {
           <Tab label={`Completed (${completedAssessments.length})`} />
         </Tabs>
       </Box>
-      
+
       {tabValue === 0 && renderAssessmentCards(availableAssessments)}
       {tabValue === 1 && renderAssessmentCards(completedAssessments)}
 
@@ -262,7 +241,9 @@ const InstructorAssessments = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
-          <Button onClick={confirmDelete} color="error" variant="contained">Delete</Button>
+          <Button onClick={confirmDelete} color="error" variant="contained">
+            Delete
+          </Button>
         </DialogActions>
       </Dialog>
     </MainCard>

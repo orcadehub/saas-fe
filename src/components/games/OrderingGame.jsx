@@ -25,24 +25,24 @@ const OrderingGame = ({ level, onComplete }) => {
 
   const handleDrop = (dropIndex) => {
     if (draggedIndex === null) return;
-    
+
     const newItems = [...items];
     const draggedItem = newItems[draggedIndex];
     newItems.splice(draggedIndex, 1);
     newItems.splice(dropIndex, 0, draggedItem);
-    
+
     setItems(newItems);
     setDraggedIndex(null);
   };
 
   const handleSubmit = () => {
-    const userOrder = items.map(item => item.text);
+    const userOrder = items.map((item) => item.text);
     const correctOrder = JSON.parse(level.correctAnswer);
-    
+
     const correct = JSON.stringify(userOrder) === JSON.stringify(correctOrder);
     setIsCorrect(correct);
     setSubmitted(true);
-    
+
     if (correct) {
       setTimeout(() => onComplete(true), 1000);
     }
@@ -77,18 +77,16 @@ const OrderingGame = ({ level, onComplete }) => {
               fontWeight: 600,
               color: '#6a0dad',
               transition: 'all 0.2s',
-              '&:hover': submitted ? {} : {
-                transform: 'scale(1.05)',
-                boxShadow: '0 4px 12px rgba(106, 13, 173, 0.2)'
-              }
+              '&:hover': submitted
+                ? {}
+                : {
+                    transform: 'scale(1.05)',
+                    boxShadow: '0 4px 12px rgba(106, 13, 173, 0.2)'
+                  }
             }}
           >
-            <Typography sx={{ fontSize: '0.9rem', color: '#9d4edd', mb: 0.5 }}>
-              {index + 1}
-            </Typography>
-            <Typography sx={{ fontWeight: 600 }}>
-              {item.text}
-            </Typography>
+            <Typography sx={{ fontSize: '0.9rem', color: '#9d4edd', mb: 0.5 }}>{index + 1}</Typography>
+            <Typography sx={{ fontWeight: 600 }}>{item.text}</Typography>
           </Box>
         ))}
       </Box>
@@ -124,17 +122,13 @@ const OrderingGame = ({ level, onComplete }) => {
           {isCorrect ? (
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
               <CheckCircle sx={{ color: '#10b981', fontSize: 32 }} />
-              <Typography sx={{ color: '#10b981', fontWeight: 700, fontSize: '1.25rem' }}>
-                Correct Order!
-              </Typography>
+              <Typography sx={{ color: '#10b981', fontWeight: 700, fontSize: '1.25rem' }}>Correct Order!</Typography>
             </Box>
           ) : (
             <Box>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 2 }}>
                 <Cancel sx={{ color: '#ef4444', fontSize: 32 }} />
-                <Typography sx={{ color: '#ef4444', fontWeight: 700, fontSize: '1.25rem' }}>
-                  Incorrect Order
-                </Typography>
+                <Typography sx={{ color: '#ef4444', fontWeight: 700, fontSize: '1.25rem' }}>Incorrect Order</Typography>
               </Box>
               <Button
                 variant="contained"

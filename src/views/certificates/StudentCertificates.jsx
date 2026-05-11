@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Box, 
-  Typography, 
-  Grid, 
-  Card, 
-  CardContent, 
-  Button, 
+import {
+  Box,
+  Typography,
+  Grid,
+  Card,
+  CardContent,
+  Button,
   Chip,
   Dialog,
   DialogContent,
@@ -16,16 +16,7 @@ import {
   Paper
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { 
-  WorkspacePremium, 
-  Close, 
-  CalendarToday,
-  Timer,
-  Download,
-  Share,
-  VerifiedUser,
-  CardMembership
-} from '@mui/icons-material';
+import { WorkspacePremium, Close, CalendarToday, Timer, Download, Share, VerifiedUser, CardMembership } from '@mui/icons-material';
 
 import { useNavigate } from 'react-router-dom';
 import apiService from 'services/apiService';
@@ -70,10 +61,10 @@ const StudentCertificates = () => {
     <Container maxWidth="xl" sx={{ py: 4 }}>
       {/* Header Section */}
       <Box sx={{ mb: 5, display: 'flex', alignItems: 'center', gap: 2 }}>
-        <Box 
-          sx={{ 
-            p: 2, 
-            borderRadius: '16px', 
+        <Box
+          sx={{
+            p: 2,
+            borderRadius: '16px',
             background: `linear-gradient(135deg, ${theme.palette.primary.main}15, ${theme.palette.secondary.main}15)`,
             display: 'flex',
             alignItems: 'center',
@@ -98,11 +89,11 @@ const StudentCertificates = () => {
           <CircularProgress />
         </Box>
       ) : certificates.length === 0 ? (
-        <Card 
-          sx={{ 
-            borderRadius: '24px', 
-            py: 8, 
-            textAlign: 'center', 
+        <Card
+          sx={{
+            borderRadius: '24px',
+            py: 8,
+            textAlign: 'center',
             background: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.01)',
             border: `1px dashed ${theme.palette.divider}`,
             boxShadow: 'none'
@@ -113,15 +104,16 @@ const StudentCertificates = () => {
             No Certificates Yet
           </Typography>
           <Typography variant="body1" sx={{ color: theme.palette.text.secondary, maxWidth: 500, mx: 'auto' }}>
-            Complete courses, workshops, and assessments to earn verified certificates. They will appear here once issued by your instructor!
+            Complete courses, workshops, and assessments to earn verified certificates. They will appear here once issued by your
+            instructor!
           </Typography>
         </Card>
       ) : (
         <Grid container spacing={3}>
           {certificates.map((cert) => (
             <Grid item xs={12} sm={6} md={4} key={cert._id}>
-              <Card 
-                sx={{ 
+              <Card
+                sx={{
                   borderRadius: '20px',
                   overflow: 'hidden',
                   position: 'relative',
@@ -130,17 +122,15 @@ const StudentCertificates = () => {
                   bgcolor: theme.palette.background.paper,
                   '&:hover': {
                     transform: 'translateY(-6px)',
-                    boxShadow: theme.palette.mode === 'dark' 
-                      ? '0 20px 40px rgba(0,0,0,0.4)'
-                      : '0 20px 40px rgba(100,100,111,0.1)',
+                    boxShadow: theme.palette.mode === 'dark' ? '0 20px 40px rgba(0,0,0,0.4)' : '0 20px 40px rgba(100,100,111,0.1)',
                     borderColor: theme.palette.primary.main
                   }
                 }}
               >
                 {/* Visual Top Banner */}
-                <Box 
-                  sx={{ 
-                    height: 120, 
+                <Box
+                  sx={{
+                    height: 120,
                     background: `linear-gradient(135deg, ${theme.palette.primary.dark}, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
                     position: 'relative',
                     display: 'flex',
@@ -150,7 +140,11 @@ const StudentCertificates = () => {
                 >
                   {cert.tenantId?.logoUrl ? (
                     <Box sx={{ bgcolor: 'rgba(255,255,255,0.9)', p: 1, borderRadius: 2, display: 'flex' }}>
-                      <img src={cert.tenantId.logoUrl} alt={cert.tenantId?.name || "Tenant"} style={{ maxHeight: 60, maxWidth: 180, objectFit: 'contain' }} />
+                      <img
+                        src={cert.tenantId.logoUrl}
+                        alt={cert.tenantId?.name || 'Tenant'}
+                        style={{ maxHeight: 60, maxWidth: 180, objectFit: 'contain' }}
+                      />
                     </Box>
                   ) : (
                     <Typography variant="h5" sx={{ color: '#fff', fontWeight: 800, letterSpacing: 1 }}>
@@ -158,12 +152,15 @@ const StudentCertificates = () => {
                     </Typography>
                   )}
                   <Box sx={{ position: 'absolute', bottom: -20, right: 20 }}>
-                    <Box 
-                      sx={{ 
-                        width: 50, height: 50, 
-                        borderRadius: '50%', 
-                        bgcolor: theme.palette.background.paper, 
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    <Box
+                      sx={{
+                        width: 50,
+                        height: 50,
+                        borderRadius: '50%',
+                        bgcolor: theme.palette.background.paper,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
                         boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
                       }}
                     >
@@ -173,20 +170,23 @@ const StudentCertificates = () => {
                 </Box>
 
                 <CardContent sx={{ p: 3, pt: 4 }}>
-                  <Chip 
-                    label={cert.type || 'Course'} 
-                    size="small" 
-                    sx={{ 
-                      mb: 2, 
-                      fontWeight: 700, 
-                      bgcolor: `${theme.palette.primary.main}20`, 
-                      color: theme.palette.primary.main 
-                    }} 
+                  <Chip
+                    label={cert.type || 'Course'}
+                    size="small"
+                    sx={{
+                      mb: 2,
+                      fontWeight: 700,
+                      bgcolor: `${theme.palette.primary.main}20`,
+                      color: theme.palette.primary.main
+                    }}
                   />
                   <Typography variant="h5" sx={{ fontWeight: 800, mb: 1, lineHeight: 1.3 }}>
                     {cert.title}
                   </Typography>
-                  <Typography variant="body2" sx={{ color: theme.palette.text.secondary, mb: 3, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Typography
+                    variant="body2"
+                    sx={{ color: theme.palette.text.secondary, mb: 3, display: 'flex', alignItems: 'center', gap: 0.5 }}
+                  >
                     <VerifiedUser sx={{ fontSize: 16 }} /> Issued by {cert.issuedBy?.name || 'Instructor'}
                   </Typography>
 
@@ -208,14 +208,14 @@ const StudentCertificates = () => {
                   </Box>
 
                   <Divider sx={{ mb: 2 }} />
-                  
+
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Typography variant="caption" sx={{ color: theme.palette.text.disabled, fontFamily: 'monospace' }}>
                       ID: {cert.certificateId}
                     </Typography>
-                    <Button 
-                      variant="text" 
-                      color="primary" 
+                    <Button
+                      variant="text"
+                      color="primary"
                       onClick={() => handlePreview(cert)}
                       sx={{ fontWeight: 700, borderRadius: '8px' }}
                     >
@@ -228,7 +228,6 @@ const StudentCertificates = () => {
           ))}
         </Grid>
       )}
-
     </Container>
   );
 };

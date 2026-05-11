@@ -9,7 +9,7 @@ const getHeaders = () => {
   const user = JSON.parse(localStorage.getItem('user'));
   return {
     'Content-Type': 'application/json',
-    'Authorization': `Bearer ${user?.token}`,
+    Authorization: `Bearer ${user?.token}`
   };
 };
 
@@ -54,8 +54,12 @@ export const completeInterview = async (interviewId) => {
   if (user?.email === 'test@test.com') {
     return { score: 85 };
   }
-  const response = await axios.post(`${getApiUrl()}/ai-mock/complete`, { interviewId }, {
-    headers: getHeaders()
-  });
+  const response = await axios.post(
+    `${getApiUrl()}/ai-mock/complete`,
+    { interviewId },
+    {
+      headers: getHeaders()
+    }
+  );
   return response.data;
 };

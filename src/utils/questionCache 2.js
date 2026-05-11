@@ -15,7 +15,7 @@ export const QuestionCache = {
   get(assessmentId) {
     const cached = sessionStorage.getItem(`assessment_${assessmentId}_questions`);
     if (!cached) return null;
-    
+
     try {
       const data = JSON.parse(cached);
       if (Date.now() - data.timestamp > data.ttl) {
@@ -37,7 +37,7 @@ export const QuestionCache = {
 
   // Clear all assessment caches
   clearAll() {
-    Object.keys(sessionStorage).forEach(key => {
+    Object.keys(sessionStorage).forEach((key) => {
       if (key.startsWith('assessment_') && key.endsWith('_questions')) {
         sessionStorage.removeItem(key);
       }

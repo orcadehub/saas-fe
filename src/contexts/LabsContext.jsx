@@ -39,15 +39,17 @@ export const LabsProvider = ({ children }) => {
   }, []);
 
   return (
-    <LabsContext.Provider value={{ 
-      labs, 
-      currentLab,
-      loading, 
-      error, 
-      fetchLabs,
-      getLabById,
-      setCurrentLab 
-    }}>
+    <LabsContext.Provider
+      value={{
+        labs,
+        currentLab,
+        loading,
+        error,
+        fetchLabs,
+        getLabById,
+        setCurrentLab
+      }}
+    >
       {children}
     </LabsContext.Provider>
   );

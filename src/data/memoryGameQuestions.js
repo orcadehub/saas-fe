@@ -86,5 +86,5 @@ export const memoryGameQuestions = [
 ];
 
 export const getMemoryGameQuestions = (subtopicId) => {
-  return memoryGameQuestions.map(q => ({ ...q, subtopicId }));
+  return memoryGameQuestions.map((q) => ({ ...q, subtopicId }));
 };

@@ -11,11 +11,11 @@ const CelestialCursor = () => {
     const handleMouseMove = (e) => {
       const newPos = { x: e.clientX, y: e.clientY };
       setMousePos(newPos);
-      
+
       // Add a particle to the trail
       setTrail((prev) => [
         { id: Date.now(), x: e.clientX, y: e.clientY },
-        ...prev.slice(0, 15), // Keep last 15 positions
+        ...prev.slice(0, 15) // Keep last 15 positions
       ]);
     };
 
@@ -41,7 +41,7 @@ const CelestialCursor = () => {
             initial={{ opacity: 0.6, scale: 1.2 }}
             animate={{ opacity: 0, scale: 0 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
             style={{
               position: 'fixed',
               left: point.x - 2,
@@ -51,7 +51,7 @@ const CelestialCursor = () => {
               borderRadius: '50%',
               background: index % 2 === 0 ? '#7c3aed' : '#2563eb',
               opacity: 0.4,
-              zIndex: 9998 - index,
+              zIndex: 9998 - index
             }}
           />
         ))}
@@ -69,24 +69,25 @@ const CelestialCursor = () => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          zIndex: 9999,
+          zIndex: 9999
         }}
         animate={{
           x: mousePos.x - 16,
           y: mousePos.y - 16,
-          scale: isHovering ? 2.5 : 1,
+          scale: isHovering ? 2.5 : 1
         }}
         transition={{ type: 'spring', stiffness: 500, damping: 28, mass: 0.5 }}
       >
-        <Box sx={{
-          width: '8px',
-          height: '8px',
-          background: 'linear-gradient(135deg, #7c3aed, #2563eb)',
-          borderRadius: '50%',
-          boxShadow: '0 0 10px rgba(124,58,237,0.3)',
-        }} />
+        <Box
+          sx={{
+            width: '8px',
+            height: '8px',
+            background: 'linear-gradient(135deg, #7c3aed, #2563eb)',
+            borderRadius: '50%',
+            boxShadow: '0 0 10px rgba(124,58,237,0.3)'
+          }}
+        />
       </motion.div>
-
     </Box>
   );
 };

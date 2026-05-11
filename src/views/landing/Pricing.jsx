@@ -15,7 +15,9 @@ const MotionCard = motion.create(Card);
 
 export default function Pricing() {
   const navigate = useNavigate();
-  const { state: { borderRadius } } = useConfig();
+  const {
+    state: { borderRadius }
+  } = useConfig();
   const [config, setConfig] = useState(null);
   const [billingCycle, setBillingCycle] = useState('monthly');
 
@@ -24,12 +26,30 @@ export default function Pricing() {
   }, []);
 
   const features = [
-    'Fully White-Labeled Platform', 'Custom Branding & Logo', 'Your Own Domain', 'Complete Admin Control',
-    'Instructor Management Controls', 'Student Management System', 'Assessment & Quiz Engine', 'Online IDE Integration',
-    'AI Mock Interview Module', 'Interactive Labs', 'Gamified Aptitude Assessments', 'Quantitative Reasoning Practice',
-    'Verbal Reasoning Practice', 'Company-Specific Questions', 'Study Materials Management', 'Leaderboard & Analytics',
-    'Secure Proctoring System', 'Cross-Platform Student Stats', 'LeetCode, HackerRank, Codeforces, CodeChef Sync',
-    'Multi-Language Support', 'Real-Time Code Execution', 'Activity Tracking', 'Custom Tenant Configuration', 'Dedicated Technical Support',
+    'Fully White-Labeled Platform',
+    'Custom Branding & Logo',
+    'Your Own Domain',
+    'Complete Admin Control',
+    'Instructor Management Controls',
+    'Student Management System',
+    'Assessment & Quiz Engine',
+    'Online IDE Integration',
+    'AI Mock Interview Module',
+    'Interactive Labs',
+    'Gamified Aptitude Assessments',
+    'Quantitative Reasoning Practice',
+    'Verbal Reasoning Practice',
+    'Company-Specific Questions',
+    'Study Materials Management',
+    'Leaderboard & Analytics',
+    'Secure Proctoring System',
+    'Cross-Platform Student Stats',
+    'LeetCode, HackerRank, Codeforces, CodeChef Sync',
+    'Multi-Language Support',
+    'Real-Time Code Execution',
+    'Activity Tracking',
+    'Custom Tenant Configuration',
+    'Dedicated Technical Support'
   ];
 
   const cycles = [
@@ -38,7 +58,7 @@ export default function Pricing() {
     { id: '6months', label: '6 Months', discount: 5 },
     { id: '1year', label: '1 Year', discount: 10 },
     { id: '2years', label: '2 Years', discount: 15 },
-    { id: '3years', label: '3 Years', discount: 20 },
+    { id: '3years', label: '3 Years', discount: 20 }
   ];
 
   const basePrice = 25;
@@ -50,10 +70,10 @@ export default function Pricing() {
     { count: 2000, label: '2000 Students', baseDisc: 16 },
     { count: 5000, label: '5000 Students', baseDisc: 20 },
     { count: 10000, label: '10,000 Students', baseDisc: 24 },
-    { count: 10001, label: 'More than 10k', baseDisc: 24, custom: true },
+    { count: 10001, label: 'More than 10k', baseDisc: 24, custom: true }
   ];
 
-  const currentCycle = cycles.find(c => c.id === billingCycle);
+  const currentCycle = cycles.find((c) => c.id === billingCycle);
 
   const calculatePrice = (tier) => {
     if (tier.custom) return 'Contact Us';
@@ -116,30 +136,55 @@ export default function Pricing() {
               exclusive
               onChange={handleCycleChange}
               sx={{
-                bgcolor: 'rgba(255,255,255,0.8)', borderRadius: '100px', p: 0.5,
-                border: '1px solid rgba(0,0,0,0.05)', boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
+                bgcolor: 'rgba(255,255,255,0.8)',
+                borderRadius: '100px',
+                p: 0.5,
+                border: '1px solid rgba(0,0,0,0.05)',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
                 '& .MuiToggleButton-root': {
-                  borderRadius: '100px', border: 'none', px: { xs: 2, md: 3 }, py: 1,
-                  textTransform: 'none', fontWeight: 700, color: '#64748b',
-                  '&.Mui-selected': { bgcolor: '#7c3aed', color: '#fff', '&:hover': { bgcolor: '#6d28d9' } },
+                  borderRadius: '100px',
+                  border: 'none',
+                  px: { xs: 2, md: 3 },
+                  py: 1,
+                  textTransform: 'none',
+                  fontWeight: 700,
+                  color: '#64748b',
+                  '&.Mui-selected': { bgcolor: '#7c3aed', color: '#fff', '&:hover': { bgcolor: '#6d28d9' } }
                 }
               }}
             >
-              {cycles.map(cycle => (
+              {cycles.map((cycle) => (
                 <ToggleButton key={cycle.id} value={cycle.id}>
-                  {cycle.label} {cycle.discount > 0 && <Box component="span" sx={{ ml: 0.5, fontSize: '0.7rem', opacity: 0.9 }}>(-{cycle.discount}%)</Box>}
+                  {cycle.label}{' '}
+                  {cycle.discount > 0 && (
+                    <Box component="span" sx={{ ml: 0.5, fontSize: '0.7rem', opacity: 0.9 }}>
+                      (-{cycle.discount}%)
+                    </Box>
+                  )}
                 </ToggleButton>
               ))}
             </ToggleButtonGroup>
           </Stack>
 
-          <Box sx={{ bgcolor: '#ffffff', borderRadius: '32px', border: '1px solid rgba(0,0,0,0.05)', overflow: 'hidden', boxShadow: '0 20px 40px rgba(0,0,0,0.03)' }}>
+          <Box
+            sx={{
+              bgcolor: '#ffffff',
+              borderRadius: '32px',
+              border: '1px solid rgba(0,0,0,0.05)',
+              overflow: 'hidden',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.03)'
+            }}
+          >
             <Box sx={{ overflowX: 'auto' }}>
               <Box component="table" sx={{ width: '100%', borderCollapse: 'collapse' }}>
                 <Box component="thead">
                   <Box component="tr" sx={{ bgcolor: 'rgba(124,58,237,0.03)' }}>
                     {['Students', 'Features', 'Duration Discount', 'Monthly Total', 'Action'].map((head) => (
-                      <Box component="th" key={head} sx={{ p: 2.5, textAlign: 'left', color: '#1e293b', fontWeight: 800, borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
+                      <Box
+                        component="th"
+                        key={head}
+                        sx={{ p: 2.5, textAlign: 'left', color: '#1e293b', fontWeight: 800, borderBottom: '1px solid rgba(0,0,0,0.05)' }}
+                      >
                         {head}
                       </Box>
                     ))}
@@ -149,25 +194,57 @@ export default function Pricing() {
                   {tiers.map((tier, idx) => {
                     const totalDisc = tier.baseDisc + currentCycle.discount;
                     return (
-                      <Box component="tr" key={idx} sx={{ '&:hover': { bgcolor: 'rgba(0,0,0,0.01)' }, borderBottom: '1px solid rgba(0,0,0,0.03)' }}>
-                        <Box component="td" sx={{ p: 2.5, color: '#1e293b', fontWeight: 700 }}>{tier.label}</Box>
+                      <Box
+                        component="tr"
+                        key={idx}
+                        sx={{ '&:hover': { bgcolor: 'rgba(0,0,0,0.01)' }, borderBottom: '1px solid rgba(0,0,0,0.03)' }}
+                      >
+                        <Box component="td" sx={{ p: 2.5, color: '#1e293b', fontWeight: 700 }}>
+                          {tier.label}
+                        </Box>
                         <Box component="td" sx={{ p: 2.5 }}>
                           <Stack direction="row" spacing={1} alignItems="center">
                             <CheckCircle sx={{ color: '#22c55e', fontSize: 16 }} />
-                            <Typography variant="body2" sx={{ fontWeight: 600, color: '#64748b' }}>Full Feature Access</Typography>
+                            <Typography variant="body2" sx={{ fontWeight: 600, color: '#64748b' }}>
+                              Full Feature Access
+                            </Typography>
                           </Stack>
                         </Box>
                         <Box component="td" sx={{ p: 2.5 }}>
-                          <Chip label={`${totalDisc}% Total Off`} size="small" sx={{ bgcolor: 'rgba(34, 197, 94, 0.1)', color: '#16a34a', fontWeight: 800 }} />
+                          <Chip
+                            label={`${totalDisc}% Total Off`}
+                            size="small"
+                            sx={{ bgcolor: 'rgba(34, 197, 94, 0.1)', color: '#16a34a', fontWeight: 800 }}
+                          />
                         </Box>
                         <Box component="td" sx={{ p: 2.5 }}>
                           <Typography variant="h5" sx={{ fontWeight: 800, color: '#1e293b' }}>
-                            {calculatePrice(tier)}{!tier.custom && <Box component="span" sx={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: 500, ml: 0.5 }}>/mo</Box>}
+                            {calculatePrice(tier)}
+                            {!tier.custom && (
+                              <Box component="span" sx={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: 500, ml: 0.5 }}>
+                                /mo
+                              </Box>
+                            )}
                           </Typography>
-                          {!tier.custom && <Typography variant="caption" sx={{ color: '#94a3b8' }}>({calculatePerStudent(tier)})</Typography>}
+                          {!tier.custom && (
+                            <Typography variant="caption" sx={{ color: '#94a3b8' }}>
+                              ({calculatePerStudent(tier)})
+                            </Typography>
+                          )}
                         </Box>
                         <Box component="td" sx={{ p: 2.5 }}>
-                          <Button variant="contained" size="small" onClick={handleWhatsAppContact} sx={{ borderRadius: '100px', bgcolor: '#7c3aed', '&:hover': { bgcolor: '#6d28d9' }, textTransform: 'none', fontWeight: 700 }}>
+                          <Button
+                            variant="contained"
+                            size="small"
+                            onClick={handleWhatsAppContact}
+                            sx={{
+                              borderRadius: '100px',
+                              bgcolor: '#7c3aed',
+                              '&:hover': { bgcolor: '#6d28d9' },
+                              textTransform: 'none',
+                              fontWeight: 700
+                            }}
+                          >
                             {tier.custom ? 'Contact Us' : 'Get Started'}
                           </Button>
                         </Box>
@@ -182,13 +259,17 @@ export default function Pricing() {
 
         {/* Features list */}
         <Container maxWidth="xl" sx={{ py: 8 }}>
-          <Typography variant="h3" textAlign="center" sx={{ fontWeight: 800, mb: 6 }}>Everything Included</Typography>
+          <Typography variant="h3" textAlign="center" sx={{ fontWeight: 800, mb: 6 }}>
+            Everything Included
+          </Typography>
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', lg: 'repeat(4, 1fr)' }, gap: 2 }}>
-            {features.map(f => (
+            {features.map((f) => (
               <Card key={f} sx={{ borderRadius: '16px', boxShadow: 'none', border: '1px solid rgba(0,0,0,0.05)' }}>
                 <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, p: 2 }}>
                   <CheckCircle sx={{ color: '#7c3aed', fontSize: 20 }} />
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>{f}</Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                    {f}
+                  </Typography>
                 </CardContent>
               </Card>
             ))}

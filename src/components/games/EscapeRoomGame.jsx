@@ -53,31 +53,31 @@ const EscapeRoomGame = ({ level, onSubmit }) => {
       <Box sx={{ display: 'flex', gap: 3 }}>
         {/* Left Side - Path */}
         <Box sx={{ flex: 1 }}>
-          <Box sx={{ 
-            display: 'flex', 
-            gap: 1,
-            justifyContent: 'center',
-            flexWrap: 'wrap'
-          }}>
-            {/* Start */}
-            <Box sx={{
-              width: 80,
-              height: 80,
+          <Box
+            sx={{
               display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
+              gap: 1,
               justifyContent: 'center',
-              bgcolor: playerPosition === 0 ? '#d4f4dd' : '#f3e8ff',
-              border: '3px solid #6a0dad',
-              borderRadius: 2,
-              transition: 'all 0.5s'
-            }}>
-              {playerPosition === 0 && (
-                <Typography sx={{ fontSize: '2.5rem' }}>🚶</Typography>
-              )}
-              <Typography sx={{ fontSize: '0.8rem', color: '#6a0dad', fontWeight: 600 }}>
-                START
-              </Typography>
+              flexWrap: 'wrap'
+            }}
+          >
+            {/* Start */}
+            <Box
+              sx={{
+                width: 80,
+                height: 80,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                bgcolor: playerPosition === 0 ? '#d4f4dd' : '#f3e8ff',
+                border: '3px solid #6a0dad',
+                borderRadius: 2,
+                transition: 'all 0.5s'
+              }}
+            >
+              {playerPosition === 0 && <Typography sx={{ fontSize: '2.5rem' }}>🚶</Typography>}
+              <Typography sx={{ fontSize: '0.8rem', color: '#6a0dad', fontWeight: 600 }}>START</Typography>
             </Box>
 
             {/* Doors */}
@@ -105,34 +105,32 @@ const EscapeRoomGame = ({ level, onSubmit }) => {
                 ) : (
                   <Typography sx={{ fontSize: '2.5rem' }}>🚪</Typography>
                 )}
-                <Typography sx={{ fontSize: '0.7rem', color: '#6a0dad', fontWeight: 600 }}>
-                  DOOR {index + 1}
-                </Typography>
+                <Typography sx={{ fontSize: '0.7rem', color: '#6a0dad', fontWeight: 600 }}>DOOR {index + 1}</Typography>
               </Box>
             ))}
 
             {/* Exit */}
-            <Box sx={{
-              width: 80,
-              height: 80,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              bgcolor: playerPosition === gameData.puzzles.length + 1 ? '#ffd700' : '#f3e8ff',
-              border: '3px solid',
-              borderColor: playerPosition === gameData.puzzles.length + 1 ? '#10b981' : '#6a0dad',
-              borderRadius: 2,
-              transition: 'all 0.5s'
-            }}>
+            <Box
+              sx={{
+                width: 80,
+                height: 80,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                bgcolor: playerPosition === gameData.puzzles.length + 1 ? '#ffd700' : '#f3e8ff',
+                border: '3px solid',
+                borderColor: playerPosition === gameData.puzzles.length + 1 ? '#10b981' : '#6a0dad',
+                borderRadius: 2,
+                transition: 'all 0.5s'
+              }}
+            >
               {playerPosition === gameData.puzzles.length + 1 ? (
                 <Typography sx={{ fontSize: '2.5rem' }}>🎉</Typography>
               ) : (
                 <Typography sx={{ fontSize: '2.5rem' }}>🏆</Typography>
               )}
-              <Typography sx={{ fontSize: '0.8rem', color: '#6a0dad', fontWeight: 600 }}>
-                EXIT
-              </Typography>
+              <Typography sx={{ fontSize: '0.8rem', color: '#6a0dad', fontWeight: 600 }}>EXIT</Typography>
             </Box>
           </Box>
         </Box>
@@ -140,12 +138,14 @@ const EscapeRoomGame = ({ level, onSubmit }) => {
         {/* Right Side - Puzzle */}
         <Box sx={{ flex: 1 }}>
           {playerPosition <= gameData.puzzles.length && (
-            <Box sx={{ 
-              bgcolor: '#f8f9fa', 
-              p: 3, 
-              borderRadius: 2, 
-              border: '2px solid #6a0dad'
-            }}>
+            <Box
+              sx={{
+                bgcolor: '#f8f9fa',
+                p: 3,
+                borderRadius: 2,
+                border: '2px solid #6a0dad'
+              }}
+            >
               <Typography variant="h6" sx={{ color: '#6a0dad', fontWeight: 600, mb: 3 }}>
                 🔐 Door {currentPuzzle + 1}: {puzzle.question}
               </Typography>
@@ -169,11 +169,13 @@ const EscapeRoomGame = ({ level, onSubmit }) => {
                       }
                     }}
                   >
-                    <Typography sx={{ 
-                      color: selectedAnswer === option.toString() ? '#6a0dad' : '#374151',
-                      fontWeight: selectedAnswer === option.toString() ? 600 : 400,
-                      fontSize: '1.1rem'
-                    }}>
+                    <Typography
+                      sx={{
+                        color: selectedAnswer === option.toString() ? '#6a0dad' : '#374151',
+                        fontWeight: selectedAnswer === option.toString() ? 600 : 400,
+                        fontSize: '1.1rem'
+                      }}
+                    >
                       {option}
                     </Typography>
                   </Box>

@@ -5,16 +5,27 @@ import { Box, Button, Typography, Card, LinearProgress } from '@mui/material';
 const rand = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 const shuffle = (arr) => [...arr].sort(() => Math.random() - 0.5);
-const fact = (n) => n <= 1 ? 1 : n * fact(n - 1);
-const tri = (n) => n * (n + 1) / 2;
-const isPrime = (n) => { if (n < 2) return false; for (let i = 2; i <= Math.sqrt(n); i++) if (n % i === 0) return false; return true; };
-const nthPrime = (n) => { let count = 0; let num = 1; while (count < n) { num++; if (isPrime(num)) count++; } return num; };
+const fact = (n) => (n <= 1 ? 1 : n * fact(n - 1));
+const tri = (n) => (n * (n + 1)) / 2;
+const isPrime = (n) => {
+  if (n < 2) return false;
+  for (let i = 2; i <= Math.sqrt(n); i++) if (n % i === 0) return false;
+  return true;
+};
+const nthPrime = (n) => {
+  let count = 0;
+  let num = 1;
+  while (count < n) {
+    num++;
+    if (isPrime(num)) count++;
+  }
+  return num;
+};
 
 // ── Sequence Generators ──
 // Each returns { sequence: number[], answer: number }
 
 const generators = {
-
   // ─── EASY PATTERNS ───
   // 1. Arithmetic: a, a+d, a+2d, ...
   arithmeticAdd: (diff) => {
@@ -72,7 +83,8 @@ const generators = {
   // ─── MEDIUM PATTERNS ───
   // 7. Fibonacci-style: each = sum of previous 2
   fibonacci: () => {
-    const a = rand(1, 8), b = rand(1, 8);
+    const a = rand(1, 8),
+      b = rand(1, 8);
     const seq = [a, b];
     for (let i = 2; i < 5; i++) seq.push(seq[i - 1] + seq[i - 2]);
     const answer = seq[4] + seq[3];
@@ -117,7 +129,10 @@ const generators = {
     const len = diff === 'Hard' ? 6 : 5;
     const seq = [start];
     let d = firstDiff;
-    for (let i = 1; i < len; i++) { seq.push(seq[i - 1] + d); d += k; }
+    for (let i = 1; i < len; i++) {
+      seq.push(seq[i - 1] + d);
+      d += k;
+    }
     return { sequence: seq, answer: seq[len - 1] + d };
   },
 
@@ -144,8 +159,10 @@ const generators = {
 
   // 14. Interleaved: two separate sequences interleaved
   interleaved: (diff) => {
-    const a1 = rand(1, 10), d1 = rand(2, 6);
-    const a2 = rand(20, 40), d2 = rand(3, 7);
+    const a1 = rand(1, 10),
+      d1 = rand(2, 6);
+    const a2 = rand(20, 40),
+      d2 = rand(3, 7);
     const len = diff === 'Hard' ? 8 : 6;
     const seq = [];
     for (let i = 0; i < len; i++) {
@@ -160,7 +177,10 @@ const generators = {
   nSquarePlusN: () => {
     const s = rand(1, 6);
     const len = 5;
-    const seq = Array.from({ length: len }, (_, i) => { const n = s + i; return n * n + n; });
+    const seq = Array.from({ length: len }, (_, i) => {
+      const n = s + i;
+      return n * n + n;
+    });
     const n = s + len;
     return { sequence: seq, answer: n * n + n };
   },
@@ -189,7 +209,7 @@ const generators = {
   // 19. Pentagonal numbers: n(3n-1)/2
   pentagonal: () => {
     const s = rand(1, 5);
-    const pent = (n) => n * (3 * n - 1) / 2;
+    const pent = (n) => (n * (3 * n - 1)) / 2;
     const seq = Array.from({ length: 5 }, (_, i) => pent(s + i));
     return { sequence: seq, answer: pent(s + 5) };
   },
@@ -220,7 +240,10 @@ const generators = {
   // 23. Cube minus square: n³ - n²
   cubeMinusSquare: () => {
     const s = rand(1, 5);
-    const seq = Array.from({ length: 5 }, (_, i) => { const n = s + i; return n ** 3 - n ** 2; });
+    const seq = Array.from({ length: 5 }, (_, i) => {
+      const n = s + i;
+      return n ** 3 - n ** 2;
+    });
     return { sequence: seq, answer: (s + 5) ** 3 - (s + 5) ** 2 };
   },
 
@@ -240,7 +263,7 @@ const generators = {
     for (let i = 1; i < 6; i++) {
       seq.push(i % 2 === 1 ? seq[i - 1] * m : seq[i - 1] / 2);
     }
-    if (seq.some(n => !Number.isInteger(n))) return generators.arithmetic('Medium');
+    if (seq.some((n) => !Number.isInteger(n))) return generators.arithmetic('Medium');
     const answer = 6 % 2 === 1 ? seq[5] * m : seq[5] / 2;
     return { sequence: seq, answer };
   },
@@ -327,13 +350,45 @@ const generators = {
     const nextI = 6;
     const mult = Math.ceil(nextI / 2);
     return { sequence: seq, answer: seq[5] + (nextI % 2 === 1 ? d * mult : -d * mult) };
-  },
+  }
 };
 
 // ── Difficulty → generator mapping ──
 const easyGens = ['arithmeticAdd', 'arithmeticSub', 'geometric', 'squares', 'cubes', 'positionalMultiply', 'increasingDiff'];
-const mediumGens = [...easyGens, 'geometricDiv', 'fibonacci', 'primeSeq', 'triangular', 'alternating', 'multiplyAdd', 'doubleSub', 'interleaved', 'squarePlusK', 'pow2Offset'];
-const hardGens = [...mediumGens, 'nSquarePlusN', 'powerAlternate', 'factorial', 'catalan', 'pentagonal', 'hexagonal', 'cubeMinusSquare', 'diffPrime', 'altMultDiv', 'runningSum', 'diffSquares', 'multiplyPosition', 'oblong', 'star', 'centeredSquare', 'lazyCaterer', 'diffCubes', 'zigzagDiff'];
+const mediumGens = [
+  ...easyGens,
+  'geometricDiv',
+  'fibonacci',
+  'primeSeq',
+  'triangular',
+  'alternating',
+  'multiplyAdd',
+  'doubleSub',
+  'interleaved',
+  'squarePlusK',
+  'pow2Offset'
+];
+const hardGens = [
+  ...mediumGens,
+  'nSquarePlusN',
+  'powerAlternate',
+  'factorial',
+  'catalan',
+  'pentagonal',
+  'hexagonal',
+  'cubeMinusSquare',
+  'diffPrime',
+  'altMultDiv',
+  'runningSum',
+  'diffSquares',
+  'multiplyPosition',
+  'oblong',
+  'star',
+  'centeredSquare',
+  'lazyCaterer',
+  'diffCubes',
+  'zigzagDiff'
+];
 
 const generatePattern = (difficulty) => {
   const pool = difficulty === 'Easy' ? easyGens : difficulty === 'Medium' ? mediumGens : hardGens;
@@ -344,7 +399,7 @@ const generatePattern = (difficulty) => {
   const { sequence, answer } = gen(difficulty);
 
   // Sanity check: ensure all numbers are finite integers
-  if (!sequence.every(n => Number.isFinite(n) && Number.isInteger(n)) || !Number.isFinite(answer) || !Number.isInteger(answer)) {
+  if (!sequence.every((n) => Number.isFinite(n) && Number.isInteger(n)) || !Number.isFinite(answer) || !Number.isInteger(answer)) {
     return generators.arithmeticAdd(difficulty);
   }
 
@@ -353,9 +408,7 @@ const generatePattern = (difficulty) => {
   distractors.add(answer);
 
   // Close neighbours
-  const offsets = difficulty === 'Hard'
-    ? [1, -1, 2, -2, 3, -3, 5, -5, 10, -10]
-    : [1, -1, 2, -2, 3, -3];
+  const offsets = difficulty === 'Hard' ? [1, -1, 2, -2, 3, -3, 5, -5, 10, -10] : [1, -1, 2, -2, 3, -3];
 
   for (const o of offsets) {
     if (distractors.size >= 4) break;
@@ -372,7 +425,7 @@ const generatePattern = (difficulty) => {
 
   // Ensure exactly 4 unique options
   let options = [...distractors];
-  if (options.length > 4) options = [answer, ...shuffle(options.filter(o => o !== answer)).slice(0, 3)];
+  if (options.length > 4) options = [answer, ...shuffle(options.filter((o) => o !== answer)).slice(0, 3)];
   while (options.length < 4) {
     const newOpt = answer + rand(-20, 20);
     if (!options.includes(newOpt) && newOpt !== answer) options.push(newOpt);
@@ -402,7 +455,7 @@ const InductiveLogicGame = ({ difficulty = 'Easy', onComplete }) => {
 
   const handleSubmit = () => {
     const isCorrect = selected === pattern.answer;
-    
+
     if (isCorrect) {
       setScore(score + 1);
       setFeedback('✓ Correct!');
@@ -423,10 +476,18 @@ const InductiveLogicGame = ({ difficulty = 'Easy', onComplete }) => {
   if (gameOver) {
     return (
       <Box sx={{ textAlign: 'center', p: 4 }}>
-        <Typography variant="h4" sx={{ mb: 2 }}>Game Complete!</Typography>
-        <Typography variant="h5" sx={{ mb: 3 }}>Score: {score}/{totalQuestions}</Typography>
-        <Typography variant="h6" sx={{ mb: 2 }}>Accuracy: {((score / totalQuestions) * 100).toFixed(1)}%</Typography>
-        <Button variant="contained" onClick={() => window.location.reload()}>Play Again</Button>
+        <Typography variant="h4" sx={{ mb: 2 }}>
+          Game Complete!
+        </Typography>
+        <Typography variant="h5" sx={{ mb: 3 }}>
+          Score: {score}/{totalQuestions}
+        </Typography>
+        <Typography variant="h6" sx={{ mb: 2 }}>
+          Accuracy: {((score / totalQuestions) * 100).toFixed(1)}%
+        </Typography>
+        <Button variant="contained" onClick={() => window.location.reload()}>
+          Play Again
+        </Button>
       </Box>
     );
   }
@@ -439,7 +500,7 @@ const InductiveLogicGame = ({ difficulty = 'Easy', onComplete }) => {
         <Typography variant="h6" sx={{ mb: 3, color: 'text.secondary' }}>
           Find the next number in the sequence:
         </Typography>
-        
+
         <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mb: 3, flexWrap: 'wrap' }}>
           {pattern.sequence.map((num, idx) => (
             <Box
@@ -456,7 +517,9 @@ const InductiveLogicGame = ({ difficulty = 'Easy', onComplete }) => {
                 bgcolor: 'primary.light'
               }}
             >
-              <Typography variant="h4" sx={{ fontWeight: 700, color: 'primary.dark' }}>{num}</Typography>
+              <Typography variant="h4" sx={{ fontWeight: 700, color: 'primary.dark' }}>
+                {num}
+              </Typography>
             </Box>
           ))}
           <Box
@@ -472,11 +535,15 @@ const InductiveLogicGame = ({ difficulty = 'Easy', onComplete }) => {
               bgcolor: 'warning.light'
             }}
           >
-            <Typography variant="h3" sx={{ fontWeight: 700, color: 'warning.dark' }}>?</Typography>
+            <Typography variant="h3" sx={{ fontWeight: 700, color: 'warning.dark' }}>
+              ?
+            </Typography>
           </Box>
         </Box>
 
-        <Typography variant="body1" sx={{ mb: 2, fontWeight: 600 }}>Select your answer:</Typography>
+        <Typography variant="body1" sx={{ mb: 2, fontWeight: 600 }}>
+          Select your answer:
+        </Typography>
         <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mb: 3, flexWrap: 'wrap' }}>
           {pattern.options.map((option, idx) => (
             <Box
@@ -497,7 +564,9 @@ const InductiveLogicGame = ({ difficulty = 'Easy', onComplete }) => {
                 '&:hover': feedback ? {} : { borderColor: 'primary.main', transform: 'scale(1.1)' }
               }}
             >
-              <Typography variant="h5" sx={{ fontWeight: 700 }}>{option}</Typography>
+              <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                {option}
+              </Typography>
             </Box>
           ))}
         </Box>
@@ -507,7 +576,7 @@ const InductiveLogicGame = ({ difficulty = 'Easy', onComplete }) => {
             {feedback}
           </Typography>
         )}
-        
+
         {!feedback && (
           <Button variant="contained" onClick={handleSubmit} disabled={!selected} sx={{ px: 4, py: 1.5 }}>
             Submit

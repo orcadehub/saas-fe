@@ -29,6 +29,7 @@ const StudyMaterials = Loadable(lazy(() => import('views/study-materials')));
 const StudyMaterialDetail = Loadable(lazy(() => import('views/study-materials/StudyMaterialDetail')));
 const Quizzes = Loadable(lazy(() => import('views/quizzes')));
 const QuizDetails = Loadable(lazy(() => import('views/quizzes/QuizDetails')));
+const Courses = Loadable(lazy(() => import('views/courses')));
 const Practice = Loadable(lazy(() => import('views/practice')));
 const ProgrammingPractice = Loadable(lazy(() => import('views/practice/ProgrammingPractice')));
 const ProgrammingQuestions = Loadable(lazy(() => import('views/practice/ProgrammingQuestions')));
@@ -174,6 +175,10 @@ const MainRoutes = {
         {
           path: 'quizzes/:id',
           element: <QuizDetails />
+        },
+        {
+          path: 'courses',
+          element: <Courses />
         },
         {
           path: 'practice',

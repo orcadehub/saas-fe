@@ -8,9 +8,9 @@ export default function Footer() {
       <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ maxWidth: 1200, mx: 'auto', px: 3 }}>
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
           &copy; {new Date().getFullYear()}{' '}
-          <Link 
-            href="https://orcadehub.com" 
-            target="_blank" 
+          <Link
+            href="https://orcadehub.com"
+            target="_blank"
             rel="noopener noreferrer"
             sx={{ color: '#6a0dad', textDecoration: 'none', fontWeight: 600, '&:hover': { textDecoration: 'underline' } }}
           >

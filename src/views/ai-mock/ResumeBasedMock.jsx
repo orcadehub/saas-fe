@@ -40,17 +40,17 @@ export default function ResumeBasedMock() {
   const handleStartInterview = async () => {
     try {
       const resumeText = await resumeFile.text();
-      
+
       const result = await analyzeResume({
         resumeText,
         duration,
         difficulty
       });
-      
+
       setInterviewId(result.interviewId);
-      
-      navigate(`/ai-mock/interview/${result.interviewId}`, { 
-        state: { questions: result.questions, skills: result.skills } 
+
+      navigate(`/ai-mock/interview/${result.interviewId}`, {
+        state: { questions: result.questions, skills: result.skills }
       });
     } catch (error) {
       console.error('Error:', error);
@@ -70,16 +70,19 @@ export default function ResumeBasedMock() {
 
       {activeStep === 0 && (
         <Box>
-          <Typography variant="h6" sx={{ mb: 2 }}>Upload Your Resume</Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            Upload your resume in PDF or TXT format. AI will analyze your skills and experience to generate personalized interview questions.
+          <Typography variant="h6" sx={{ mb: 2 }}>
+            Upload Your Resume
           </Typography>
-          
-          <Paper 
-            sx={{ 
-              p: 4, 
-              textAlign: 'center', 
-              border: '2px dashed', 
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+            Upload your resume in PDF or TXT format. AI will analyze your skills and experience to generate personalized interview
+            questions.
+          </Typography>
+
+          <Paper
+            sx={{
+              p: 4,
+              textAlign: 'center',
+              border: '2px dashed',
               borderColor: resumeFile ? 'success.main' : 'divider',
               bgcolor: resumeFile ? 'success.lighter' : 'grey.50',
               cursor: 'pointer',
@@ -87,13 +90,7 @@ export default function ResumeBasedMock() {
             }}
             onClick={() => document.getElementById('resume-upload').click()}
           >
-            <input
-              id="resume-upload"
-              type="file"
-              accept=".pdf,.txt"
-              hidden
-              onChange={handleFileUpload}
-            />
+            <input id="resume-upload" type="file" accept=".pdf,.txt" hidden onChange={handleFileUpload} />
             <CloudUpload sx={{ fontSize: 60, color: resumeFile ? 'success.main' : 'text.secondary', mb: 2 }} />
             <Typography variant="h6" sx={{ mb: 1 }}>
               {resumeFile ? resumeFile.name : 'Click to upload resume'}
@@ -113,8 +110,10 @@ export default function ResumeBasedMock() {
 
       {activeStep === 1 && (
         <Box>
-          <Typography variant="h6" sx={{ mb: 3 }}>Configure Interview Settings</Typography>
-          
+          <Typography variant="h6" sx={{ mb: 3 }}>
+            Configure Interview Settings
+          </Typography>
+
           <TextField
             fullWidth
             label="Duration (minutes)"
@@ -153,13 +152,23 @@ export default function ResumeBasedMock() {
 
       {activeStep === 2 && (
         <Box>
-          <Typography variant="h6" sx={{ mb: 2 }}>Ready to Start</Typography>
-          
+          <Typography variant="h6" sx={{ mb: 2 }}>
+            Ready to Start
+          </Typography>
+
           <Paper sx={{ p: 3, mb: 3, bgcolor: 'primary.lighter' }}>
-            <Typography variant="body1" sx={{ mb: 2, fontWeight: 600 }}>Interview Summary:</Typography>
-            <Typography variant="body2" sx={{ mb: 1 }}>• Resume: {resumeFile?.name}</Typography>
-            <Typography variant="body2" sx={{ mb: 1 }}>• Duration: {duration} minutes</Typography>
-            <Typography variant="body2" sx={{ mb: 1 }}>• Difficulty: {difficulty}</Typography>
+            <Typography variant="body1" sx={{ mb: 2, fontWeight: 600 }}>
+              Interview Summary:
+            </Typography>
+            <Typography variant="body2" sx={{ mb: 1 }}>
+              • Resume: {resumeFile?.name}
+            </Typography>
+            <Typography variant="body2" sx={{ mb: 1 }}>
+              • Duration: {duration} minutes
+            </Typography>
+            <Typography variant="body2" sx={{ mb: 1 }}>
+              • Difficulty: {difficulty}
+            </Typography>
             <Typography variant="body2">• Questions: 10-15 personalized questions</Typography>
           </Paper>
 
@@ -169,9 +178,9 @@ export default function ResumeBasedMock() {
 
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
             <Button onClick={handleBack}>Back</Button>
-            <Button 
-              variant="contained" 
-              color="success" 
+            <Button
+              variant="contained"
+              color="success"
               startIcon={loading ? <CircularProgress size={20} /> : <PlayArrow />}
               onClick={handleStartInterview}
               disabled={loading}

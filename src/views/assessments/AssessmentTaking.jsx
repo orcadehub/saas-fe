@@ -1,7 +1,49 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Box, Typography, Button, ButtonGroup, CircularProgress, Modal, Radio, RadioGroup, FormControlLabel, IconButton, Tabs, Tab, Select, MenuItem, FormControl, InputLabel, Dialog, DialogTitle, DialogContent, DialogActions, Card, CardContent, Chip, Snackbar, Alert, Stack } from '@mui/material';
-import { ChevronLeft, ChevronRight, PlayArrow, CheckCircle, Close, Add, Remove, Edit, Warning, TimerOff, Lock, AccessTime, FullscreenExit, TabUnselected } from '@mui/icons-material';
+import {
+  Box,
+  Typography,
+  Button,
+  ButtonGroup,
+  CircularProgress,
+  Modal,
+  Radio,
+  RadioGroup,
+  FormControlLabel,
+  IconButton,
+  Tabs,
+  Tab,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Card,
+  CardContent,
+  Chip,
+  Snackbar,
+  Alert,
+  Stack
+} from '@mui/material';
+import {
+  ChevronLeft,
+  ChevronRight,
+  PlayArrow,
+  CheckCircle,
+  Close,
+  Add,
+  Remove,
+  Edit,
+  Warning,
+  TimerOff,
+  Lock,
+  AccessTime,
+  FullscreenExit,
+  TabUnselected
+} from '@mui/icons-material';
 import Editor from '@monaco-editor/react';
 import Joyride, { STATUS } from 'react-joyride';
 import tenantConfig from 'config/tenantConfig';
@@ -66,7 +108,7 @@ export default function AssessmentTaking() {
   const [editingCustomIndex, setEditingCustomIndex] = useState(null);
   const [runTour, setRunTour] = useState(false);
   const [tourSteps, setTourSteps] = useState([]);
-  
+
   const quizTourSteps = [
     {
       target: '.divider-drag',
@@ -90,7 +132,7 @@ export default function AssessmentTaking() {
       placement: 'top'
     }
   ];
-  
+
   const programmingTourSteps = [
     {
       target: '.divider-drag',
@@ -118,25 +160,26 @@ export default function AssessmentTaking() {
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden) {
-        setTabSwitchCount(prev => {
+        setTabSwitchCount((prev) => {
           const newCount = prev + 1;
-          
+
           if (attemptId) {
             const token = localStorage.getItem('studentToken');
-            apiService.updateTabSwitchCount(token, attemptId)
-              .then(async response => {
+            apiService
+              .updateTabSwitchCount(token, attemptId)
+              .then(async (response) => {
                 const updatedCount = response.count || newCount;
                 setTabSwitchCount(updatedCount);
-                
+
                 // Check if max tab switches exceeded
                 const maxAllowed = assessment?.maxTabSwitches || 3;
                 if (maxAllowed !== -1 && updatedCount >= maxAllowed) {
                   setTimeout(async () => {
                     const endIP = await fetch('https://api.ipify.org?format=json')
-                      .then(res => res.json())
-                      .then(data => data.ip)
+                      .then((res) => res.json())
+                      .then((data) => data.ip)
                       .catch(() => 'Unknown');
-                    
+
                     await apiService.submitAssessment(token, id, {
                       answers: {},
                       submissionReason: 'TAB_SWITCH_VIOLATION',
@@ -145,14 +188,14 @@ export default function AssessmentTaking() {
                       endTime: new Date().toISOString(),
                       attemptId: attemptId
                     });
-                    
+
                     navigate('/assessments');
                   }, 3000);
                 }
               })
               .catch(console.error);
           }
-          
+
           return newCount;
         });
         setShowTabSwitchWarning(true);
@@ -164,25 +207,26 @@ export default function AssessmentTaking() {
         return; // Ignore blur if the user clicked inside an iframe (e.g., live preview)
       }
 
-      setTabSwitchCount(prev => {
+      setTabSwitchCount((prev) => {
         const newCount = prev + 1;
-        
+
         if (attemptId) {
           const token = localStorage.getItem('studentToken');
-          apiService.updateTabSwitchCount(token, attemptId)
-            .then(async response => {
+          apiService
+            .updateTabSwitchCount(token, attemptId)
+            .then(async (response) => {
               const updatedCount = response.count || newCount;
               setTabSwitchCount(updatedCount);
-              
+
               // Check if max tab switches exceeded
               const maxAllowed = assessment?.maxTabSwitches || 3;
               if (maxAllowed !== -1 && updatedCount >= maxAllowed) {
                 setTimeout(async () => {
                   const endIP = await fetch('https://api.ipify.org?format=json')
-                    .then(res => res.json())
-                    .then(data => data.ip)
+                    .then((res) => res.json())
+                    .then((data) => data.ip)
                     .catch(() => 'Unknown');
-                  
+
                   await apiService.submitAssessment(token, id, {
                     answers: {},
                     submissionReason: 'TAB_SWITCH_VIOLATION',
@@ -191,14 +235,14 @@ export default function AssessmentTaking() {
                     endTime: new Date().toISOString(),
                     attemptId: attemptId
                   });
-                  
+
                   navigate('/assessments');
                 }, 3000);
               }
             })
             .catch(console.error);
         }
-        
+
         return newCount;
       });
       setShowTabSwitchWarning(true);
@@ -206,7 +250,7 @@ export default function AssessmentTaking() {
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('blur', handleBlur);
-    
+
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('blur', handleBlur);
@@ -226,7 +270,7 @@ export default function AssessmentTaking() {
         setShowRightScroll(container.scrollLeft < container.scrollWidth - container.clientWidth);
       }
     };
-    
+
     const container = document.getElementById('question-buttons');
     if (container) {
       checkScroll();
@@ -287,7 +331,7 @@ export default function AssessmentTaking() {
 
     // 2. Recover Question-specific progress (Done for non-programming types)
     // Note: ProgrammingEditor handles its own recovery via handleRecover internally or on-load
-    
+
     // 3. Set data ready
     setIsDataReady(true);
   };
@@ -298,21 +342,22 @@ export default function AssessmentTaking() {
     if (data) {
       setStudentData(JSON.parse(data));
     }
-    
+
     // Fetch assessment data during preparation timer
     const fetchAssessmentData = async () => {
       try {
         const token = localStorage.getItem('studentToken');
-        
+
         // Check sessionStorage first
         const cachedAssessment = sessionStorage.getItem(`assessment_${id}`);
         if (cachedAssessment) {
           const assessmentData = JSON.parse(cachedAssessment);
           setAssessment(assessmentData);
-          
+
           // Fetch fresh data in background and update cache
-          apiService.getAssessmentDetails(token, id)
-            .then(freshData => {
+          apiService
+            .getAssessmentDetails(token, id)
+            .then((freshData) => {
               sessionStorage.setItem(`assessment_${id}`, JSON.stringify(freshData));
               setAssessment(freshData);
             })
@@ -323,39 +368,41 @@ export default function AssessmentTaking() {
           sessionStorage.setItem(`assessment_${id}`, JSON.stringify(assessmentData));
           setAssessment(assessmentData);
         }
-        
+
         // Always fetch fresh questions data from API on page load/reload
         const questionsData = await apiService.getAssessmentQuestions(token, id);
         QuestionCache.set(id, questionsData);
-        
+
         // Transform to array
         const allQuestions = [
-          ...(questionsData.programmingQuestions || []).map(q => ({ ...q, type: 'programming' })),
-          ...(questionsData.frontendQuestions || []).map(q => ({ ...q, type: 'frontend' })),
-          ...(questionsData.mongodbPlaygroundQuestions || []).map(q => ({ ...q, type: 'mongodb' })),
-          ...(questionsData.sqlPlaygroundQuestions || []).map(q => ({ ...q, type: 'sql' })),
-          ...(questionsData.quizQuestions || []).map(q => ({ ...q, type: 'quiz' }))
+          ...(questionsData.programmingQuestions || []).map((q) => ({ ...q, type: 'programming' })),
+          ...(questionsData.frontendQuestions || []).map((q) => ({ ...q, type: 'frontend' })),
+          ...(questionsData.mongodbPlaygroundQuestions || []).map((q) => ({ ...q, type: 'mongodb' })),
+          ...(questionsData.sqlPlaygroundQuestions || []).map((q) => ({ ...q, type: 'sql' })),
+          ...(questionsData.quizQuestions || []).map((q) => ({ ...q, type: 'quiz' }))
         ];
-        
+
         // Shuffle questions but keep options in their original order
-        const shuffledQuestions = allQuestions.map(q => {
-          if (q.type === 'quiz' && q.options) {
-            // Store original index (required by backend matching logic) without shuffling the options array
-            const optionsWithOriginalIndex = q.options.map((opt, idx) => ({ ...opt, originalIndex: idx }));
-            return { ...q, options: optionsWithOriginalIndex };
-          }
-          return q;
-        }).sort(() => Math.random() - 0.5);
-        
+        const shuffledQuestions = allQuestions
+          .map((q) => {
+            if (q.type === 'quiz' && q.options) {
+              // Store original index (required by backend matching logic) without shuffling the options array
+              const optionsWithOriginalIndex = q.options.map((opt, idx) => ({ ...opt, originalIndex: idx }));
+              return { ...q, options: optionsWithOriginalIndex };
+            }
+            return q;
+          })
+          .sort(() => Math.random() - 0.5);
+
         setQuestions(shuffledQuestions);
-        
+
         // Auto-select first available question type's first question
-        const firstQuizIndex = shuffledQuestions.findIndex(q => q.type === 'quiz');
-        const firstFrontendIndex = shuffledQuestions.findIndex(q => q.type === 'frontend');
-        const firstMongoDBIndex = shuffledQuestions.findIndex(q => q.type === 'mongodb');
-        const firstSQLIndex = shuffledQuestions.findIndex(q => q.type === 'sql');
-        const firstProgrammingIndex = shuffledQuestions.findIndex(q => q.type === 'programming');
-        
+        const firstQuizIndex = shuffledQuestions.findIndex((q) => q.type === 'quiz');
+        const firstFrontendIndex = shuffledQuestions.findIndex((q) => q.type === 'frontend');
+        const firstMongoDBIndex = shuffledQuestions.findIndex((q) => q.type === 'mongodb');
+        const firstSQLIndex = shuffledQuestions.findIndex((q) => q.type === 'sql');
+        const firstProgrammingIndex = shuffledQuestions.findIndex((q) => q.type === 'programming');
+
         if (firstQuizIndex !== -1) {
           setCurrentQuestionIndex(firstQuizIndex);
           setVisitedQuestions(new Set([firstQuizIndex]));
@@ -372,9 +419,9 @@ export default function AssessmentTaking() {
           setCurrentQuestionIndex(firstProgrammingIndex);
           setVisitedQuestions(new Set([firstProgrammingIndex]));
         }
-        
+
         setIsDataReady(true);
-        
+
         // Get attempt ID from cached assessment or fetch
         const assessmentData = cachedAssessment ? JSON.parse(cachedAssessment) : assessment;
         let attemptStatus = null;
@@ -397,9 +444,9 @@ export default function AssessmentTaking() {
           }
         }
 
-        if (attemptStatus && (attemptStatus !== 'IN_PROGRESS' && attemptStatus !== 'STARTED' && attemptStatus !== 'RESUMED')) {
-           navigate('/assessments');
-           return;
+        if (attemptStatus && attemptStatus !== 'IN_PROGRESS' && attemptStatus !== 'STARTED' && attemptStatus !== 'RESUMED') {
+          navigate('/assessments');
+          return;
         }
 
         if (currentAttemptId) {
@@ -407,28 +454,27 @@ export default function AssessmentTaking() {
           // Recover session data if available
           recoverFullSession(token, currentAttemptId, shuffledQuestions, recoveredAttemptData);
         }
-
       } catch (error) {
         console.error('Error fetching assessment data:', error);
         setIsDataReady(true);
       }
     };
-    
+
     fetchAssessmentData();
-    
+
     // Mark reload time
     localStorage.setItem('assessmentReloadTime', Date.now().toString());
-    
+
     // Show fullscreen prompt if not in fullscreen
     if (!document.fullscreenElement) {
       setShowFullscreenPrompt(true);
     }
-    
+
     // Check fullscreen every second for 18 seconds after reload
     const checkInterval = setInterval(() => {
       const reloadTime = parseInt(localStorage.getItem('assessmentReloadTime') || '0');
       const elapsed = Date.now() - reloadTime;
-      
+
       if (elapsed < 18000) {
         if (!document.fullscreenElement) {
           setShowFullscreenPrompt(true);
@@ -439,21 +485,21 @@ export default function AssessmentTaking() {
         clearInterval(checkInterval);
       }
     }, 1000);
-    
+
     // Block browser navigation
     const blockNavigation = (e) => {
       e.preventDefault();
       e.returnValue = '';
     };
-    
+
     const handlePopState = () => {
       window.history.pushState(null, '', window.location.href);
     };
-    
+
     window.addEventListener('beforeunload', blockNavigation);
     window.history.pushState(null, '', window.location.href);
     window.addEventListener('popstate', handlePopState);
-    
+
     return () => {
       window.removeEventListener('beforeunload', blockNavigation);
       window.removeEventListener('popstate', handlePopState);
@@ -468,9 +514,9 @@ export default function AssessmentTaking() {
         setShowPreparation(false);
         return;
       }
-      
+
       const timer = setInterval(() => {
-        setPreparationTime(prev => {
+        setPreparationTime((prev) => {
           if (prev <= 1) {
             if (isDataReady && !loading && attemptId) {
               setShowPreparation(false);
@@ -490,10 +536,10 @@ export default function AssessmentTaking() {
           document.documentElement.requestFullscreen().catch(console.error);
         }
       };
-      
+
       // Try immediately
       checkAndEnterFullscreen();
-      
+
       // Try again after a short delay
       setTimeout(checkAndEnterFullscreen, 100);
       setTimeout(checkAndEnterFullscreen, 500);
@@ -505,11 +551,12 @@ export default function AssessmentTaking() {
       if (!document.fullscreenElement && !showPreparation && !loading) {
         if (attemptId) {
           const token = localStorage.getItem('studentToken');
-          apiService.updateFullscreenExitCount(token, attemptId)
-            .then(response => setFullscreenExitCount(response.count))
+          apiService
+            .updateFullscreenExitCount(token, attemptId)
+            .then((response) => setFullscreenExitCount(response.count))
             .catch(console.error);
         }
-        
+
         setShowFullscreenWarning(true);
         setFullscreenWarningTimer(30);
       } else {
@@ -524,16 +571,16 @@ export default function AssessmentTaking() {
   useEffect(() => {
     if (showFullscreenWarning && fullscreenWarningTimer > 0) {
       const timer = setInterval(() => {
-        setFullscreenWarningTimer(prev => {
+        setFullscreenWarningTimer((prev) => {
           if (prev <= 1) {
             // Auto-submit on fullscreen violation
             (async () => {
               const token = localStorage.getItem('studentToken');
               const endIP = await fetch('https://api.ipify.org?format=json')
-                .then(res => res.json())
-                .then(data => data.ip)
+                .then((res) => res.json())
+                .then((data) => data.ip)
                 .catch(() => 'Unknown');
-              
+
               if (attemptId) {
                 await apiService.submitAssessment(token, id, {
                   answers: {},
@@ -572,11 +619,11 @@ export default function AssessmentTaking() {
     if (!showPreparation && !loading && questions.length > 0) {
       const currentQuestion = questions[currentQuestionIndex];
       const questionType = currentQuestion?.type;
-      
+
       if (questionType === 'quiz') {
         const tourKey = `assessment_tour_${id}_quiz`;
         const tourData = localStorage.getItem(tourKey);
-        
+
         if (tourData) {
           const { timestamp } = JSON.parse(tourData);
           const oneHour = 60 * 60 * 1000;
@@ -592,7 +639,7 @@ export default function AssessmentTaking() {
       } else if (questionType === 'programming') {
         const tourKey = `assessment_tour_${id}_programming`;
         const tourData = localStorage.getItem(tourKey);
-        
+
         if (tourData) {
           const { timestamp } = JSON.parse(tourData);
           const oneHour = 60 * 60 * 1000;
@@ -614,7 +661,7 @@ export default function AssessmentTaking() {
     if (assessment?.startTime && assessment?.duration) {
       const now = Date.now();
       const startTime = new Date(assessment.startTime).getTime();
-      const endTime = startTime + (assessment.duration * 60 * 1000);
+      const endTime = startTime + assessment.duration * 60 * 1000;
       const remaining = Math.max(0, Math.floor((endTime - now) / 1000));
       setTimeRemaining(remaining);
     }
@@ -632,7 +679,7 @@ export default function AssessmentTaking() {
     // Timer countdown
     if (timeRemaining > 0) {
       const timer = setInterval(() => {
-        setTimeRemaining(prev => {
+        setTimeRemaining((prev) => {
           const next = prev - 1;
 
           // Open submit modal at 5 seconds and lock it
@@ -640,7 +687,7 @@ export default function AssessmentTaking() {
             setShowFinalSubmitModal(true);
             setIsTimeUp(true);
           }
-          
+
           if (next <= 0) {
             clearInterval(timer);
             setShowFinalSubmitModal(true);
@@ -649,10 +696,10 @@ export default function AssessmentTaking() {
             (async () => {
               const token = localStorage.getItem('studentToken');
               const endIP = await fetch('https://api.ipify.org?format=json')
-                .then(res => res.json())
-                .then(data => data.ip)
+                .then((res) => res.json())
+                .then((data) => data.ip)
                 .catch(() => 'Unknown');
-              
+
               if (attemptId) {
                 await apiService.submitAssessment(token, id, {
                   answers: {},
@@ -697,16 +744,16 @@ export default function AssessmentTaking() {
 
   const handleFinalSubmit = async () => {
     if ((!isTimeUp && endTestInput !== 'END') || isSubmittingAssessment) return;
-    
+
     setIsSubmittingAssessment(true);
-    
+
     try {
       const token = localStorage.getItem('studentToken');
       const endIP = await fetch('https://api.ipify.org?format=json')
-        .then(res => res.json())
-        .then(data => data.ip)
+        .then((res) => res.json())
+        .then((data) => data.ip)
         .catch(() => 'Unknown');
-      
+
       await apiService.submitAssessment(token, id, {
         answers: {},
         submissionReason: 'MANUAL_SUBMIT',
@@ -715,7 +762,7 @@ export default function AssessmentTaking() {
         endTime: new Date().toISOString(),
         attemptId: attemptId
       });
-      
+
       setIsSubmittingAssessment(false);
       setShowFinalSubmitModal(false);
       navigate('/assessments');
@@ -727,27 +774,30 @@ export default function AssessmentTaking() {
 
   if (showFullscreenPrompt) {
     return (
-      <Box sx={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '100vh',
-        flexDirection: 'column',
-        gap: 4,
-        bgcolor: '#ffffff'
-      }}>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100vh',
+          flexDirection: 'column',
+          gap: 4,
+          bgcolor: '#ffffff'
+        }}
+      >
         <Typography variant="h3" sx={{ fontWeight: 700, color: 'error.main' }}>
           Fullscreen Required
         </Typography>
         <Typography variant="h6" sx={{ color: 'text.secondary', mb: 2 }}>
           Please click the button below to enter fullscreen mode
         </Typography>
-        <Button 
-          variant="contained" 
+        <Button
+          variant="contained"
           color="error"
           size="large"
           onClick={() => {
-            document.documentElement.requestFullscreen()
+            document.documentElement
+              .requestFullscreen()
               .then(() => setShowFullscreenPrompt(false))
               .catch(console.error);
           }}
@@ -761,34 +811,31 @@ export default function AssessmentTaking() {
 
   if (showPreparation || preparationFailed) {
     return (
-      <Box 
+      <Box
         onClick={() => {
           if (!document.fullscreenElement && !preparationFailed) {
             document.documentElement.requestFullscreen().catch(console.error);
           }
         }}
-        sx={{ 
-          display: 'flex', 
-          justifyContent: 'center', 
-          alignItems: 'center', 
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
           height: '100vh',
           flexDirection: 'column',
           gap: 4,
           bgcolor: '#ffffff',
           cursor: preparationFailed ? 'default' : 'pointer'
-        }}>
+        }}
+      >
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
           {config?.logoUrl ? (
-            <img 
-              src={config.logoUrl} 
-              alt="Logo" 
-              style={{ height: '64px', width: 'auto', borderRadius: '8px' }}
-            />
+            <img src={config.logoUrl} alt="Logo" style={{ height: '64px', width: 'auto', borderRadius: '8px' }} />
           ) : (
             <Box sx={{ width: 64, height: 64, bgcolor: 'grey.300', borderRadius: 1 }} />
           )}
         </Box>
-        
+
         {preparationFailed ? (
           <Box sx={{ textAlign: 'center' }}>
             <Typography variant="h2" sx={{ fontWeight: 700, mb: 2, fontSize: '2.5rem', color: 'error.main' }}>
@@ -817,32 +864,39 @@ export default function AssessmentTaking() {
                 Please wait while we set up your assessment environment
               </Typography>
             </Box>
-            
-            <Box sx={{
-              width: 200,
-              height: 200,
-              borderRadius: '50%',
-              background: `conic-gradient(#6a0dad ${((300 - preparationTime) / 300) * 360}deg, #e0e0e0 0deg)`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              <Box sx={{ 
-                width: 170,
-                height: 170,
+
+            <Box
+              sx={{
+                width: 200,
+                height: 200,
                 borderRadius: '50%',
-                bgcolor: '#ffffff',
+                background: `conic-gradient(#6a0dad ${((300 - preparationTime) / 300) * 360}deg, #e0e0e0 0deg)`,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center'
-              }}>
+              }}
+            >
+              <Box
+                sx={{
+                  width: 170,
+                  height: 170,
+                  borderRadius: '50%',
+                  bgcolor: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
                 <Box sx={{ textAlign: 'center' }}>
-                  <Typography variant="h1" sx={{ 
-                    fontWeight: 900, 
-                    color: '#6a0dad',
-                    fontFamily: 'monospace',
-                    fontSize: '4rem'
-                  }}>
+                  <Typography
+                    variant="h1"
+                    sx={{
+                      fontWeight: 900,
+                      color: '#6a0dad',
+                      fontFamily: 'monospace',
+                      fontSize: '4rem'
+                    }}
+                  >
                     {preparationTime}
                   </Typography>
                   <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '1.2rem' }}>
@@ -851,32 +905,56 @@ export default function AssessmentTaking() {
                 </Box>
               </Box>
             </Box>
-            
+
             <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'center', mt: 2 }}>
-              <Chip icon={assessment ? <CheckCircle /> : <CircularProgress size={16} />} label="Assessment Details" color={assessment ? "success" : "default"} variant={assessment ? "filled" : "outlined"} sx={{ fontWeight: 700 }} />
-              <Chip icon={questions.length > 0 ? <CheckCircle /> : <CircularProgress size={16} />} label="Question Bank" color={questions.length > 0 ? "success" : "default"} variant={questions.length > 0 ? "filled" : "outlined"} sx={{ fontWeight: 700 }} />
-              <Chip icon={attemptId ? <CheckCircle /> : <CircularProgress size={16} />} label="Secure Session" color={attemptId ? "success" : "default"} variant={attemptId ? "filled" : "outlined"} sx={{ fontWeight: 700 }} />
+              <Chip
+                icon={assessment ? <CheckCircle /> : <CircularProgress size={16} />}
+                label="Assessment Details"
+                color={assessment ? 'success' : 'default'}
+                variant={assessment ? 'filled' : 'outlined'}
+                sx={{ fontWeight: 700 }}
+              />
+              <Chip
+                icon={questions.length > 0 ? <CheckCircle /> : <CircularProgress size={16} />}
+                label="Question Bank"
+                color={questions.length > 0 ? 'success' : 'default'}
+                variant={questions.length > 0 ? 'filled' : 'outlined'}
+                sx={{ fontWeight: 700 }}
+              />
+              <Chip
+                icon={attemptId ? <CheckCircle /> : <CircularProgress size={16} />}
+                label="Secure Session"
+                color={attemptId ? 'success' : 'default'}
+                variant={attemptId ? 'filled' : 'outlined'}
+                sx={{ fontWeight: 700 }}
+              />
             </Box>
 
-            <Typography variant="body1" sx={{ 
-              textAlign: 'center', 
-              maxWidth: 400,
-              color: 'text.secondary',
-              fontSize: '1.2rem',
-              mt: 2
-            }}>
+            <Typography
+              variant="body1"
+              sx={{
+                textAlign: 'center',
+                maxWidth: 400,
+                color: 'text.secondary',
+                fontSize: '1.2rem',
+                mt: 2
+              }}
+            >
               Loading questions, setting up code environment, and preparing your workspace...
             </Typography>
-            
+
             {!document.fullscreenElement && (
-              <Typography variant="body2" sx={{ 
-                textAlign: 'center', 
-                maxWidth: 400,
-                color: 'primary.main',
-                fontSize: '1rem',
-                fontWeight: 600,
-                mt: 1
-              }}>
+              <Typography
+                variant="body2"
+                sx={{
+                  textAlign: 'center',
+                  maxWidth: 400,
+                  color: 'primary.main',
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  mt: 1
+                }}
+              >
                 Click anywhere to instantly enter Fullscreen Mode
               </Typography>
             )}
@@ -914,23 +992,27 @@ export default function AssessmentTaking() {
             duration={assessment?.duration || 60}
             onSubmit={timeRemaining > 2 ? () => setShowFinalSubmitModal(true) : undefined}
           />
-          
+
           <Box sx={{ flexGrow: 1, overflow: 'hidden' }}>
-            <Box sx={{ 
-              display: 'flex', 
-              justifyContent: 'center', 
-              alignItems: 'center', 
-              height: '100%',
-              bgcolor: '#fff7ed',
-              p: 3
-            }}>
-              <Card sx={{ 
-                p: 6, 
-                maxWidth: 600, 
-                textAlign: 'center',
-                borderRadius: 4,
-                boxShadow: '0 8px 32px rgba(0,0,0,0.1)'
-              }}>
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                height: '100%',
+                bgcolor: '#fff7ed',
+                p: 3
+              }}
+            >
+              <Card
+                sx={{
+                  p: 6,
+                  maxWidth: 600,
+                  textAlign: 'center',
+                  borderRadius: 4,
+                  boxShadow: '0 8px 32px rgba(0,0,0,0.1)'
+                }}
+              >
                 <Typography variant="h3" sx={{ fontWeight: 700, mb: 2, color: '#f59e0b' }}>
                   Backend Assessment
                 </Typography>
@@ -944,40 +1026,51 @@ export default function AssessmentTaking() {
 
         {/* Modals */}
         <Modal open={showFullscreenWarning} disableEscapeKeyDown>
-          <Box sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            bgcolor: '#ffffff',
-            boxShadow: '0 0 60px rgba(239,68,68,0.12), 0 25px 50px -12px rgba(0,0,0,0.15)',
-            borderRadius: '24px',
-            overflow: 'hidden',
-            minWidth: 480,
-            maxWidth: 520,
-            border: '1px solid #fecaca'
-          }}>
+          <Box
+            sx={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              bgcolor: '#ffffff',
+              boxShadow: '0 0 60px rgba(239,68,68,0.12), 0 25px 50px -12px rgba(0,0,0,0.15)',
+              borderRadius: '24px',
+              overflow: 'hidden',
+              minWidth: 480,
+              maxWidth: 520,
+              border: '1px solid #fecaca'
+            }}
+          >
             {/* Red accent bar */}
-            <Box sx={{
-              height: '4px',
-              background: 'linear-gradient(90deg, #ef4444, #f97316, #ef4444)',
-              backgroundSize: '200% 100%',
-              animation: 'fsShimmer 2s linear infinite',
-              '@keyframes fsShimmer': {
-                '0%': { backgroundPosition: '200% 0' },
-                '100%': { backgroundPosition: '-200% 0' }
-              }
-            }} />
+            <Box
+              sx={{
+                height: '4px',
+                background: 'linear-gradient(90deg, #ef4444, #f97316, #ef4444)',
+                backgroundSize: '200% 100%',
+                animation: 'fsShimmer 2s linear infinite',
+                '@keyframes fsShimmer': {
+                  '0%': { backgroundPosition: '200% 0' },
+                  '100%': { backgroundPosition: '-200% 0' }
+                }
+              }}
+            />
 
             <Box sx={{ p: 5, textAlign: 'center' }}>
               {/* Icon */}
-              <Box sx={{
-                width: 64, height: 64, borderRadius: '18px',
-                background: 'linear-gradient(135deg, #fef2f2 0%, #fff7ed 100%)',
-                border: '1px solid #fecaca',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                mx: 'auto', mb: 3
-              }}>
+              <Box
+                sx={{
+                  width: 64,
+                  height: 64,
+                  borderRadius: '18px',
+                  background: 'linear-gradient(135deg, #fef2f2 0%, #fff7ed 100%)',
+                  border: '1px solid #fecaca',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  mx: 'auto',
+                  mb: 3
+                }}
+              >
                 <FullscreenExit sx={{ fontSize: 32, color: '#dc2626' }} />
               </Box>
 
@@ -989,49 +1082,61 @@ export default function AssessmentTaking() {
               </Typography>
 
               {/* Countdown ring */}
-              <Box sx={{
-                width: 140,
-                height: 140,
-                borderRadius: '50%',
-                background: `conic-gradient(#ef4444 ${((30 - fullscreenWarningTimer) / 30) * 360}deg, #fee2e2 0deg)`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                mx: 'auto',
-                mb: 3,
-                boxShadow: '0 4px 20px rgba(239,68,68,0.15)'
-              }}>
-                <Box sx={{
-                  width: 112,
-                  height: 112,
+              <Box
+                sx={{
+                  width: 140,
+                  height: 140,
                   borderRadius: '50%',
-                  bgcolor: '#ffffff',
+                  background: `conic-gradient(#ef4444 ${((30 - fullscreenWarningTimer) / 30) * 360}deg, #fee2e2 0deg)`,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  flexDirection: 'column'
-                }}>
-                  <Typography sx={{
-                    fontWeight: 900,
-                    color: '#dc2626',
-                    fontFamily: 'JetBrains Mono, monospace',
-                    fontSize: '2.5rem',
-                    lineHeight: 1
-                  }}>
+                  mx: 'auto',
+                  mb: 3,
+                  boxShadow: '0 4px 20px rgba(239,68,68,0.15)'
+                }}
+              >
+                <Box
+                  sx={{
+                    width: 112,
+                    height: 112,
+                    borderRadius: '50%',
+                    bgcolor: '#ffffff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexDirection: 'column'
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontWeight: 900,
+                      color: '#dc2626',
+                      fontFamily: 'JetBrains Mono, monospace',
+                      fontSize: '2.5rem',
+                      lineHeight: 1
+                    }}
+                  >
                     {fullscreenWarningTimer}
                   </Typography>
-                  <Typography sx={{ color: '#94a3b8', fontSize: '0.7rem', fontWeight: 600, mt: 0.5 }}>
-                    seconds
-                  </Typography>
+                  <Typography sx={{ color: '#94a3b8', fontSize: '0.7rem', fontWeight: 600, mt: 0.5 }}>seconds</Typography>
                 </Box>
               </Box>
 
               {/* Exit count badge */}
-              <Box sx={{
-                display: 'inline-flex', alignItems: 'center', gap: 1,
-                px: 2.5, py: 1, borderRadius: '10px',
-                bgcolor: '#fef2f2', border: '1px solid #fecaca', mb: 4
-              }}>
+              <Box
+                sx={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  px: 2.5,
+                  py: 1,
+                  borderRadius: '10px',
+                  bgcolor: '#fef2f2',
+                  border: '1px solid #fecaca',
+                  mb: 4
+                }}
+              >
                 <Warning sx={{ fontSize: 16, color: '#dc2626' }} />
                 <Typography sx={{ fontWeight: 700, color: '#991b1b', fontSize: '0.85rem' }}>
                   Fullscreen exits: {fullscreenExitCount}
@@ -1044,7 +1149,10 @@ export default function AssessmentTaking() {
                 fullWidth
                 onClick={handleEnterFullscreen}
                 sx={{
-                  py: 1.8, fontSize: '1rem', fontWeight: 800, textTransform: 'none',
+                  py: 1.8,
+                  fontSize: '1rem',
+                  fontWeight: 800,
+                  textTransform: 'none',
                   borderRadius: '14px',
                   background: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
                   color: 'white',
@@ -1084,26 +1192,35 @@ export default function AssessmentTaking() {
           }}
         >
           {/* Amber accent bar */}
-          <Box sx={{
-            height: '4px',
-            background: 'linear-gradient(90deg, #f59e0b, #f97316, #f59e0b)',
-            backgroundSize: '200% 100%',
-            animation: 'tabShimmer 2s linear infinite',
-            '@keyframes tabShimmer': {
-              '0%': { backgroundPosition: '200% 0' },
-              '100%': { backgroundPosition: '-200% 0' }
-            }
-          }} />
+          <Box
+            sx={{
+              height: '4px',
+              background: 'linear-gradient(90deg, #f59e0b, #f97316, #f59e0b)',
+              backgroundSize: '200% 100%',
+              animation: 'tabShimmer 2s linear infinite',
+              '@keyframes tabShimmer': {
+                '0%': { backgroundPosition: '200% 0' },
+                '100%': { backgroundPosition: '-200% 0' }
+              }
+            }}
+          />
 
           <Box sx={{ p: 5, textAlign: 'center' }}>
             {/* Icon */}
-            <Box sx={{
-              width: 64, height: 64, borderRadius: '18px',
-              background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)',
-              border: '1px solid #fde68a',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              mx: 'auto', mb: 3
-            }}>
+            <Box
+              sx={{
+                width: 64,
+                height: 64,
+                borderRadius: '18px',
+                background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)',
+                border: '1px solid #fde68a',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                mx: 'auto',
+                mb: 3
+              }}
+            >
               <TabUnselected sx={{ fontSize: 32, color: '#d97706' }} />
             </Box>
 
@@ -1115,19 +1232,28 @@ export default function AssessmentTaking() {
             </Typography>
 
             {/* Tab switch count badge */}
-            <Box sx={{
-              display: 'inline-flex', alignItems: 'center', gap: 1.5,
-              px: 3, py: 1.5, borderRadius: '12px',
-              bgcolor: '#fffbeb', border: '1px solid #fde68a', mb: 3
-            }}>
+            <Box
+              sx={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 1.5,
+                px: 3,
+                py: 1.5,
+                borderRadius: '12px',
+                bgcolor: '#fffbeb',
+                border: '1px solid #fde68a',
+                mb: 3
+              }}
+            >
               <Typography sx={{ fontWeight: 700, color: '#92400e', fontSize: '0.9rem' }}>
                 Tab switches: <strong>{tabSwitchCount}</strong>
                 {assessment?.maxTabSwitches && assessment.maxTabSwitches !== -1 && (
-                  <> / <strong>{assessment.maxTabSwitches}</strong> allowed</>
+                  <>
+                    {' '}
+                    / <strong>{assessment.maxTabSwitches}</strong> allowed
+                  </>
                 )}
-                {assessment?.maxTabSwitches === -1 && (
-                  <> (Unlimited allowed)</>
-                )}
+                {assessment?.maxTabSwitches === -1 && <> (Unlimited allowed)</>}
               </Typography>
             </Box>
 
@@ -1141,7 +1267,10 @@ export default function AssessmentTaking() {
               fullWidth
               onClick={() => setShowTabSwitchWarning(false)}
               sx={{
-                py: 1.8, fontSize: '1rem', fontWeight: 800, textTransform: 'none',
+                py: 1.8,
+                fontSize: '1rem',
+                fontWeight: 800,
+                textTransform: 'none',
                 borderRadius: '14px',
                 background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
                 color: 'white',
@@ -1158,14 +1287,12 @@ export default function AssessmentTaking() {
             </Button>
           </Box>
         </Dialog>
-
-
       </>
     );
   }
 
   return (
-    <Box 
+    <Box
       sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}
       onCopy={isProduction ? (e) => e.preventDefault() : undefined}
       onCut={isProduction ? (e) => e.preventDefault() : undefined}
@@ -1173,24 +1300,45 @@ export default function AssessmentTaking() {
       onContextMenu={isProduction ? (e) => e.preventDefault() : undefined}
       onSelectStart={isProduction ? (e) => e.preventDefault() : undefined}
       onDragStart={isProduction ? (e) => e.preventDefault() : undefined}
-      onKeyDown={isProduction ? (e) => {
-        const blockedKeys = ['Escape', 'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10', 'F11', 'F12', 'Meta', 'Control', 'Insert'];
-        
-        if (blockedKeys.includes(e.key)) {
-          e.preventDefault();
-          setToastMessage(`${e.key} key is not allowed during assessment`);
-          setToastSeverity('error');
-          setShowToast(true);
-          return;
-        }
-        
-        if ((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'x' || e.key === 'v' || e.key === 'a')) {
-          e.preventDefault();
-          setToastMessage(`${e.ctrlKey ? 'Ctrl' : 'Command'}+${e.key.toUpperCase()} is not allowed during assessment`);
-          setToastSeverity('error');
-          setShowToast(true);
-        }
-      } : undefined}
+      onKeyDown={
+        isProduction
+          ? (e) => {
+              const blockedKeys = [
+                'Escape',
+                'F1',
+                'F2',
+                'F3',
+                'F4',
+                'F5',
+                'F6',
+                'F7',
+                'F8',
+                'F9',
+                'F10',
+                'F11',
+                'F12',
+                'Meta',
+                'Control',
+                'Insert'
+              ];
+
+              if (blockedKeys.includes(e.key)) {
+                e.preventDefault();
+                setToastMessage(`${e.key} key is not allowed during assessment`);
+                setToastSeverity('error');
+                setShowToast(true);
+                return;
+              }
+
+              if ((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'x' || e.key === 'v' || e.key === 'a')) {
+                e.preventDefault();
+                setToastMessage(`${e.ctrlKey ? 'Ctrl' : 'Command'}+${e.key.toUpperCase()} is not allowed during assessment`);
+                setToastSeverity('error');
+                setShowToast(true);
+              }
+            }
+          : undefined
+      }
     >
       <AssessmentHeader
         logoUrl={config?.logoUrl}
@@ -1201,57 +1349,65 @@ export default function AssessmentTaking() {
         duration={assessment?.duration || 60}
         onSubmit={timeRemaining > 2 ? () => setShowFinalSubmitModal(true) : undefined}
       />
-      
-      <Box sx={{ 
-        display: 'grid', 
-        gridTemplateColumns: `${leftWidth}% 4px ${100 - leftWidth}%`,
-        flexGrow: 1, 
-        height: '100%',
-        overflow: 'hidden'
-      }}>
+
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: `${leftWidth}% 4px ${100 - leftWidth}%`,
+          flexGrow: 1,
+          height: '100%',
+          overflow: 'hidden'
+        }}
+      >
         {/* Problem Statement */}
-        <Box sx={{ 
-          overflow: 'auto', 
-          height: '100%', 
-          bgcolor: '#ffffff',
-          '&::-webkit-scrollbar': { display: 'none' },
-          scrollbarWidth: 'none',
-          userSelect: 'none',
-          WebkitUserSelect: 'none',
-          MozUserSelect: 'none',
-          msUserSelect: 'none'
-        }}>
+        <Box
+          sx={{
+            overflow: 'auto',
+            height: '100%',
+            bgcolor: '#ffffff',
+            '&::-webkit-scrollbar': { display: 'none' },
+            scrollbarWidth: 'none',
+            userSelect: 'none',
+            WebkitUserSelect: 'none',
+            MozUserSelect: 'none',
+            msUserSelect: 'none'
+          }}
+        >
           {/* Question Navigation */}
           <Box sx={{ p: 2, borderBottom: '1px solid #e0e0e0', bgcolor: '#f8f9fa', position: 'sticky', top: 0, zIndex: 99 }}>
             {/* Part A/B Toggle */}
             {(() => {
-              const hasQuiz = questions.filter(q => q.type === 'quiz').length > 0;
-              const hasFrontend = questions.filter(q => q.type === 'frontend').length > 0;
-              const hasMongoDB = questions.filter(q => q.type === 'mongodb').length > 0;
-              const hasSQL = questions.filter(q => q.type === 'sql').length > 0;
-              const hasProgramming = questions.filter(q => q.type === 'programming').length > 0;
+              const hasQuiz = questions.filter((q) => q.type === 'quiz').length > 0;
+              const hasFrontend = questions.filter((q) => q.type === 'frontend').length > 0;
+              const hasMongoDB = questions.filter((q) => q.type === 'mongodb').length > 0;
+              const hasSQL = questions.filter((q) => q.type === 'sql').length > 0;
+              const hasProgramming = questions.filter((q) => q.type === 'programming').length > 0;
               const totalParts = [hasQuiz, hasFrontend, hasMongoDB, hasSQL, hasProgramming].filter(Boolean).length;
-              
+
               if (totalParts <= 1) return null;
-              
+
               const types = [];
               if (hasQuiz) types.push('quiz');
               if (hasFrontend) types.push('frontend');
               if (hasMongoDB) types.push('mongodb');
               if (hasSQL) types.push('sql');
               if (hasProgramming) types.push('programming');
-              
+
               const currentType = questions[currentQuestionIndex]?.type;
               const currentTypeIndex = types.indexOf(currentType);
               const partLabels = { quiz: 'Quiz', frontend: 'Frontend', mongodb: 'MongoDB', sql: 'SQL', programming: 'Programming' };
               const partLabel = `Part ${String.fromCharCode(65 + currentTypeIndex)} - ${partLabels[currentType]}`;
-              
+
               return (
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2, flexWrap: 'wrap', gap: 2 }}>
                   <Typography variant="h6" sx={{ fontWeight: 600, fontSize: { xs: '16px', sm: '18px', md: '20px' } }}>
-                    {partLabel} ({questions.filter(q => q.type === currentType).length})
+                    {partLabel} ({questions.filter((q) => q.type === currentType).length})
                   </Typography>
-                  <ButtonGroup size="small" variant="outlined" sx={{ '& .MuiButtonGroup-grouped': { textTransform: 'none', fontWeight: 600, px: 2, py: 0.75 } }}>
+                  <ButtonGroup
+                    size="small"
+                    variant="outlined"
+                    sx={{ '& .MuiButtonGroup-grouped': { textTransform: 'none', fontWeight: 600, px: 2, py: 0.75 } }}
+                  >
                     {types.map((type, idx) => {
                       const isCurrent = type === currentType;
                       return (
@@ -1259,21 +1415,25 @@ export default function AssessmentTaking() {
                           key={type}
                           onClick={() => {
                             if (isCurrent) return;
-                            const firstQuestionIndex = questions.findIndex(q => q.type === type);
+                            const firstQuestionIndex = questions.findIndex((q) => q.type === type);
                             if (firstQuestionIndex !== -1) {
                               setCurrentQuestionIndex(firstQuestionIndex);
                             }
                           }}
-                          sx={isCurrent ? {
-                            bgcolor: 'secondary.main',
-                            color: 'white !important',
-                            borderColor: 'secondary.main !important',
-                            '&:hover': { bgcolor: 'secondary.dark', borderColor: 'secondary.dark !important' }
-                          } : {
-                            color: 'secondary.main',
-                            borderColor: 'rgba(156, 39, 176, 0.5)',
-                            '&:hover': { bgcolor: 'rgba(156, 39, 176, 0.04)', borderColor: 'secondary.main' }
-                          }}
+                          sx={
+                            isCurrent
+                              ? {
+                                  bgcolor: 'secondary.main',
+                                  color: 'white !important',
+                                  borderColor: 'secondary.main !important',
+                                  '&:hover': { bgcolor: 'secondary.dark', borderColor: 'secondary.dark !important' }
+                                }
+                              : {
+                                  color: 'secondary.main',
+                                  borderColor: 'rgba(156, 39, 176, 0.5)',
+                                  '&:hover': { bgcolor: 'rgba(156, 39, 176, 0.04)', borderColor: 'secondary.main' }
+                                }
+                          }
                         >
                           Part {String.fromCharCode(65 + idx)} - {partLabels[type]}
                         </Button>
@@ -1283,13 +1443,12 @@ export default function AssessmentTaking() {
                 </Box>
               );
             })()}
-            
-            
+
             {/* Question Numbers */}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
               {showLeftScroll && (
-                <IconButton 
-                  size="small" 
+                <IconButton
+                  size="small"
                   onClick={() => {
                     const container = document.getElementById('question-buttons');
                     container.scrollBy({ left: -200, behavior: 'smooth' });
@@ -1299,11 +1458,11 @@ export default function AssessmentTaking() {
                   <ChevronLeft />
                 </IconButton>
               )}
-              <Box 
+              <Box
                 id="question-buttons"
-                sx={{ 
-                  display: 'flex', 
-                  gap: 1.25, 
+                sx={{
+                  display: 'flex',
+                  gap: 1.25,
                   overflow: 'auto',
                   flexGrow: 1,
                   py: 0.5,
@@ -1314,72 +1473,80 @@ export default function AssessmentTaking() {
               >
                 {(() => {
                   const currentType = questions[currentQuestionIndex]?.type;
-                  
+
                   return (questions || [])
-                    .filter(q => q.type === currentType)
+                    .filter((q) => q.type === currentType)
                     .map((q, filteredIndex) => {
-                    const originalIndex = questions.findIndex(originalQ => originalQ._id === q._id);
-                    const isCompleted = q.type === 'frontend' 
-                      ? frontendCompletedQuestions.has(originalIndex)
-                      : savedQuestions.has(originalIndex);
-                    const isPartial = q.type === 'frontend' && !frontendCompletedQuestions.has(originalIndex) && (frontendQuestionPercentages[originalIndex] || 0) > 0;
-                    const isActive = originalIndex === currentQuestionIndex;
-                    
-                    const isSaving = savingQuestions.has(originalIndex);
+                      const originalIndex = questions.findIndex((originalQ) => originalQ._id === q._id);
+                      const isCompleted =
+                        q.type === 'frontend' ? frontendCompletedQuestions.has(originalIndex) : savedQuestions.has(originalIndex);
+                      const isPartial =
+                        q.type === 'frontend' &&
+                        !frontendCompletedQuestions.has(originalIndex) &&
+                        (frontendQuestionPercentages[originalIndex] || 0) > 0;
+                      const isActive = originalIndex === currentQuestionIndex;
 
-                    return (
-                      <Button
-                        key={originalIndex}
-                        variant={isActive ? 'contained' : 'outlined'}
-                        size="small"
-                        onClick={() => {
-                          setCurrentQuestionIndex(originalIndex);
-                          setVisitedQuestions(prev => new Set([...prev, originalIndex]));
-                        }}
-                        sx={{
-                          minWidth: '44px',
-                          height: '44px',
-                          borderRadius: '12px',
-                          fontSize: '1rem',
-                          fontWeight: 800,
-                          transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                          position: 'relative',
-                          
-                          ...(isActive ? {
-                            bgcolor: isCompleted ? '#10b981' : '#6366f1',
-                            color: 'white',
-                            boxShadow: `0 8px 16px -4px ${isCompleted ? 'rgba(16, 185, 129, 0.4)' : 'rgba(99, 102, 241, 0.4)'}`,
-                            transform: 'translateY(-2px)',
-                            border: 'none',
-                            '&:hover': { 
-                                bgcolor: isCompleted ? '#059669' : '#4f46e5',
-                                boxShadow: `0 12px 20px -6px ${isCompleted ? 'rgba(16, 185, 129, 0.5)' : 'rgba(99, 102, 241, 0.5)'}`
-                            }
-                          } : {
-                            borderColor: isCompleted ? '#10b981' : (isPartial || visitedQuestions.has(originalIndex)) ? '#f59e0b' : '#e2e8f0',
+                      const isSaving = savingQuestions.has(originalIndex);
 
-                            bgcolor: isCompleted ? '#f0fdf4' : (isPartial || visitedQuestions.has(originalIndex)) ? '#fffbeb' : 'white',
-                            color: isCompleted ? '#10b981' : (isPartial || visitedQuestions.has(originalIndex)) ? '#f59e0b' : '#64748b',
-                            '&:hover': {
-                              bgcolor: isCompleted ? '#dcfce7' : (isPartial || visitedQuestions.has(originalIndex)) ? '#fef3c7' : '#f8fafc',
-                              borderColor: (isPartial || visitedQuestions.has(originalIndex)) ? '#f59e0b' : '#6366f1'
-                            }
-                          })
-                        }}
-                      >
-                        {isSaving ? (
-                          <CircularProgress size={18} sx={{ color: isActive ? 'white' : '#6366f1' }} />
-                        ) : (
-                          filteredIndex + 1
-                        )}
-                      </Button>
-                    );
-                  });
+                      return (
+                        <Button
+                          key={originalIndex}
+                          variant={isActive ? 'contained' : 'outlined'}
+                          size="small"
+                          onClick={() => {
+                            setCurrentQuestionIndex(originalIndex);
+                            setVisitedQuestions((prev) => new Set([...prev, originalIndex]));
+                          }}
+                          sx={{
+                            minWidth: '44px',
+                            height: '44px',
+                            borderRadius: '12px',
+                            fontSize: '1rem',
+                            fontWeight: 800,
+                            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                            position: 'relative',
+
+                            ...(isActive
+                              ? {
+                                  bgcolor: isCompleted ? '#10b981' : '#6366f1',
+                                  color: 'white',
+                                  boxShadow: `0 8px 16px -4px ${isCompleted ? 'rgba(16, 185, 129, 0.4)' : 'rgba(99, 102, 241, 0.4)'}`,
+                                  transform: 'translateY(-2px)',
+                                  border: 'none',
+                                  '&:hover': {
+                                    bgcolor: isCompleted ? '#059669' : '#4f46e5',
+                                    boxShadow: `0 12px 20px -6px ${isCompleted ? 'rgba(16, 185, 129, 0.5)' : 'rgba(99, 102, 241, 0.5)'}`
+                                  }
+                                }
+                              : {
+                                  borderColor: isCompleted
+                                    ? '#10b981'
+                                    : isPartial || visitedQuestions.has(originalIndex)
+                                      ? '#f59e0b'
+                                      : '#e2e8f0',
+
+                                  bgcolor: isCompleted ? '#f0fdf4' : isPartial || visitedQuestions.has(originalIndex) ? '#fffbeb' : 'white',
+                                  color: isCompleted ? '#10b981' : isPartial || visitedQuestions.has(originalIndex) ? '#f59e0b' : '#64748b',
+                                  '&:hover': {
+                                    bgcolor: isCompleted
+                                      ? '#dcfce7'
+                                      : isPartial || visitedQuestions.has(originalIndex)
+                                        ? '#fef3c7'
+                                        : '#f8fafc',
+                                    borderColor: isPartial || visitedQuestions.has(originalIndex) ? '#f59e0b' : '#6366f1'
+                                  }
+                                })
+                          }}
+                        >
+                          {isSaving ? <CircularProgress size={18} sx={{ color: isActive ? 'white' : '#6366f1' }} /> : filteredIndex + 1}
+                        </Button>
+                      );
+                    });
                 })()}
               </Box>
               {showRightScroll && (
-                <IconButton 
-                  size="small" 
+                <IconButton
+                  size="small"
                   onClick={() => {
                     const container = document.getElementById('question-buttons');
                     container.scrollBy({ left: 200, behavior: 'smooth' });
@@ -1395,26 +1562,31 @@ export default function AssessmentTaking() {
           {/* Unified Question Content for all types (Programming, Frontend, MongoDB, Quiz) */}
           <Box sx={{ p: { xs: 3, md: 5 }, maxWidth: '900px', mx: 'auto' }}>
             {/* Header Section */}
-            <Typography variant="h2" sx={{ 
-              fontWeight: 900, mb: 1.5, color: '#0f172a', 
-              fontSize: { xs: '1.75rem', md: '2.5rem' }, 
-              letterSpacing: '-0.025em',
-              lineHeight: 1.2
-            }}>
+            <Typography
+              variant="h2"
+              sx={{
+                fontWeight: 900,
+                mb: 1.5,
+                color: '#0f172a',
+                fontSize: { xs: '1.75rem', md: '2.5rem' },
+                letterSpacing: '-0.025em',
+                lineHeight: 1.2
+              }}
+            >
               {questions[currentQuestionIndex]?.title || 'System Initialization...'}
             </Typography>
-            
+
             {/* Metadata Tags */}
             {questions[currentQuestionIndex]?.tags && questions[currentQuestionIndex].tags.length > 0 && (
               <Box sx={{ display: 'flex', gap: 1.25, flexWrap: 'wrap', mb: 4.5 }}>
                 {questions[currentQuestionIndex].tags.map((tag, idx) => (
-                  <Chip 
-                    key={idx} 
+                  <Chip
+                    key={idx}
                     label={tag}
                     size="small"
-                    sx={{ 
-                      fontWeight: 800, 
-                      bgcolor: '#f1f5f9', 
+                    sx={{
+                      fontWeight: 800,
+                      bgcolor: '#f1f5f9',
                       color: '#475569',
                       borderRadius: '8px',
                       px: 0.5
@@ -1426,25 +1598,40 @@ export default function AssessmentTaking() {
 
             {/* Content Sections - Stacked with consistent spacing */}
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-              
               {/* 1. Core Description / Problem Statement */}
               {(questions[currentQuestionIndex]?.problemStatement || questions[currentQuestionIndex]?.description) && (
                 <Box>
-                  <Typography sx={{ 
-                    fontWeight: 900, color: '#6366f1', textTransform: 'uppercase', 
-                    fontSize: '0.75rem', letterSpacing: '0.1em', mb: 2.5,
-                    display: 'flex', alignItems: 'center', gap: 1.5
-                  }}>
+                  <Typography
+                    sx={{
+                      fontWeight: 900,
+                      color: '#6366f1',
+                      textTransform: 'uppercase',
+                      fontSize: '0.75rem',
+                      letterSpacing: '0.1em',
+                      mb: 2.5,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1.5
+                    }}
+                  >
                     <Box sx={{ width: 4, height: 16, bgcolor: '#6366f1', borderRadius: 1 }} />
                     Context & Requirements
                   </Typography>
-                  <Box sx={{ 
-                    p: 4, borderRadius: '24px', bgcolor: '#f8fafc', 
-                    border: '1px solid #f1f5f9',
-                    '& p': { m: 0, lineHeight: 1.8, color: '#334155', fontWeight: 600, fontSize: '1.1rem' },
-                    '& div': { lineHeight: 1.8, color: '#334155', fontWeight: 600, fontSize: '1.1rem' }
-                  }}>
-                    <div dangerouslySetInnerHTML={{ __html: questions[currentQuestionIndex]?.problemStatement || questions[currentQuestionIndex]?.description }} />
+                  <Box
+                    sx={{
+                      p: 4,
+                      borderRadius: '24px',
+                      bgcolor: '#f8fafc',
+                      border: '1px solid #f1f5f9',
+                      '& p': { m: 0, lineHeight: 1.8, color: '#334155', fontWeight: 600, fontSize: '1.1rem' },
+                      '& div': { lineHeight: 1.8, color: '#334155', fontWeight: 600, fontSize: '1.1rem' }
+                    }}
+                  >
+                    <div
+                      dangerouslySetInnerHTML={{
+                        __html: questions[currentQuestionIndex]?.problemStatement || questions[currentQuestionIndex]?.description
+                      }}
+                    />
                   </Box>
                 </Box>
               )}
@@ -1452,22 +1639,43 @@ export default function AssessmentTaking() {
               {/* 2. Logic / Code Snippets (Mostly for Quiz) */}
               {questions[currentQuestionIndex]?.codeSnippet && (
                 <Box>
-                  <Typography sx={{ 
-                    fontWeight: 900, color: '#6366f1', textTransform: 'uppercase', 
-                    fontSize: '0.75rem', letterSpacing: '0.1em', mb: 2.5,
-                    display: 'flex', alignItems: 'center', gap: 1.5
-                  }}>
+                  <Typography
+                    sx={{
+                      fontWeight: 900,
+                      color: '#6366f1',
+                      textTransform: 'uppercase',
+                      fontSize: '0.75rem',
+                      letterSpacing: '0.1em',
+                      mb: 2.5,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1.5
+                    }}
+                  >
                     <Box sx={{ width: 4, height: 16, bgcolor: '#6366f1', borderRadius: 1 }} />
                     Reference Snippet
                   </Typography>
-                  <Box sx={{ 
-                    p: 3, bgcolor: '#1e293b', borderRadius: '24px', 
-                    border: '1px solid #0f172a', overflow: 'hidden'
-                  }}>
-                    <Typography component="pre" sx={{ 
-                      whiteSpace: 'pre-wrap', fontSize: '0.95rem', lineHeight: 1.7, margin: 0,
-                      color: '#f8fafc', fontFamily: "'JetBrains Mono', monospace", fontWeight: 500
-                    }}>
+                  <Box
+                    sx={{
+                      p: 3,
+                      bgcolor: '#1e293b',
+                      borderRadius: '24px',
+                      border: '1px solid #0f172a',
+                      overflow: 'hidden'
+                    }}
+                  >
+                    <Typography
+                      component="pre"
+                      sx={{
+                        whiteSpace: 'pre-wrap',
+                        fontSize: '0.95rem',
+                        lineHeight: 1.7,
+                        margin: 0,
+                        color: '#f8fafc',
+                        fontFamily: "'JetBrains Mono', monospace",
+                        fontWeight: 500
+                      }}
+                    >
                       {questions[currentQuestionIndex].codeSnippet.replace(/\\n/g, '\n').replace(/\\t/g, '\t')}
                     </Typography>
                   </Box>
@@ -1477,16 +1685,27 @@ export default function AssessmentTaking() {
               {/* 3. Functional Specifications (Requirements) */}
               {questions[currentQuestionIndex]?.requirements && (
                 <Box>
-                  <Typography sx={{ 
-                    fontWeight: 900, color: '#6366f1', textTransform: 'uppercase', 
-                    fontSize: '0.75rem', letterSpacing: '0.1em', mb: 2.5,
-                    display: 'flex', alignItems: 'center', gap: 1.5
-                  }}>
+                  <Typography
+                    sx={{
+                      fontWeight: 900,
+                      color: '#6366f1',
+                      textTransform: 'uppercase',
+                      fontSize: '0.75rem',
+                      letterSpacing: '0.1em',
+                      mb: 2.5,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1.5
+                    }}
+                  >
                     <Box sx={{ width: 4, height: 16, bgcolor: '#6366f1', borderRadius: 1 }} />
                     Functional Specifications
                   </Typography>
                   <Stack spacing={2} sx={{ pl: 2 }}>
-                    {(Array.isArray(questions[currentQuestionIndex].requirements) ? questions[currentQuestionIndex].requirements : [questions[currentQuestionIndex].requirements]).map((req, idx) => (
+                    {(Array.isArray(questions[currentQuestionIndex].requirements)
+                      ? questions[currentQuestionIndex].requirements
+                      : [questions[currentQuestionIndex].requirements]
+                    ).map((req, idx) => (
                       <Box key={idx} sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
                         <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#6366f1', mt: 1.25, flexShrink: 0 }} />
                         <Typography sx={{ color: '#475569', fontWeight: 600, fontSize: '1.05rem', lineHeight: 1.6 }}>{req}</Typography>
@@ -1499,11 +1718,19 @@ export default function AssessmentTaking() {
               {/* 4. Acceptance Criteria (Specifically for Frontend/Design) */}
               {questions[currentQuestionIndex]?.acceptanceCriteria && (
                 <Box>
-                  <Typography sx={{ 
-                    fontWeight: 900, color: '#10b981', textTransform: 'uppercase', 
-                    fontSize: '0.75rem', letterSpacing: '0.1em', mb: 2.5,
-                    display: 'flex', alignItems: 'center', gap: 1.5
-                  }}>
+                  <Typography
+                    sx={{
+                      fontWeight: 900,
+                      color: '#10b981',
+                      textTransform: 'uppercase',
+                      fontSize: '0.75rem',
+                      letterSpacing: '0.1em',
+                      mb: 2.5,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1.5
+                    }}
+                  >
                     <Box sx={{ width: 4, height: 16, bgcolor: '#10b981', borderRadius: 1 }} />
                     Acceptance Criteria
                   </Typography>
@@ -1521,20 +1748,35 @@ export default function AssessmentTaking() {
               {/* 5. Technical Constraints */}
               {questions[currentQuestionIndex]?.constraints && (
                 <Box>
-                  <Typography sx={{ 
-                    fontWeight: 900, color: '#f97316', textTransform: 'uppercase', 
-                    fontSize: '0.75rem', letterSpacing: '0.1em', mb: 2.5,
-                    display: 'flex', alignItems: 'center', gap: 1.5
-                  }}>
+                  <Typography
+                    sx={{
+                      fontWeight: 900,
+                      color: '#f97316',
+                      textTransform: 'uppercase',
+                      fontSize: '0.75rem',
+                      letterSpacing: '0.1em',
+                      mb: 2.5,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1.5
+                    }}
+                  >
                     <Box sx={{ width: 4, height: 16, bgcolor: '#f97316', borderRadius: 1 }} />
                     Technical Constraints
                   </Typography>
                   <Box sx={{ p: 3, borderRadius: '20px', bgcolor: '#fff7ed', border: '1px solid #fed7aa' }}>
                     <Stack spacing={1.5}>
-                      {(Array.isArray(questions[currentQuestionIndex].constraints) ? questions[currentQuestionIndex].constraints : [questions[currentQuestionIndex].constraints]).map((constraint, idx) => (
+                      {(Array.isArray(questions[currentQuestionIndex].constraints)
+                        ? questions[currentQuestionIndex].constraints
+                        : [questions[currentQuestionIndex].constraints]
+                      ).map((constraint, idx) => (
                         <Box key={idx} sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
                           <Box sx={{ width: 5, height: 5, borderRadius: '50%', bgcolor: '#f97316', flexShrink: 0 }} />
-                          <Typography sx={{ color: '#9a3412', fontWeight: 800, fontSize: '0.95rem', fontFamily: "'JetBrains Mono', monospace" }}>{constraint}</Typography>
+                          <Typography
+                            sx={{ color: '#9a3412', fontWeight: 800, fontSize: '0.95rem', fontFamily: "'JetBrains Mono', monospace" }}
+                          >
+                            {constraint}
+                          </Typography>
                         </Box>
                       ))}
                     </Stack>
@@ -1545,38 +1787,81 @@ export default function AssessmentTaking() {
               {/* 6. Example Scenarios */}
               {questions[currentQuestionIndex]?.example && (
                 <Box>
-                  <Typography sx={{ 
-                    fontWeight: 900, color: '#6366f1', textTransform: 'uppercase', 
-                    fontSize: '0.75rem', letterSpacing: '0.1em', mb: 2.5,
-                    display: 'flex', alignItems: 'center', gap: 1.5
-                  }}>
+                  <Typography
+                    sx={{
+                      fontWeight: 900,
+                      color: '#6366f1',
+                      textTransform: 'uppercase',
+                      fontSize: '0.75rem',
+                      letterSpacing: '0.1em',
+                      mb: 2.5,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1.5
+                    }}
+                  >
                     <Box sx={{ width: 4, height: 16, bgcolor: '#6366f1', borderRadius: 1 }} />
                     Example Scenario
                   </Typography>
-                  <Box sx={{ 
-                    p: 3.5, borderRadius: '24px', bgcolor: '#fafafa', border: '1px solid #f1f1f1', 
-                    display: 'flex', flexDirection: 'column', gap: 2.5
-                  }}>
+                  <Box
+                    sx={{
+                      p: 3.5,
+                      borderRadius: '24px',
+                      bgcolor: '#fafafa',
+                      border: '1px solid #f1f1f1',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 2.5
+                    }}
+                  >
                     {questions[currentQuestionIndex].example.input && (
                       <Box>
-                        <Typography sx={{ fontSize: '0.7rem', fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', mb: 1 }}>Input</Typography>
-                        <Box sx={{ p: 2, bgcolor: '#ffffff', border: '1px solid #f1f5f9', borderRadius: '12px', fontFamily: "'JetBrains Mono', monospace", color: '#0f172a', fontWeight: 700 }}>
+                        <Typography sx={{ fontSize: '0.7rem', fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', mb: 1 }}>
+                          Input
+                        </Typography>
+                        <Box
+                          sx={{
+                            p: 2,
+                            bgcolor: '#ffffff',
+                            border: '1px solid #f1f5f9',
+                            borderRadius: '12px',
+                            fontFamily: "'JetBrains Mono', monospace",
+                            color: '#0f172a',
+                            fontWeight: 700
+                          }}
+                        >
                           {questions[currentQuestionIndex].example.input}
                         </Box>
                       </Box>
                     )}
                     {questions[currentQuestionIndex].example.output && (
                       <Box>
-                        <Typography sx={{ fontSize: '0.7rem', fontWeight: 900, color: '#10b981', textTransform: 'uppercase', mb: 1 }}>Expected Output</Typography>
-                        <Box sx={{ p: 2, bgcolor: '#f0fdf4', border: '1px solid #dcfce7', borderRadius: '12px', fontFamily: "'JetBrains Mono', monospace", color: '#166534', fontWeight: 700 }}>
+                        <Typography sx={{ fontSize: '0.7rem', fontWeight: 900, color: '#10b981', textTransform: 'uppercase', mb: 1 }}>
+                          Expected Output
+                        </Typography>
+                        <Box
+                          sx={{
+                            p: 2,
+                            bgcolor: '#f0fdf4',
+                            border: '1px solid #dcfce7',
+                            borderRadius: '12px',
+                            fontFamily: "'JetBrains Mono', monospace",
+                            color: '#166534',
+                            fontWeight: 700
+                          }}
+                        >
                           {questions[currentQuestionIndex].example.output}
                         </Box>
                       </Box>
                     )}
                     {questions[currentQuestionIndex].example.explanation && (
                       <Box>
-                        <Typography sx={{ fontSize: '0.7rem', fontWeight: 900, color: '#64748b', textTransform: 'uppercase', mb: 1 }}>Logic Breakdown</Typography>
-                        <Typography sx={{ color: '#475569', fontWeight: 600, lineHeight: 1.7, fontSize: '0.95rem' }}>{questions[currentQuestionIndex].example.explanation}</Typography>
+                        <Typography sx={{ fontSize: '0.7rem', fontWeight: 900, color: '#64748b', textTransform: 'uppercase', mb: 1 }}>
+                          Logic Breakdown
+                        </Typography>
+                        <Typography sx={{ color: '#475569', fontWeight: 600, lineHeight: 1.7, fontSize: '0.95rem' }}>
+                          {questions[currentQuestionIndex].example.explanation}
+                        </Typography>
                       </Box>
                     )}
                   </Box>
@@ -1584,13 +1869,21 @@ export default function AssessmentTaking() {
               )}
 
               {/* 7. Strategic Insights & Algorithm (Optional) */}
-              {(questions[currentQuestionIndex]?.intuition?.keyInsights && assessment?.showKeyInsights) && (
+              {questions[currentQuestionIndex]?.intuition?.keyInsights && assessment?.showKeyInsights && (
                 <Box>
-                  <Typography sx={{ 
-                    fontWeight: 900, color: '#8b5cf6', textTransform: 'uppercase', 
-                    fontSize: '0.75rem', letterSpacing: '0.1em', mb: 2.5,
-                    display: 'flex', alignItems: 'center', gap: 1.5
-                  }}>
+                  <Typography
+                    sx={{
+                      fontWeight: 900,
+                      color: '#8b5cf6',
+                      textTransform: 'uppercase',
+                      fontSize: '0.75rem',
+                      letterSpacing: '0.1em',
+                      mb: 2.5,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1.5
+                    }}
+                  >
                     <Box sx={{ width: 4, height: 16, bgcolor: '#8b5cf6', borderRadius: 1 }} />
                     Strategic Insights
                   </Typography>
@@ -1606,27 +1899,66 @@ export default function AssessmentTaking() {
               )}
 
               {/* 8. Efficiency Analysis (Time & Space) */}
-              {(questions[currentQuestionIndex]?.intuition?.timeComplexity || questions[currentQuestionIndex]?.intuition?.spaceComplexity) && (
+              {(questions[currentQuestionIndex]?.intuition?.timeComplexity ||
+                questions[currentQuestionIndex]?.intuition?.spaceComplexity) && (
                 <Box>
-                  <Typography sx={{ 
-                    fontWeight: 900, color: '#6366f1', textTransform: 'uppercase', 
-                    fontSize: '0.75rem', letterSpacing: '0.1em', mb: 2.5,
-                    display: 'flex', alignItems: 'center', gap: 1.5
-                  }}>
+                  <Typography
+                    sx={{
+                      fontWeight: 900,
+                      color: '#6366f1',
+                      textTransform: 'uppercase',
+                      fontSize: '0.75rem',
+                      letterSpacing: '0.1em',
+                      mb: 2.5,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1.5
+                    }}
+                  >
                     <Box sx={{ width: 4, height: 16, bgcolor: '#6366f1', borderRadius: 1 }} />
                     Efficiency Analysis
                   </Typography>
                   <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 3 }}>
                     {questions[currentQuestionIndex].intuition.timeComplexity && (
                       <Box sx={{ p: 3, borderRadius: '24px', bgcolor: '#f8fafc', border: '1px solid #f1f5f9' }}>
-                        <Typography sx={{ color: '#94a3b8', fontWeight: 800, fontSize: '0.65rem', textTransform: 'uppercase', mb: 1, letterSpacing: '0.1em' }}>Time Complexity</Typography>
-                        <Typography sx={{ fontWeight: 900, color: '#0f172a', fontSize: '1.25rem', fontFamily: "'JetBrains Mono', monospace" }}>{questions[currentQuestionIndex].intuition.timeComplexity}</Typography>
+                        <Typography
+                          sx={{
+                            color: '#94a3b8',
+                            fontWeight: 800,
+                            fontSize: '0.65rem',
+                            textTransform: 'uppercase',
+                            mb: 1,
+                            letterSpacing: '0.1em'
+                          }}
+                        >
+                          Time Complexity
+                        </Typography>
+                        <Typography
+                          sx={{ fontWeight: 900, color: '#0f172a', fontSize: '1.25rem', fontFamily: "'JetBrains Mono', monospace" }}
+                        >
+                          {questions[currentQuestionIndex].intuition.timeComplexity}
+                        </Typography>
                       </Box>
                     )}
                     {questions[currentQuestionIndex].intuition.spaceComplexity && (
                       <Box sx={{ p: 3, borderRadius: '24px', bgcolor: '#f8fafc', border: '1px solid #f1f5f9' }}>
-                        <Typography sx={{ color: '#94a3b8', fontWeight: 800, fontSize: '0.65rem', textTransform: 'uppercase', mb: 1, letterSpacing: '0.1em' }}>Space Complexity</Typography>
-                        <Typography sx={{ fontWeight: 900, color: '#0f172a', fontSize: '1.25rem', fontFamily: "'JetBrains Mono', monospace" }}>{questions[currentQuestionIndex].intuition.spaceComplexity}</Typography>
+                        <Typography
+                          sx={{
+                            color: '#94a3b8',
+                            fontWeight: 800,
+                            fontSize: '0.65rem',
+                            textTransform: 'uppercase',
+                            mb: 1,
+                            letterSpacing: '0.1em'
+                          }}
+                        >
+                          Space Complexity
+                        </Typography>
+                        <Typography
+                          sx={{ fontWeight: 900, color: '#0f172a', fontSize: '1.25rem', fontFamily: "'JetBrains Mono', monospace" }}
+                        >
+                          {questions[currentQuestionIndex].intuition.spaceComplexity}
+                        </Typography>
                       </Box>
                     )}
                   </Box>
@@ -1637,11 +1969,11 @@ export default function AssessmentTaking() {
         </Box>
 
         {/* Divider */}
-        <Box 
+        <Box
           className="divider-drag"
-          sx={{ 
+          sx={{
             width: '2px', // Thin but visible
-            bgcolor: '#e2e8f0', 
+            bgcolor: '#e2e8f0',
             cursor: 'col-resize',
             transition: 'all 0.2s',
             zIndex: 10,
@@ -1651,24 +1983,26 @@ export default function AssessmentTaking() {
         />
 
         {/* Right Side - Quiz Options or Code Editor */}
-        <Box sx={{ 
-          bgcolor: '#ffffff', 
-          overflow: 'auto',
-          height: '100%',
-          '&::-webkit-scrollbar': { display: 'none' },
-          scrollbarWidth: 'none'
-        }}>
+        <Box
+          sx={{
+            bgcolor: '#ffffff',
+            overflow: 'auto',
+            height: '100%',
+            '&::-webkit-scrollbar': { display: 'none' },
+            scrollbarWidth: 'none'
+          }}
+        >
           {questions[currentQuestionIndex]?.type === 'quiz' ? (
             <Box className="quiz-options" sx={{ p: { xs: 3, md: 5 }, userSelect: 'none', WebkitUserSelect: 'none' }}>
               <Typography variant="h3" sx={{ fontWeight: 900, mb: 4, color: '#0f172a', letterSpacing: '-0.02em' }}>
                 Select Response
               </Typography>
-              
+
               <RadioGroup
                 value={answers[questions[currentQuestionIndex]?._id] || ''}
                 onChange={(e) => {
                   const selectedOptionId = e.target.value;
-                  setAnswers(prev => ({
+                  setAnswers((prev) => ({
                     ...prev,
                     [questions[currentQuestionIndex]._id]: selectedOptionId
                   }));
@@ -1681,34 +2015,78 @@ export default function AssessmentTaking() {
                         value={option.originalIndex !== undefined ? option.originalIndex.toString() : idx.toString()}
                         control={<Radio sx={{ display: 'none' }} />}
                         label={
-                          <Card sx={{ 
-                            p: 3, 
-                            width: '100%',
-                            minWidth: { md: '500px' },
-                            borderRadius: '24px',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                            border: '1px solid',
-                            borderColor: answers[questions[currentQuestionIndex]?._id] === (option.originalIndex !== undefined ? option.originalIndex.toString() : idx.toString()) ? '#6366f1' : '#f1f5f9',
-                            bgcolor: answers[questions[currentQuestionIndex]?._id] === (option.originalIndex !== undefined ? option.originalIndex.toString() : idx.toString()) ? '#f5f7ff' : '#ffffff',
-                            boxShadow: answers[questions[currentQuestionIndex]?._id] === (option.originalIndex !== undefined ? option.originalIndex.toString() : idx.toString()) ? '0 12px 24px -8px rgba(99, 102, 241, 0.2)' : 'none',
-                            '&:hover': {
-                              borderColor: '#6366f1',
-                              bgcolor: answers[questions[currentQuestionIndex]?._id] === (option.originalIndex !== undefined ? option.originalIndex.toString() : idx.toString()) ? '#f5f7ff' : '#f8fafc',
-                              transform: 'translateX(8px)'
-                            }
-                          }}>
+                          <Card
+                            sx={{
+                              p: 3,
+                              width: '100%',
+                              minWidth: { md: '500px' },
+                              borderRadius: '24px',
+                              cursor: 'pointer',
+                              transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                              border: '1px solid',
+                              borderColor:
+                                answers[questions[currentQuestionIndex]?._id] ===
+                                (option.originalIndex !== undefined ? option.originalIndex.toString() : idx.toString())
+                                  ? '#6366f1'
+                                  : '#f1f5f9',
+                              bgcolor:
+                                answers[questions[currentQuestionIndex]?._id] ===
+                                (option.originalIndex !== undefined ? option.originalIndex.toString() : idx.toString())
+                                  ? '#f5f7ff'
+                                  : '#ffffff',
+                              boxShadow:
+                                answers[questions[currentQuestionIndex]?._id] ===
+                                (option.originalIndex !== undefined ? option.originalIndex.toString() : idx.toString())
+                                  ? '0 12px 24px -8px rgba(99, 102, 241, 0.2)'
+                                  : 'none',
+                              '&:hover': {
+                                borderColor: '#6366f1',
+                                bgcolor:
+                                  answers[questions[currentQuestionIndex]?._id] ===
+                                  (option.originalIndex !== undefined ? option.originalIndex.toString() : idx.toString())
+                                    ? '#f5f7ff'
+                                    : '#f8fafc',
+                                transform: 'translateX(8px)'
+                              }
+                            }}
+                          >
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                              <Box sx={{ 
-                                width: 44, height: 44, borderRadius: '16px', 
-                                bgcolor: answers[questions[currentQuestionIndex]?._id] === (option.originalIndex !== undefined ? option.originalIndex.toString() : idx.toString()) ? '#6366f1' : '#f1f5f9',
-                                color: answers[questions[currentQuestionIndex]?._id] === (option.originalIndex !== undefined ? option.originalIndex.toString() : idx.toString()) ? 'white' : '#64748b',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                fontWeight: 900, fontSize: '1.2rem', flexShrink: 0
-                              }}>
+                              <Box
+                                sx={{
+                                  width: 44,
+                                  height: 44,
+                                  borderRadius: '16px',
+                                  bgcolor:
+                                    answers[questions[currentQuestionIndex]?._id] ===
+                                    (option.originalIndex !== undefined ? option.originalIndex.toString() : idx.toString())
+                                      ? '#6366f1'
+                                      : '#f1f5f9',
+                                  color:
+                                    answers[questions[currentQuestionIndex]?._id] ===
+                                    (option.originalIndex !== undefined ? option.originalIndex.toString() : idx.toString())
+                                      ? 'white'
+                                      : '#64748b',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  fontWeight: 900,
+                                  fontSize: '1.2rem',
+                                  flexShrink: 0
+                                }}
+                              >
                                 {String.fromCharCode(65 + idx)}
                               </Box>
-                              <Typography sx={{ fontWeight: 700, color: answers[questions[currentQuestionIndex]?._id] === (option.originalIndex !== undefined ? option.originalIndex.toString() : idx.toString()) ? '#1e293b' : '#475569', fontSize: '1.15rem' }}>
+                              <Typography
+                                sx={{
+                                  fontWeight: 700,
+                                  color:
+                                    answers[questions[currentQuestionIndex]?._id] ===
+                                    (option.originalIndex !== undefined ? option.originalIndex.toString() : idx.toString())
+                                      ? '#1e293b'
+                                      : '#475569',
+                                  fontSize: '1.15rem'
+                                }}
+                              >
                                 {option.text}
                               </Typography>
                             </Box>
@@ -1720,30 +2098,39 @@ export default function AssessmentTaking() {
                   ))}
                 </Stack>
               </RadioGroup>
-              
-              <Box className="quiz-navigation-buttons" sx={{ mt: 6, display: 'flex', justifyContent: 'space-between', gap: 3, pt: 4, borderTop: '1px solid #f1f5f9' }}>
+
+              <Box
+                className="quiz-navigation-buttons"
+                sx={{ mt: 6, display: 'flex', justifyContent: 'space-between', gap: 3, pt: 4, borderTop: '1px solid #f1f5f9' }}
+              >
                 <Button
                   variant="outlined"
                   startIcon={<ChevronLeft />}
                   onClick={() => {
                     const currentType = questions[currentQuestionIndex]?.type;
-                    const filteredQuestions = questions.filter(q => q.type === currentType);
-                    const currentFilteredIndex = filteredQuestions.findIndex(q => q._id === questions[currentQuestionIndex]._id);
+                    const filteredQuestions = questions.filter((q) => q.type === currentType);
+                    const currentFilteredIndex = filteredQuestions.findIndex((q) => q._id === questions[currentQuestionIndex]._id);
                     if (currentFilteredIndex > 0) {
                       const prevQuestion = filteredQuestions[currentFilteredIndex - 1];
-                      const prevIndex = questions.findIndex(q => q._id === prevQuestion._id);
+                      const prevIndex = questions.findIndex((q) => q._id === prevQuestion._id);
                       setCurrentQuestionIndex(prevIndex);
                     }
                   }}
                   disabled={(() => {
                     const currentType = questions[currentQuestionIndex]?.type;
-                    const filteredQuestions = questions.filter(q => q.type === currentType);
-                    const currentFilteredIndex = filteredQuestions.findIndex(q => q._id === questions[currentQuestionIndex]._id);
+                    const filteredQuestions = questions.filter((q) => q.type === currentType);
+                    const currentFilteredIndex = filteredQuestions.findIndex((q) => q._id === questions[currentQuestionIndex]._id);
                     return currentFilteredIndex === 0;
                   })()}
-                  sx={{ 
-                    px: 6, py: 2, borderRadius: '16px', fontWeight: 900, fontSize: '1rem',
-                    textTransform: 'none', borderColor: '#e2e8f0', color: '#475569',
+                  sx={{
+                    px: 6,
+                    py: 2,
+                    borderRadius: '16px',
+                    fontWeight: 900,
+                    fontSize: '1rem',
+                    textTransform: 'none',
+                    borderColor: '#e2e8f0',
+                    color: '#475569',
                     '&:hover': { bgcolor: '#f8fafc', borderColor: '#cbd5e1' }
                   }}
                 >
@@ -1758,13 +2145,13 @@ export default function AssessmentTaking() {
 
                     const moveNext = () => {
                       const currentType = questions[currentIdx]?.type;
-                      const filteredQuestions = questions.filter(q => q.type === currentType);
-                      const currentFilteredIndex = filteredQuestions.findIndex(q => q._id === currentQuestionId);
+                      const filteredQuestions = questions.filter((q) => q.type === currentType);
+                      const currentFilteredIndex = filteredQuestions.findIndex((q) => q._id === currentQuestionId);
                       if (currentFilteredIndex < filteredQuestions.length - 1) {
                         const nextQuestion = filteredQuestions[currentFilteredIndex + 1];
-                        const nextIndex = questions.findIndex(q => q._id === nextQuestion._id);
+                        const nextIndex = questions.findIndex((q) => q._id === nextQuestion._id);
                         setCurrentQuestionIndex(nextIndex);
-                        setVisitedQuestions(prev => new Set([...prev, nextIndex]));
+                        setVisitedQuestions((prev) => new Set([...prev, nextIndex]));
                       }
                     };
 
@@ -1773,14 +2160,15 @@ export default function AssessmentTaking() {
 
                     // Save in background
                     if (answers[currentQuestionId] && attemptId) {
-                      setSavingQuestions(prev => new Set([...prev, currentIdx]));
+                      setSavingQuestions((prev) => new Set([...prev, currentIdx]));
                       const token = localStorage.getItem('studentToken');
                       const selectedOptionId = answers[currentQuestionId];
                       const origOptionIndex = selectedOptionId ? parseInt(selectedOptionId, 10) : 0;
 
-                      apiService.saveQuizAnswer(token, attemptId, currentQuestionId, origOptionIndex)
+                      apiService
+                        .saveQuizAnswer(token, attemptId, currentQuestionId, origOptionIndex)
                         .then(() => {
-                          setSavedQuestions(prev => new Set([...prev, currentIdx]));
+                          setSavedQuestions((prev) => new Set([...prev, currentIdx]));
                         })
                         .catch((error) => {
                           console.error('Error saving quiz answer:', error);
@@ -1789,19 +2177,24 @@ export default function AssessmentTaking() {
                           setShowToast(true);
                         })
                         .finally(() => {
-                          setSavingQuestions(prev => {
+                          setSavingQuestions((prev) => {
                             const next = new Set(prev);
                             next.delete(currentIdx);
                             return next;
                           });
                         });
                     } else if (answers[currentQuestionId]) {
-                      setSavedQuestions(prev => new Set([...prev, currentIdx]));
+                      setSavedQuestions((prev) => new Set([...prev, currentIdx]));
                     }
                   }}
-                  sx={{ 
-                    px: 6, py: 2, borderRadius: '16px', fontWeight: 900, fontSize: '1rem',
-                    textTransform: 'none', bgcolor: '#6366f1',
+                  sx={{
+                    px: 6,
+                    py: 2,
+                    borderRadius: '16px',
+                    fontWeight: 900,
+                    fontSize: '1rem',
+                    textTransform: 'none',
+                    bgcolor: '#6366f1',
                     boxShadow: '0 8px 20px -6px rgba(99, 102, 241, 0.5)',
                     '&:hover': { bgcolor: '#4f46e5', boxShadow: '0 12px 25px -8px rgba(99, 102, 241, 0.6)' }
                   }}
@@ -1811,16 +2204,16 @@ export default function AssessmentTaking() {
               </Box>
             </Box>
           ) : questions[currentQuestionIndex]?.type === 'mongodb' ? (
-            <MongoDBPlaygroundEditor 
+            <MongoDBPlaygroundEditor
               key={`mongodb-${currentQuestionIndex}-${execCounter}`}
-              assessment={assessment} 
-              question={questions[currentQuestionIndex]} 
+              assessment={assessment}
+              question={questions[currentQuestionIndex]}
               attemptId={attemptId}
               onTestComplete={(passed, total) => {
                 if (passed === total && total > 0) {
-                  setSavedQuestions(prev => new Set([...prev, currentQuestionIndex]));
+                  setSavedQuestions((prev) => new Set([...prev, currentQuestionIndex]));
                 } else {
-                  setSavedQuestions(prev => {
+                  setSavedQuestions((prev) => {
                     const newSet = new Set(prev);
                     newSet.delete(currentQuestionIndex);
                     return newSet;
@@ -1829,16 +2222,16 @@ export default function AssessmentTaking() {
               }}
             />
           ) : questions[currentQuestionIndex]?.type === 'sql' ? (
-            <SQLPlaygroundEditor 
+            <SQLPlaygroundEditor
               key={`sql-${currentQuestionIndex}-${execCounter}`}
-              assessment={assessment} 
-              question={questions[currentQuestionIndex]} 
+              assessment={assessment}
+              question={questions[currentQuestionIndex]}
               attemptId={attemptId}
               onTestComplete={(passed, total) => {
                 if (passed === total && total > 0) {
-                  setSavedQuestions(prev => new Set([...prev, currentQuestionIndex]));
+                  setSavedQuestions((prev) => new Set([...prev, currentQuestionIndex]));
                 } else {
-                  setSavedQuestions(prev => {
+                  setSavedQuestions((prev) => {
                     const newSet = new Set(prev);
                     newSet.delete(currentQuestionIndex);
                     return newSet;
@@ -1847,18 +2240,18 @@ export default function AssessmentTaking() {
               }}
             />
           ) : questions[currentQuestionIndex]?.type === 'frontend' ? (
-            <FrontendEditor 
+            <FrontendEditor
               key={`frontend-${currentQuestionIndex}-${execCounter}`}
-              assessment={assessment} 
-              question={questions[currentQuestionIndex]} 
+              assessment={assessment}
+              question={questions[currentQuestionIndex]}
               attemptId={attemptId}
               version={execCounter}
               onTestComplete={(passed, total, percentage) => {
-                setFrontendQuestionPercentages(prev => ({ ...prev, [currentQuestionIndex]: percentage || 0 }));
+                setFrontendQuestionPercentages((prev) => ({ ...prev, [currentQuestionIndex]: percentage || 0 }));
                 if (passed === total && total > 0) {
-                  setFrontendCompletedQuestions(prev => new Set([...prev, currentQuestionIndex]));
+                  setFrontendCompletedQuestions((prev) => new Set([...prev, currentQuestionIndex]));
                 } else {
-                  setFrontendCompletedQuestions(prev => {
+                  setFrontendCompletedQuestions((prev) => {
                     const newSet = new Set(prev);
                     newSet.delete(currentQuestionIndex);
                     return newSet;
@@ -1867,18 +2260,18 @@ export default function AssessmentTaking() {
               }}
             />
           ) : (
-            <ProgrammingEditor 
+            <ProgrammingEditor
               key={`prog-${currentQuestionIndex}-${execCounter}`}
-              assessment={assessment} 
-              question={questions[currentQuestionIndex]} 
+              assessment={assessment}
+              question={questions[currentQuestionIndex]}
               attemptId={attemptId}
               assessmentId={id}
               isPractice={false}
               onTestComplete={(passed, total) => {
                 if (passed === total && total > 0) {
-                  setSavedQuestions(prev => new Set([...prev, currentQuestionIndex]));
+                  setSavedQuestions((prev) => new Set([...prev, currentQuestionIndex]));
                 } else {
-                  setSavedQuestions(prev => {
+                  setSavedQuestions((prev) => {
                     const newSet = new Set(prev);
                     newSet.delete(currentQuestionIndex);
                     return newSet;
@@ -1903,10 +2296,10 @@ export default function AssessmentTaking() {
         styles={{
           options: {
             primaryColor: '#6a0dad',
-            zIndex: 10000,
+            zIndex: 10000
           },
           tooltip: {
-            fontSize: '1.1rem',
+            fontSize: '1.1rem'
           },
           buttonNext: {
             backgroundColor: '#6a0dad',
@@ -1926,40 +2319,51 @@ export default function AssessmentTaking() {
       />
 
       <Modal open={showFullscreenWarning} disableEscapeKeyDown>
-        <Box sx={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          bgcolor: '#ffffff',
-          boxShadow: '0 0 60px rgba(239,68,68,0.12), 0 25px 50px -12px rgba(0,0,0,0.15)',
-          borderRadius: '24px',
-          overflow: 'hidden',
-          minWidth: 480,
-          maxWidth: 520,
-          border: '1px solid #fecaca'
-        }}>
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            bgcolor: '#ffffff',
+            boxShadow: '0 0 60px rgba(239,68,68,0.12), 0 25px 50px -12px rgba(0,0,0,0.15)',
+            borderRadius: '24px',
+            overflow: 'hidden',
+            minWidth: 480,
+            maxWidth: 520,
+            border: '1px solid #fecaca'
+          }}
+        >
           {/* Red accent bar */}
-          <Box sx={{
-            height: '4px',
-            background: 'linear-gradient(90deg, #ef4444, #f97316, #ef4444)',
-            backgroundSize: '200% 100%',
-            animation: 'fsShimmer2 2s linear infinite',
-            '@keyframes fsShimmer2': {
-              '0%': { backgroundPosition: '200% 0' },
-              '100%': { backgroundPosition: '-200% 0' }
-            }
-          }} />
+          <Box
+            sx={{
+              height: '4px',
+              background: 'linear-gradient(90deg, #ef4444, #f97316, #ef4444)',
+              backgroundSize: '200% 100%',
+              animation: 'fsShimmer2 2s linear infinite',
+              '@keyframes fsShimmer2': {
+                '0%': { backgroundPosition: '200% 0' },
+                '100%': { backgroundPosition: '-200% 0' }
+              }
+            }}
+          />
 
           <Box sx={{ p: 5, textAlign: 'center' }}>
             {/* Icon */}
-            <Box sx={{
-              width: 64, height: 64, borderRadius: '18px',
-              background: 'linear-gradient(135deg, #fef2f2 0%, #fff7ed 100%)',
-              border: '1px solid #fecaca',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              mx: 'auto', mb: 3
-            }}>
+            <Box
+              sx={{
+                width: 64,
+                height: 64,
+                borderRadius: '18px',
+                background: 'linear-gradient(135deg, #fef2f2 0%, #fff7ed 100%)',
+                border: '1px solid #fecaca',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                mx: 'auto',
+                mb: 3
+              }}
+            >
               <FullscreenExit sx={{ fontSize: 32, color: '#dc2626' }} />
             </Box>
 
@@ -1971,49 +2375,61 @@ export default function AssessmentTaking() {
             </Typography>
 
             {/* Countdown ring */}
-            <Box sx={{
-              width: 140,
-              height: 140,
-              borderRadius: '50%',
-              background: `conic-gradient(#ef4444 ${((30 - fullscreenWarningTimer) / 30) * 360}deg, #fee2e2 0deg)`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              mx: 'auto',
-              mb: 3,
-              boxShadow: '0 4px 20px rgba(239,68,68,0.15)'
-            }}>
-              <Box sx={{
-                width: 112,
-                height: 112,
+            <Box
+              sx={{
+                width: 140,
+                height: 140,
                 borderRadius: '50%',
-                bgcolor: '#ffffff',
+                background: `conic-gradient(#ef4444 ${((30 - fullscreenWarningTimer) / 30) * 360}deg, #fee2e2 0deg)`,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                flexDirection: 'column'
-              }}>
-                <Typography sx={{
-                  fontWeight: 900,
-                  color: '#dc2626',
-                  fontFamily: 'JetBrains Mono, monospace',
-                  fontSize: '2.5rem',
-                  lineHeight: 1
-                }}>
+                mx: 'auto',
+                mb: 3,
+                boxShadow: '0 4px 20px rgba(239,68,68,0.15)'
+              }}
+            >
+              <Box
+                sx={{
+                  width: 112,
+                  height: 112,
+                  borderRadius: '50%',
+                  bgcolor: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexDirection: 'column'
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontWeight: 900,
+                    color: '#dc2626',
+                    fontFamily: 'JetBrains Mono, monospace',
+                    fontSize: '2.5rem',
+                    lineHeight: 1
+                  }}
+                >
                   {fullscreenWarningTimer}
                 </Typography>
-                <Typography sx={{ color: '#94a3b8', fontSize: '0.7rem', fontWeight: 600, mt: 0.5 }}>
-                  seconds
-                </Typography>
+                <Typography sx={{ color: '#94a3b8', fontSize: '0.7rem', fontWeight: 600, mt: 0.5 }}>seconds</Typography>
               </Box>
             </Box>
 
             {/* Exit count badge */}
-            <Box sx={{
-              display: 'inline-flex', alignItems: 'center', gap: 1,
-              px: 2.5, py: 1, borderRadius: '10px',
-              bgcolor: '#fef2f2', border: '1px solid #fecaca', mb: 4
-            }}>
+            <Box
+              sx={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 1,
+                px: 2.5,
+                py: 1,
+                borderRadius: '10px',
+                bgcolor: '#fef2f2',
+                border: '1px solid #fecaca',
+                mb: 4
+              }}
+            >
               <Warning sx={{ fontSize: 16, color: '#dc2626' }} />
               <Typography sx={{ fontWeight: 700, color: '#991b1b', fontSize: '0.85rem' }}>
                 Fullscreen exits: {fullscreenExitCount}
@@ -2026,7 +2442,10 @@ export default function AssessmentTaking() {
               fullWidth
               onClick={handleEnterFullscreen}
               sx={{
-                py: 1.8, fontSize: '1rem', fontWeight: 800, textTransform: 'none',
+                py: 1.8,
+                fontSize: '1rem',
+                fontWeight: 800,
+                textTransform: 'none',
                 borderRadius: '14px',
                 background: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
                 color: 'white',
@@ -2067,26 +2486,35 @@ export default function AssessmentTaking() {
         }}
       >
         {/* Amber accent bar */}
-        <Box sx={{
-          height: '4px',
-          background: 'linear-gradient(90deg, #f59e0b, #f97316, #f59e0b)',
-          backgroundSize: '200% 100%',
-          animation: 'tabShimmer2 2s linear infinite',
-          '@keyframes tabShimmer2': {
-            '0%': { backgroundPosition: '200% 0' },
-            '100%': { backgroundPosition: '-200% 0' }
-          }
-        }} />
+        <Box
+          sx={{
+            height: '4px',
+            background: 'linear-gradient(90deg, #f59e0b, #f97316, #f59e0b)',
+            backgroundSize: '200% 100%',
+            animation: 'tabShimmer2 2s linear infinite',
+            '@keyframes tabShimmer2': {
+              '0%': { backgroundPosition: '200% 0' },
+              '100%': { backgroundPosition: '-200% 0' }
+            }
+          }}
+        />
 
         <Box sx={{ p: 5, textAlign: 'center' }}>
           {/* Icon */}
-          <Box sx={{
-            width: 64, height: 64, borderRadius: '18px',
-            background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)',
-            border: '1px solid #fde68a',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            mx: 'auto', mb: 3
-          }}>
+          <Box
+            sx={{
+              width: 64,
+              height: 64,
+              borderRadius: '18px',
+              background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)',
+              border: '1px solid #fde68a',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              mx: 'auto',
+              mb: 3
+            }}
+          >
             <TabUnselected sx={{ fontSize: 32, color: '#d97706' }} />
           </Box>
 
@@ -2098,19 +2526,28 @@ export default function AssessmentTaking() {
           </Typography>
 
           {/* Tab switch count badge */}
-          <Box sx={{
-            display: 'inline-flex', alignItems: 'center', gap: 1.5,
-            px: 3, py: 1.5, borderRadius: '12px',
-            bgcolor: '#fffbeb', border: '1px solid #fde68a', mb: 3
-          }}>
+          <Box
+            sx={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 1.5,
+              px: 3,
+              py: 1.5,
+              borderRadius: '12px',
+              bgcolor: '#fffbeb',
+              border: '1px solid #fde68a',
+              mb: 3
+            }}
+          >
             <Typography sx={{ fontWeight: 700, color: '#92400e', fontSize: '0.9rem' }}>
               Tab switches: <strong>{tabSwitchCount}</strong>
               {assessment?.maxTabSwitches && assessment.maxTabSwitches !== -1 && (
-                <> / <strong>{assessment.maxTabSwitches}</strong> allowed</>
+                <>
+                  {' '}
+                  / <strong>{assessment.maxTabSwitches}</strong> allowed
+                </>
               )}
-              {assessment?.maxTabSwitches === -1 && (
-                <> (Unlimited allowed)</>
-              )}
+              {assessment?.maxTabSwitches === -1 && <> (Unlimited allowed)</>}
             </Typography>
           </Box>
 
@@ -2124,7 +2561,10 @@ export default function AssessmentTaking() {
             fullWidth
             onClick={() => setShowTabSwitchWarning(false)}
             sx={{
-              py: 1.8, fontSize: '1rem', fontWeight: 800, textTransform: 'none',
+              py: 1.8,
+              fontSize: '1rem',
+              fontWeight: 800,
+              textTransform: 'none',
               borderRadius: '14px',
               background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
               color: 'white',
@@ -2142,19 +2582,23 @@ export default function AssessmentTaking() {
         </Box>
       </Dialog>
 
-
       {/* Final Submit Modal — Light Theme */}
       <Dialog
         open={showFinalSubmitModal}
-        onClose={isTimeUp ? undefined : () => { setShowFinalSubmitModal(false); setEndTestInput(''); }}
+        onClose={
+          isTimeUp
+            ? undefined
+            : () => {
+                setShowFinalSubmitModal(false);
+                setEndTestInput('');
+              }
+        }
         disableEscapeKeyDown={isTimeUp}
         maxWidth="md"
         fullWidth
         sx={{
           '& .MuiBackdrop-root': {
-            background: isTimeUp
-              ? 'rgba(127,29,29,0.35)'
-              : 'rgba(15,23,42,0.25)',
+            background: isTimeUp ? 'rgba(127,29,29,0.35)' : 'rgba(15,23,42,0.25)',
             backdropFilter: 'blur(8px)'
           },
           '& .MuiDialog-paper': {
@@ -2182,82 +2626,111 @@ export default function AssessmentTaking() {
         }}
       >
         {/* Top accent bar */}
-        <Box sx={{
-          height: '4px',
-          background: isTimeUp
-            ? 'linear-gradient(90deg, #ef4444, #f97316, #ef4444)'
-            : 'linear-gradient(90deg, #6366f1, #8b5cf6, #6366f1)',
-          backgroundSize: '200% 100%',
-          animation: 'shimmer 2s linear infinite',
-          '@keyframes shimmer': {
-            '0%': { backgroundPosition: '200% 0' },
-            '100%': { backgroundPosition: '-200% 0' }
-          }
-        }} />
+        <Box
+          sx={{
+            height: '4px',
+            background: isTimeUp
+              ? 'linear-gradient(90deg, #ef4444, #f97316, #ef4444)'
+              : 'linear-gradient(90deg, #6366f1, #8b5cf6, #6366f1)',
+            backgroundSize: '200% 100%',
+            animation: 'shimmer 2s linear infinite',
+            '@keyframes shimmer': {
+              '0%': { backgroundPosition: '200% 0' },
+              '100%': { backgroundPosition: '-200% 0' }
+            }
+          }}
+        />
 
         {/* Header section */}
         <Box sx={{ px: 4, pt: 4, pb: 3 }}>
           <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2.5 }}>
             {/* Icon */}
-            <Box sx={{
-              width: 56, height: 56, borderRadius: '16px',
-              background: isTimeUp
-                ? 'linear-gradient(135deg, #fef2f2 0%, #fff7ed 100%)'
-                : 'linear-gradient(135deg, #eef2ff 0%, #f5f3ff 100%)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              border: isTimeUp ? '1px solid #fecaca' : '1px solid #c7d2fe',
-              flexShrink: 0
-            }}>
-              {isTimeUp
-                ? <TimerOff sx={{ fontSize: 28, color: '#dc2626' }} />
-                : <CheckCircle sx={{ fontSize: 28, color: '#6366f1' }} />
-              }
+            <Box
+              sx={{
+                width: 56,
+                height: 56,
+                borderRadius: '16px',
+                background: isTimeUp
+                  ? 'linear-gradient(135deg, #fef2f2 0%, #fff7ed 100%)'
+                  : 'linear-gradient(135deg, #eef2ff 0%, #f5f3ff 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                border: isTimeUp ? '1px solid #fecaca' : '1px solid #c7d2fe',
+                flexShrink: 0
+              }}
+            >
+              {isTimeUp ? <TimerOff sx={{ fontSize: 28, color: '#dc2626' }} /> : <CheckCircle sx={{ fontSize: 28, color: '#6366f1' }} />}
             </Box>
 
             {/* Title & subtitle */}
             <Box sx={{ flex: 1, minWidth: 0 }}>
-              <Typography sx={{
-                fontWeight: 800, color: '#0f172a', fontSize: '1.6rem',
-                letterSpacing: '-0.02em', lineHeight: 1.3, mb: 0.5
-              }}>
-                {isTimeUp ? 'Time\'s Up!' : 'Submit Assessment'}
+              <Typography
+                sx={{
+                  fontWeight: 800,
+                  color: '#0f172a',
+                  fontSize: '1.6rem',
+                  letterSpacing: '-0.02em',
+                  lineHeight: 1.3,
+                  mb: 0.5
+                }}
+              >
+                {isTimeUp ? "Time's Up!" : 'Submit Assessment'}
               </Typography>
-              <Typography sx={{
-                color: isTimeUp ? '#b91c1c' : '#64748b',
-                fontWeight: 500, fontSize: '1rem', lineHeight: 1.5
-              }}>
-                {isTimeUp
-                  ? 'Your assessment is being submitted automatically.'
-                  : 'Review your progress and confirm submission.'}
+              <Typography
+                sx={{
+                  color: isTimeUp ? '#b91c1c' : '#64748b',
+                  fontWeight: 500,
+                  fontSize: '1rem',
+                  lineHeight: 1.5
+                }}
+              >
+                {isTimeUp ? 'Your assessment is being submitted automatically.' : 'Review your progress and confirm submission.'}
               </Typography>
             </Box>
 
             {/* Countdown badge when time is up */}
             {isTimeUp && (
-              <Box sx={{
-                position: 'relative',
-                width: 64, height: 64, flexShrink: 0
-              }}>
+              <Box
+                sx={{
+                  position: 'relative',
+                  width: 64,
+                  height: 64,
+                  flexShrink: 0
+                }}
+              >
                 {/* Spinning ring */}
-                <Box sx={{
-                  position: 'absolute', inset: 0,
-                  borderRadius: '50%',
-                  border: '3px solid #fee2e2',
-                  borderTopColor: '#ef4444',
-                  animation: 'spin 1s linear infinite'
-                }} />
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    inset: 0,
+                    borderRadius: '50%',
+                    border: '3px solid #fee2e2',
+                    borderTopColor: '#ef4444',
+                    animation: 'spin 1s linear infinite'
+                  }}
+                />
                 {/* Inner circle with countdown */}
-                <Box sx={{
-                  position: 'absolute', inset: '6px',
-                  borderRadius: '50%',
-                  background: '#fef2f2',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  animation: 'countdownPulse 1s ease-in-out infinite'
-                }}>
-                  <Typography sx={{
-                    fontFamily: 'JetBrains Mono, monospace',
-                    fontWeight: 900, color: '#dc2626', fontSize: '1.25rem'
-                  }}>
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    inset: '6px',
+                    borderRadius: '50%',
+                    background: '#fef2f2',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    animation: 'countdownPulse 1s ease-in-out infinite'
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontFamily: 'JetBrains Mono, monospace',
+                      fontWeight: 900,
+                      color: '#dc2626',
+                      fontSize: '1.25rem'
+                    }}
+                  >
                     {timeRemaining}
                   </Typography>
                 </Box>
@@ -2267,9 +2740,14 @@ export default function AssessmentTaking() {
             {/* Close button — only if NOT timeUp */}
             {!isTimeUp && (
               <IconButton
-                onClick={() => { setShowFinalSubmitModal(false); setEndTestInput(''); }}
+                onClick={() => {
+                  setShowFinalSubmitModal(false);
+                  setEndTestInput('');
+                }}
                 sx={{
-                  color: '#94a3b8', mt: -0.5, mr: -1,
+                  color: '#94a3b8',
+                  mt: -0.5,
+                  mr: -1,
                   '&:hover': { bgcolor: '#f1f5f9', color: '#64748b' }
                 }}
               >
@@ -2281,59 +2759,73 @@ export default function AssessmentTaking() {
 
         <DialogContent sx={{ px: 4, pb: 3, pt: 0 }}>
           {/* Question Status Grid */}
-          <Box sx={{
-            bgcolor: '#f8fafc',
-            borderRadius: '16px',
-            border: '1px solid #e2e8f0',
-            p: 2.5, mb: 2.5
-          }}>
-            {[{ type: 'quiz', label: 'Quiz', color: '#3b82f6' }, { type: 'frontend', label: 'Frontend', color: '#f59e0b' }, { type: 'mongodb', label: 'MongoDB', color: '#06b6d4' }, { type: 'sql', label: 'SQL', color: '#10b981' }, { type: 'programming', label: 'Programming', color: '#8b5cf6' }]
-              .filter(({ type }) => questions.filter(q => q.type === type).length > 0)
+          <Box
+            sx={{
+              bgcolor: '#f8fafc',
+              borderRadius: '16px',
+              border: '1px solid #e2e8f0',
+              p: 2.5,
+              mb: 2.5
+            }}
+          >
+            {[
+              { type: 'quiz', label: 'Quiz', color: '#3b82f6' },
+              { type: 'frontend', label: 'Frontend', color: '#f59e0b' },
+              { type: 'mongodb', label: 'MongoDB', color: '#06b6d4' },
+              { type: 'sql', label: 'SQL', color: '#10b981' },
+              { type: 'programming', label: 'Programming', color: '#8b5cf6' }
+            ]
+              .filter(({ type }) => questions.filter((q) => q.type === type).length > 0)
               .map(({ type, label, color }, sectionIdx, arr) => {
                 const partIndex = arr.slice(0, sectionIdx).length;
                 const partLabel = `Part ${String.fromCharCode(65 + partIndex)} — ${label}`;
-                const typeQuestions = questions.filter(q => q.type === type);
+                const typeQuestions = questions.filter((q) => q.type === type);
                 const completedCount = typeQuestions.filter((q) => {
-                  const origIdx = questions.findIndex(oq => oq._id === q._id);
-                  return type === 'frontend'
-                    ? frontendCompletedQuestions.has(origIdx)
-                    : savedQuestions.has(origIdx);
+                  const origIdx = questions.findIndex((oq) => oq._id === q._id);
+                  return type === 'frontend' ? frontendCompletedQuestions.has(origIdx) : savedQuestions.has(origIdx);
                 }).length;
                 return (
                   <Box key={type} sx={{ mb: sectionIdx < arr.length - 1 ? 2.5 : 0 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                         <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: color, flexShrink: 0 }} />
-                        <Typography sx={{ fontWeight: 700, color: '#1e293b', fontSize: '0.95rem' }}>
-                          {partLabel}
-                        </Typography>
+                        <Typography sx={{ fontWeight: 700, color: '#1e293b', fontSize: '0.95rem' }}>{partLabel}</Typography>
                       </Box>
-                      <Typography sx={{
-                        fontWeight: 700, fontSize: '0.85rem',
-                        color: completedCount === typeQuestions.length ? '#059669' : '#94a3b8'
-                      }}>
+                      <Typography
+                        sx={{
+                          fontWeight: 700,
+                          fontSize: '0.85rem',
+                          color: completedCount === typeQuestions.length ? '#059669' : '#94a3b8'
+                        }}
+                      >
                         {completedCount}/{typeQuestions.length}
                       </Typography>
                     </Box>
                     <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
                       {typeQuestions.map((q, idx) => {
-                        const origIdx = questions.findIndex(oq => oq._id === q._id);
-                        const isCompleted = type === 'frontend'
-                          ? frontendCompletedQuestions.has(origIdx)
-                          : savedQuestions.has(origIdx);
+                        const origIdx = questions.findIndex((oq) => oq._id === q._id);
+                        const isCompleted = type === 'frontend' ? frontendCompletedQuestions.has(origIdx) : savedQuestions.has(origIdx);
                         const isPartial = type === 'frontend' && !isCompleted && (frontendQuestionPercentages[origIdx] || 0) > 0;
                         const isVisited = visitedQuestions.has(origIdx);
                         const bg = isCompleted ? '#10b981' : isPartial ? '#f59e0b' : isVisited ? '#f97316' : '#e2e8f0';
                         return (
-                          <Box key={q._id} sx={{
-                            width: 42, height: 42, borderRadius: '12px',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontWeight: 800, fontSize: '0.9rem',
-                            bgcolor: bg,
-                            color: isCompleted || isPartial || isVisited ? 'white' : '#94a3b8',
-                            border: isCompleted ? '1px solid rgba(16,185,129,0.4)' : '1px solid transparent',
-                            transition: 'all 0.15s ease'
-                          }}>
+                          <Box
+                            key={q._id}
+                            sx={{
+                              width: 42,
+                              height: 42,
+                              borderRadius: '12px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontWeight: 800,
+                              fontSize: '0.9rem',
+                              bgcolor: bg,
+                              color: isCompleted || isPartial || isVisited ? 'white' : '#94a3b8',
+                              border: isCompleted ? '1px solid rgba(16,185,129,0.4)' : '1px solid transparent',
+                              transition: 'all 0.15s ease'
+                            }}
+                          >
                             {idx + 1}
                           </Box>
                         );
@@ -2341,18 +2833,23 @@ export default function AssessmentTaking() {
                     </Box>
                   </Box>
                 );
-              })
-            }
+              })}
           </Box>
 
           {/* Legend */}
-          <Box sx={{
-            display: 'flex', gap: 2.5, flexWrap: 'wrap',
-            px: 2, py: 1.5, borderRadius: '12px',
-            bgcolor: '#f8fafc',
-            border: '1px solid #f1f5f9',
-            mb: 2.5
-          }}>
+          <Box
+            sx={{
+              display: 'flex',
+              gap: 2.5,
+              flexWrap: 'wrap',
+              px: 2,
+              py: 1.5,
+              borderRadius: '12px',
+              bgcolor: '#f8fafc',
+              border: '1px solid #f1f5f9',
+              mb: 2.5
+            }}
+          >
             {[
               { color: '#10b981', label: 'Submitted' },
               { color: '#f59e0b', label: 'Partial' },
@@ -2368,17 +2865,20 @@ export default function AssessmentTaking() {
 
           {/* Time-up locked banner */}
           {isTimeUp && (
-            <Box sx={{
-              p: 2.5, borderRadius: '14px',
-              background: 'linear-gradient(135deg, #fef2f2 0%, #fff7ed 100%)',
-              border: '1px solid #fecaca',
-              display: 'flex', alignItems: 'center', gap: 2
-            }}>
+            <Box
+              sx={{
+                p: 2.5,
+                borderRadius: '14px',
+                background: 'linear-gradient(135deg, #fef2f2 0%, #fff7ed 100%)',
+                border: '1px solid #fecaca',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 2
+              }}
+            >
               <Lock sx={{ color: '#dc2626', fontSize: 22, flexShrink: 0 }} />
               <Box>
-                <Typography sx={{ fontWeight: 700, color: '#991b1b', fontSize: '0.95rem', mb: 0.25 }}>
-                  Assessment Locked
-                </Typography>
+                <Typography sx={{ fontWeight: 700, color: '#991b1b', fontSize: '0.95rem', mb: 0.25 }}>Assessment Locked</Typography>
                 <Typography sx={{ color: '#b91c1c', fontSize: '0.85rem', fontWeight: 500, lineHeight: 1.4 }}>
                   Time has expired. Your responses are being submitted automatically — please do not close this window.
                 </Typography>
@@ -2388,22 +2888,35 @@ export default function AssessmentTaking() {
 
           {/* Confirmation input — hidden when time is up */}
           {!isTimeUp && (
-            <Box sx={{
-              p: 2.5, borderRadius: '14px',
-              border: '1px solid',
-              borderColor: endTestInput === 'END' ? '#bbf7d0' : '#e2e8f0',
-              bgcolor: endTestInput === 'END' ? '#f0fdf4' : '#f8fafc',
-              transition: 'all 0.25s ease'
-            }}>
-              <Typography sx={{ fontWeight: 700, color: '#1e293b', mb: 0.5, fontSize: '1rem' }}>
-                Confirm Submission
-              </Typography>
+            <Box
+              sx={{
+                p: 2.5,
+                borderRadius: '14px',
+                border: '1px solid',
+                borderColor: endTestInput === 'END' ? '#bbf7d0' : '#e2e8f0',
+                bgcolor: endTestInput === 'END' ? '#f0fdf4' : '#f8fafc',
+                transition: 'all 0.25s ease'
+              }}
+            >
+              <Typography sx={{ fontWeight: 700, color: '#1e293b', mb: 0.5, fontSize: '1rem' }}>Confirm Submission</Typography>
               <Typography sx={{ color: '#64748b', fontWeight: 500, fontSize: '0.85rem', display: 'block', mb: 1.5 }}>
-                Type <Box component="span" sx={{
-                  fontFamily: 'JetBrains Mono, monospace', fontWeight: 900,
-                  color: '#6366f1', bgcolor: '#eef2ff',
-                  px: 0.75, py: 0.25, borderRadius: '6px', fontSize: '0.9rem'
-                }}>END</Box> to unlock the submit button
+                Type{' '}
+                <Box
+                  component="span"
+                  sx={{
+                    fontFamily: 'JetBrains Mono, monospace',
+                    fontWeight: 900,
+                    color: '#6366f1',
+                    bgcolor: '#eef2ff',
+                    px: 0.75,
+                    py: 0.25,
+                    borderRadius: '6px',
+                    fontSize: '0.9rem'
+                  }}
+                >
+                  END
+                </Box>{' '}
+                to unlock the submit button
               </Typography>
               <Box
                 component="input"
@@ -2436,19 +2949,33 @@ export default function AssessmentTaking() {
         </DialogContent>
 
         {/* Footer */}
-        <Box sx={{
-          px: 4, py: 3,
-          borderTop: '1px solid #f1f5f9',
-          bgcolor: '#f8fafc',
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2
-        }}>
+        <Box
+          sx={{
+            px: 4,
+            py: 3,
+            borderTop: '1px solid #f1f5f9',
+            bgcolor: '#f8fafc',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: 2
+          }}
+        >
           {!isTimeUp ? (
             <Button
-              onClick={() => { setShowFinalSubmitModal(false); setEndTestInput(''); }}
+              onClick={() => {
+                setShowFinalSubmitModal(false);
+                setEndTestInput('');
+              }}
               disabled={isSubmittingAssessment}
               sx={{
-                color: '#64748b', fontWeight: 700, textTransform: 'none',
-                px: 3, py: 1.2, borderRadius: '12px', fontSize: '0.9rem',
+                color: '#64748b',
+                fontWeight: 700,
+                textTransform: 'none',
+                px: 3,
+                py: 1.2,
+                borderRadius: '12px',
+                fontSize: '0.9rem',
                 border: '1px solid #e2e8f0',
                 '&:hover': { bgcolor: '#f1f5f9', borderColor: '#cbd5e1' }
               }}
@@ -2458,9 +2985,7 @@ export default function AssessmentTaking() {
           ) : (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <CircularProgress size={16} sx={{ color: '#dc2626' }} />
-              <Typography sx={{ color: '#dc2626', fontWeight: 600, fontSize: '0.8rem' }}>
-                Submitting…
-              </Typography>
+              <Typography sx={{ color: '#dc2626', fontWeight: 600, fontSize: '0.8rem' }}>Submitting…</Typography>
             </Box>
           )}
           <Button
@@ -2468,30 +2993,32 @@ export default function AssessmentTaking() {
             variant="contained"
             disabled={(!isTimeUp && endTestInput !== 'END') || isSubmittingAssessment}
             startIcon={
-              isSubmittingAssessment
-                ? <CircularProgress size={16} sx={{ color: 'white' }} />
-                : isTimeUp
-                  ? <TimerOff sx={{ fontSize: 18 }} />
-                  : <CheckCircle sx={{ fontSize: 18 }} />
+              isSubmittingAssessment ? (
+                <CircularProgress size={16} sx={{ color: 'white' }} />
+              ) : isTimeUp ? (
+                <TimerOff sx={{ fontSize: 18 }} />
+              ) : (
+                <CheckCircle sx={{ fontSize: 18 }} />
+              )
             }
             sx={{
-              px: 4, py: 1.4, borderRadius: '12px',
-              fontWeight: 800, fontSize: '0.9rem', textTransform: 'none',
+              px: 4,
+              py: 1.4,
+              borderRadius: '12px',
+              fontWeight: 800,
+              fontSize: '0.9rem',
+              textTransform: 'none',
               background: isTimeUp
                 ? 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)'
                 : 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
               color: 'white',
-              boxShadow: isTimeUp
-                ? '0 8px 24px -4px rgba(220,38,38,0.35)'
-                : '0 8px 24px -4px rgba(99,102,241,0.35)',
+              boxShadow: isTimeUp ? '0 8px 24px -4px rgba(220,38,38,0.35)' : '0 8px 24px -4px rgba(99,102,241,0.35)',
               '&:hover': {
                 background: isTimeUp
                   ? 'linear-gradient(135deg, #b91c1c 0%, #991b1b 100%)'
                   : 'linear-gradient(135deg, #4f46e5 0%, #4338ca 100%)',
                 transform: 'translateY(-1px)',
-                boxShadow: isTimeUp
-                  ? '0 12px 28px -4px rgba(220,38,38,0.45)'
-                  : '0 12px 28px -4px rgba(99,102,241,0.45)'
+                boxShadow: isTimeUp ? '0 12px 28px -4px rgba(220,38,38,0.45)' : '0 12px 28px -4px rgba(99,102,241,0.45)'
               },
               '&:disabled': { opacity: 0.4, transform: 'none', boxShadow: 'none' },
               transition: 'all 0.2s ease'
@@ -2503,9 +3030,9 @@ export default function AssessmentTaking() {
       </Dialog>
 
       {/* Toast Notification */}
-      <Snackbar 
-        open={showToast} 
-        autoHideDuration={3000} 
+      <Snackbar
+        open={showToast}
+        autoHideDuration={3000}
         onClose={() => setShowToast(false)}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
@@ -2518,7 +3045,20 @@ export default function AssessmentTaking() {
         <DialogTitle>Last Executed Code</DialogTitle>
         <DialogContent>
           {lastCodeData ? (
-            <Box sx={{ bgcolor: '#f5f5f5', color: '#333', p: 2, borderRadius: 1, overflow: 'auto', fontFamily: 'monospace', fontSize: '18px', whiteSpace: 'pre', border: '1px solid #e0e0e0', lineHeight: 1.6 }}>
+            <Box
+              sx={{
+                bgcolor: '#f5f5f5',
+                color: '#333',
+                p: 2,
+                borderRadius: 1,
+                overflow: 'auto',
+                fontFamily: 'monospace',
+                fontSize: '18px',
+                whiteSpace: 'pre',
+                border: '1px solid #e0e0e0',
+                lineHeight: 1.6
+              }}
+            >
               {lastCodeData}
             </Box>
           ) : (
@@ -2528,13 +3068,16 @@ export default function AssessmentTaking() {
         <DialogActions>
           <Button onClick={() => setShowLastCodeModal(false)}>Close</Button>
           {lastCodeData && (
-            <Button variant="contained" onClick={() => {
-              setCode(lastCodeData);
-              setShowLastCodeModal(false);
-              setToastMessage('Code loaded successfully!');
-              setToastSeverity('success');
-              setShowToast(true);
-            }}>
+            <Button
+              variant="contained"
+              onClick={() => {
+                setCode(lastCodeData);
+                setShowLastCodeModal(false);
+                setToastMessage('Code loaded successfully!');
+                setToastSeverity('success');
+                setShowToast(true);
+              }}
+            >
               Load Code
             </Button>
           )}
@@ -2542,11 +3085,16 @@ export default function AssessmentTaking() {
       </Dialog>
 
       {/* Add Custom Input Dialog */}
-      <Dialog open={showAddCustomInput} onClose={() => {
-        setShowAddCustomInput(false);
-        setCustomInput('');
-        setEditingCustomIndex(null);
-      }} maxWidth="sm" fullWidth>
+      <Dialog
+        open={showAddCustomInput}
+        onClose={() => {
+          setShowAddCustomInput(false);
+          setCustomInput('');
+          setEditingCustomIndex(null);
+        }}
+        maxWidth="sm"
+        fullWidth
+      >
         <DialogTitle>{editingCustomIndex !== null ? 'Edit Custom Test Input' : 'Add Custom Test Input'}</DialogTitle>
         <DialogContent>
           <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
@@ -2574,18 +3122,22 @@ export default function AssessmentTaking() {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => {
-            setShowAddCustomInput(false);
-            setCustomInput('');
-            setEditingCustomIndex(null);
-          }}>Cancel</Button>
-          <Button 
-            variant="contained" 
+          <Button
+            onClick={() => {
+              setShowAddCustomInput(false);
+              setCustomInput('');
+              setEditingCustomIndex(null);
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
             onClick={() => {
               if (customInput.trim()) {
                 if (editingCustomIndex !== null) {
                   // Edit existing custom test case
-                  setCustomTestCases(prev => {
+                  setCustomTestCases((prev) => {
                     const updated = [...prev];
                     updated[editingCustomIndex] = { input: customInput, isCustom: true };
                     return updated;
@@ -2593,8 +3145,10 @@ export default function AssessmentTaking() {
                   setEditingCustomIndex(null);
                 } else {
                   // Add new custom test case
-                  setCustomTestCases(prev => [...prev, { input: customInput, isCustom: true }]);
-                  setCurrentTestCaseTab((questions[currentQuestionIndex]?.testCases?.filter(tc => tc.isPublic) || []).length + customTestCases.length);
+                  setCustomTestCases((prev) => [...prev, { input: customInput, isCustom: true }]);
+                  setCurrentTestCaseTab(
+                    (questions[currentQuestionIndex]?.testCases?.filter((tc) => tc.isPublic) || []).length + customTestCases.length
+                  );
                 }
                 setShowAddCustomInput(false);
                 setCustomInput('');

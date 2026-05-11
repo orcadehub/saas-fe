@@ -1,25 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
-import { 
-  Box, 
-  Typography, 
-  Button, 
-  Chip,
-  CircularProgress,
-  Divider,
-  Container,
-  Paper,
-  Snackbar,
-  Alert
-} from '@mui/material';
+import { Box, Typography, Button, Chip, CircularProgress, Divider, Container, Paper, Snackbar, Alert } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { 
-  WorkspacePremium,
-  Download,
-  Share,
-  CheckCircle,
-  ErrorOutline
-} from '@mui/icons-material';
+import { WorkspacePremium, Download, Share, CheckCircle, ErrorOutline } from '@mui/icons-material';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import apiService from 'services/apiService';
@@ -58,21 +41,21 @@ const CertificateView = () => {
     if (!certificateRef.current) return;
     try {
       setDownloading(true);
-      
+
       const element = certificateRef.current;
-      
+
       // Force a fixed desktop width so the PDF looks identical on all screen sizes
       const originalStyles = {
         width: element.style.width,
         minWidth: element.style.minWidth,
         maxWidth: element.style.maxWidth,
-        padding: element.style.padding,
+        padding: element.style.padding
       };
       element.style.width = '1100px';
       element.style.minWidth = '1100px';
       element.style.maxWidth = '1100px';
       element.style.padding = '64px';
-      
+
       // Capture the certificate element as a high-res canvas
       const canvas = await html2canvas(element, {
         scale: 2, // High resolution
@@ -80,34 +63,34 @@ const CertificateView = () => {
         allowTaint: true,
         backgroundColor: '#ffffff',
         logging: false,
-        windowWidth: 1200, // Force desktop viewport for rendering
+        windowWidth: 1200 // Force desktop viewport for rendering
       });
-      
+
       // Restore original styles immediately
       element.style.width = originalStyles.width;
       element.style.minWidth = originalStyles.minWidth;
       element.style.maxWidth = originalStyles.maxWidth;
       element.style.padding = originalStyles.padding;
-      
+
       const imgData = canvas.toDataURL('image/png');
       const imgWidth = canvas.width;
       const imgHeight = canvas.height;
-      
+
       // Create PDF sized to the certificate
       const pdfWidth = imgWidth * 0.264583; // px to mm at 96dpi
       const pdfHeight = imgHeight * 0.264583;
-      
+
       const pdf = new jsPDF({
         orientation: pdfWidth > pdfHeight ? 'landscape' : 'portrait',
         unit: 'mm',
         format: [pdfWidth / 2, pdfHeight / 2] // scale 2x capture back down
       });
-      
+
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth / 2, pdfHeight / 2);
-      
+
       const filename = `Certificate_${certificate?.certificateId || 'download'}.pdf`;
       pdf.save(filename);
-      
+
       setSnackbar({ open: true, message: 'Certificate downloaded successfully!', severity: 'success' });
     } catch (error) {
       console.error('Error generating PDF:', error);
@@ -188,20 +171,15 @@ const CertificateView = () => {
 
       {/* Controls */}
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mb: 4 }}>
-        <Button 
-          variant="outlined" 
-          startIcon={<Share />} 
-          onClick={handleShare}
-          sx={{ borderRadius: 8, fontWeight: 600 }}
-        >
+        <Button variant="outlined" startIcon={<Share />} onClick={handleShare} sx={{ borderRadius: 8, fontWeight: 600 }}>
           Share Link
         </Button>
-        <Button 
-          variant="contained" 
-          startIcon={downloading ? <CircularProgress size={18} color="inherit" /> : <Download />} 
+        <Button
+          variant="contained"
+          startIcon={downloading ? <CircularProgress size={18} color="inherit" /> : <Download />}
           onClick={handleDownloadPDF}
           disabled={downloading}
-          sx={{ borderRadius: 8, fontWeight: 600 }} 
+          sx={{ borderRadius: 8, fontWeight: 600 }}
           disableElevation
         >
           {downloading ? 'Generating...' : 'Download PDF'}
@@ -210,9 +188,9 @@ const CertificateView = () => {
 
       {/* Primary Certificate Container */}
       <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-        <Paper 
+        <Paper
           ref={certificateRef}
-          sx={{ 
+          sx={{
             width: '100%',
             minHeight: { xs: 600, md: 700 },
             maxWidth: 1100,
@@ -222,9 +200,7 @@ const CertificateView = () => {
             borderRadius: '4px',
             bgcolor: '#ffffff',
             border: '20px solid #6a0dad',
-            boxShadow: theme.palette.mode === 'dark' 
-              ? '0 30px 60px rgba(0,0,0,0.8)' 
-              : '0 30px 60px rgba(0, 0, 0, 0.15)',
+            boxShadow: theme.palette.mode === 'dark' ? '0 30px 60px rgba(0,0,0,0.8)' : '0 30px 60px rgba(0, 0, 0, 0.15)',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -233,17 +209,39 @@ const CertificateView = () => {
           }}
         >
           {/* Background watermark/decorations */}
-          <Box sx={{ position: 'absolute', top: -100, left: -100, width: 400, height: 400, borderRadius: '50%', background: '#6a0dad08', zIndex: 0 }} />
-          <Box sx={{ position: 'absolute', bottom: -100, right: -100, width: 500, height: 500, borderRadius: '50%', background: '#6a0dad05', zIndex: 0 }} />
-          
+          <Box
+            sx={{
+              position: 'absolute',
+              top: -100,
+              left: -100,
+              width: 400,
+              height: 400,
+              borderRadius: '50%',
+              background: '#6a0dad08',
+              zIndex: 0
+            }}
+          />
+          <Box
+            sx={{
+              position: 'absolute',
+              bottom: -100,
+              right: -100,
+              width: 500,
+              height: 500,
+              borderRadius: '50%',
+              background: '#6a0dad05',
+              zIndex: 0
+            }}
+          />
+
           <Box sx={{ position: 'relative', zIndex: 1, width: '100%' }}>
             {/* Top Row: Tenant Logo */}
             <Box sx={{ mb: 4, height: 80, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
               {certificate.tenantId?.logoUrl ? (
-                <img 
-                  src={certificate.tenantId.logoUrl} 
-                  alt={certificate.tenantId.name || 'Tenant Logo'} 
-                  style={{ maxHeight: '100%', maxWidth: '250px', objectFit: 'contain' }} 
+                <img
+                  src={certificate.tenantId.logoUrl}
+                  alt={certificate.tenantId.name || 'Tenant Logo'}
+                  style={{ maxHeight: '100%', maxWidth: '250px', objectFit: 'contain' }}
                   crossOrigin="anonymous"
                 />
               ) : (
@@ -256,32 +254,43 @@ const CertificateView = () => {
             <Typography variant="overline" sx={{ color: '#555', letterSpacing: 6, fontSize: '1.2rem', fontWeight: 600 }}>
               Certificate of {certificate.type === 'Course' ? 'Completion' : certificate.type || 'Achievement'}
             </Typography>
-            
+
             <Typography sx={{ mt: 3, mb: 4, fontFamily: 'serif', fontSize: '1.6rem', fontStyle: 'italic', color: '#555' }}>
               This is proudly presented to
             </Typography>
-            
-            <Typography variant="h2" sx={{ fontFamily: 'serif', fontWeight: 700, color: '#6a0dad', borderBottom: '2px solid #ddd', pb: 2, display: 'inline-block', minWidth: '70%' }}>
+
+            <Typography
+              variant="h2"
+              sx={{
+                fontFamily: 'serif',
+                fontWeight: 700,
+                color: '#6a0dad',
+                borderBottom: '2px solid #ddd',
+                pb: 2,
+                display: 'inline-block',
+                minWidth: '70%'
+              }}
+            >
               {certificate.student?.name || 'Student Name'}
             </Typography>
-            
+
             <Typography variant="h3" sx={{ fontWeight: 800, color: '#222', mb: 3, mt: 3 }}>
               {certificate.title}
             </Typography>
-            
+
             {certificate.description ? (
-               <Typography variant="body1" sx={{ color: '#666', mb: 5, maxWidth: '85%', mx: 'auto', fontSize: '1.2rem', lineHeight: 1.6 }}>
-                 {certificate.description}
-               </Typography>
+              <Typography variant="body1" sx={{ color: '#666', mb: 5, maxWidth: '85%', mx: 'auto', fontSize: '1.2rem', lineHeight: 1.6 }}>
+                {certificate.description}
+              </Typography>
             ) : (
-               <Typography variant="body1" sx={{ color: '#666', mb: 5, maxWidth: '85%', mx: 'auto', fontSize: '1.2rem', lineHeight: 1.6 }}>
-                 For successful completion and demonstrating excellence in the requirements of this program.
-               </Typography>
+              <Typography variant="body1" sx={{ color: '#666', mb: 5, maxWidth: '85%', mx: 'auto', fontSize: '1.2rem', lineHeight: 1.6 }}>
+                For successful completion and demonstrating excellence in the requirements of this program.
+              </Typography>
             )}
 
             {certificate.skills?.length > 0 && (
               <Box sx={{ mb: 4, display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 1.5 }}>
-                {certificate.skills.map(s => (
+                {certificate.skills.map((s) => (
                   <Chip key={s} label={s} size="medium" variant="outlined" sx={{ fontWeight: 600, color: '#444', borderColor: '#bbb' }} />
                 ))}
               </Box>
@@ -291,7 +300,10 @@ const CertificateView = () => {
             <Box sx={{ display: 'flex', justifyContent: 'center', gap: 6, mb: 4 }}>
               {certificate.startDate && (
                 <Box sx={{ textAlign: 'center' }}>
-                  <Typography variant="caption" sx={{ color: '#888', fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
+                  <Typography
+                    variant="caption"
+                    sx={{ color: '#888', fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', display: 'block', mb: 0.5 }}
+                  >
                     Start Date
                   </Typography>
                   <Typography variant="body1" sx={{ fontWeight: 700, color: '#333', fontSize: '1rem' }}>
@@ -301,7 +313,10 @@ const CertificateView = () => {
               )}
               {certificate.duration && (
                 <Box sx={{ textAlign: 'center' }}>
-                  <Typography variant="caption" sx={{ color: '#888', fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
+                  <Typography
+                    variant="caption"
+                    sx={{ color: '#888', fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', display: 'block', mb: 0.5 }}
+                  >
                     Duration
                   </Typography>
                   <Typography variant="body1" sx={{ fontWeight: 700, color: '#333', fontSize: '1rem' }}>
@@ -347,15 +362,15 @@ const CertificateView = () => {
       </Box>
 
       {/* Snackbar */}
-      <Snackbar 
-        open={snackbar.open} 
-        autoHideDuration={4000} 
-        onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
-        <Alert 
-          onClose={() => setSnackbar(prev => ({ ...prev, open: false }))} 
-          severity={snackbar.severity} 
+        <Alert
+          onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+          severity={snackbar.severity}
           sx={{ borderRadius: '12px', fontWeight: 600 }}
         >
           {snackbar.message}

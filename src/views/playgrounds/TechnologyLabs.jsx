@@ -6,9 +6,9 @@ import MainCard from 'ui-component/cards/MainCard';
 import apiService from 'services/apiService';
 
 const difficultyColors = {
-  'Easy': 'success',
-  'Medium': 'warning',
-  'Hard': 'error'
+  Easy: 'success',
+  Medium: 'warning',
+  Hard: 'error'
 };
 
 export default function TechnologyLabs() {
@@ -26,7 +26,7 @@ export default function TechnologyLabs() {
     try {
       setLoading(true);
       const response = await apiService.client.get('/labs');
-      const filtered = response.data.filter(lab => lab.technology === decodedTechnology);
+      const filtered = response.data.filter((lab) => lab.technology === decodedTechnology);
       setLabs(filtered);
     } catch (error) {
       console.error('Error fetching labs:', error);
@@ -36,25 +36,32 @@ export default function TechnologyLabs() {
     }
   };
 
-  if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}><CircularProgress /></Box>;
+  if (loading)
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
 
   return (
-    <MainCard title={
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-        <IconButton onClick={() => navigate('/labs')}>
-          <ArrowBack />
-        </IconButton>
-        <Typography variant="h3">{decodedTechnology} Labs</Typography>
-      </Box>
-    }>
+    <MainCard
+      title={
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <IconButton onClick={() => navigate('/labs')}>
+            <ArrowBack />
+          </IconButton>
+          <Typography variant="h3">{decodedTechnology} Labs</Typography>
+        </Box>
+      }
+    >
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {labs.length > 0 ? (
-          labs.map(lab => (
-            <Card 
+          labs.map((lab) => (
+            <Card
               key={lab._id}
-              sx={{ 
-                cursor: 'pointer', 
-                transition: 'all 0.3s', 
+              sx={{
+                cursor: 'pointer',
+                transition: 'all 0.3s',
                 borderRadius: 2,
                 '&:hover': { transform: 'translateY(-2px)', boxShadow: 4 },
                 border: '1px solid',
@@ -71,17 +78,23 @@ export default function TechnologyLabs() {
                     </Typography>
                   </Box>
                   <Box sx={{ display: 'flex', gap: 1 }}>
-                    <Chip 
-                      label={lab.difficulty} 
-                      size="small" 
-                      color={difficultyColors[lab.difficulty] || 'default'}
-                    />
+                    <Chip label={lab.difficulty} size="small" color={difficultyColors[lab.difficulty] || 'default'} />
                     <Chip label={`${lab.timeLimit || 60} min`} size="small" variant="outlined" />
                     <Chip label={`${lab.points} pts`} size="small" color="primary" />
                   </Box>
                 </Box>
 
-                <Typography variant="body2" color="text.secondary" sx={{ overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical'
+                  }}
+                >
                   {lab.description}
                 </Typography>
               </CardContent>

@@ -8,13 +8,13 @@ const types = [
   { id: 't_prog', title: 'Programming', type: 'programming', quizCount: 4, codingCount: 4, sqlCount: 0, frontendCount: 0, mongodbCount: 0 },
   { id: 't_front', title: 'Frontend', type: 'frontend', quizCount: 4, codingCount: 0, sqlCount: 0, frontendCount: 4, mongodbCount: 0 },
   { id: 't_mongo', title: 'MongoDB', type: 'mongodb', quizCount: 4, codingCount: 0, sqlCount: 0, frontendCount: 0, mongodbCount: 4 },
-  { id: 't_sql', title: 'SQL', type: 'sql', quizCount: 4, codingCount: 0, sqlCount: 4, frontendCount: 0, mongodbCount: 0 },
+  { id: 't_sql', title: 'SQL', type: 'sql', quizCount: 4, codingCount: 0, sqlCount: 4, frontendCount: 0, mongodbCount: 0 }
 ];
 
 export const setupTestUserMock = () => {
   window.fetch = async (input, init) => {
     const url = typeof input === 'string' ? input : input?.url;
-    
+
     // Check if test user
     let isTestUser = false;
     try {
@@ -31,7 +31,7 @@ export const setupTestUserMock = () => {
     }
 
     // Delay to simulate network
-    await new Promise(r => setTimeout(r, 20));
+    await new Promise((r) => setTimeout(r, 20));
 
     const createResponse = (body, status = 200) => {
       return new Response(JSON.stringify(body), {
@@ -56,10 +56,10 @@ export const setupTestUserMock = () => {
     if (!url.includes('/api/')) {
       return originalFetch(input, init);
     }
-    
+
     const assessments = [];
-    ['available', 'completed', 'expired'].forEach(tab => {
-      types.forEach(t => {
+    ['available', 'completed', 'expired'].forEach((tab) => {
+      types.forEach((t) => {
         const _id = `${t.id}_${tab}`;
         assessments.push({
           _id,
@@ -70,17 +70,22 @@ export const setupTestUserMock = () => {
           startTime: tab === 'available' ? new Date(now.getTime() - 5 * 60000).toISOString() : tab === 'completed' ? past : farPast,
           quizQuestionCount: t.quizCount,
           codingQuestionCount: t.codingCount,
-          questionCounts: { 
-            programming: t.codingCount, 
-            sql: t.sqlCount, 
-            frontend: t.frontendCount, 
+          questionCounts: {
+            programming: t.codingCount,
+            sql: t.sqlCount,
+            frontend: t.frontendCount,
             mongodb: t.mongodbCount,
             quiz: t.quizCount
           },
           earlyStartBuffer: 60,
           status: 'live',
           questions: generateQuestions(t),
-          attempt: tab === 'available' ? { _id: `att_${_id}`, attemptStatus: 'STARTED', startTime: now.toISOString() } : (tab === 'completed' ? { _id: `att_${_id}`, attemptStatus: 'COMPLETED', score: 85 } : null)
+          attempt:
+            tab === 'available'
+              ? { _id: `att_${_id}`, attemptStatus: 'STARTED', startTime: now.toISOString() }
+              : tab === 'completed'
+                ? { _id: `att_${_id}`, attemptStatus: 'COMPLETED', score: 85 }
+                : null
         });
       });
     });
@@ -101,14 +106,14 @@ export const setupTestUserMock = () => {
 
     // 1c. server time mock
     if (url.includes('/server-time')) {
-       return createResponse({ serverTime: new Date().toISOString() });
+      return createResponse({ serverTime: new Date().toISOString() });
     }
 
     // 2. attempt status: /assessment/:id/attempt
     const attemptMatch = url.match(/\/assessment\/([^/]+)\/attempt$/);
     if (attemptMatch && method === 'GET') {
       const id = attemptMatch[1];
-      const found = assessments.find(a => a._id === id);
+      const found = assessments.find((a) => a._id === id);
       if (found && found.attempt) return createResponse(found.attempt);
 
       if (id.includes('_completed')) {
@@ -124,7 +129,7 @@ export const setupTestUserMock = () => {
     const detailMatch = url.match(/\/(assessment|labs|programming-questions\/question)\/([^/]+)$/);
     if (detailMatch && method === 'GET') {
       const id = detailMatch[2];
-      const found = assessments.find(a => a._id === id);
+      const found = assessments.find((a) => a._id === id);
       if (found) return createResponse(found);
 
       // Check if it's a lab
@@ -163,27 +168,27 @@ export const setupTestUserMock = () => {
 
     // 3b. get questions: /assessment/:id/questions
     if (url.includes('/questions') && method === 'GET') {
-       const id = url.split('/assessment/')[1].split('/')[0];
-       const foundT = types.find(t => id.startsWith(t.id));
-       const qs = generateQuestions(foundT);
-       return createResponse({
-         programmingQuestions: qs.filter(q => q.type === 'programming'),
-         frontendQuestions: qs.filter(q => q.type === 'frontend'),
-         mongodbPlaygroundQuestions: qs.filter(q => q.type === 'mongodb'),
-         sqlPlaygroundQuestions: qs.filter(q => q.type === 'sql'),
-         quizQuestions: qs.filter(q => q.type === 'quiz')
-       });
+      const id = url.split('/assessment/')[1].split('/')[0];
+      const foundT = types.find((t) => id.startsWith(t.id));
+      const qs = generateQuestions(foundT);
+      return createResponse({
+        programmingQuestions: qs.filter((q) => q.type === 'programming'),
+        frontendQuestions: qs.filter((q) => q.type === 'frontend'),
+        mongodbPlaygroundQuestions: qs.filter((q) => q.type === 'mongodb'),
+        sqlPlaygroundQuestions: qs.filter((q) => q.type === 'sql'),
+        quizQuestions: qs.filter((q) => q.type === 'quiz')
+      });
     }
 
     // 4. Start assessment or practice: /assessment/:id/start OR /assessment/:id/practice
     if (url.includes('/start') || url.includes('/practice')) {
-       const id = url.split('/assessment/')[1].split('/')[0];
-       const found = assessments.find(a => a._id === id) || assessments[0];
-       return createResponse({
-         attempt: { _id: 'dummy_attempt', attemptStatus: 'IN_PROGRESS' },
-         assessment: found,
-         questions: generateQuestions(types.find(t => id.startsWith(t.id)))
-       });
+      const id = url.split('/assessment/')[1].split('/')[0];
+      const found = assessments.find((a) => a._id === id) || assessments[0];
+      return createResponse({
+        attempt: { _id: 'dummy_attempt', attemptStatus: 'IN_PROGRESS' },
+        assessment: found,
+        questions: generateQuestions(types.find((t) => id.startsWith(t.id)))
+      });
     }
 
     // 5. Submit or Save progress
@@ -194,11 +199,11 @@ export const setupTestUserMock = () => {
     // 6. Results
     if (url.includes('/results')) {
       const id = url.split('/assessment/')[1].split('/')[0];
-      const found = assessments.find(a => a._id === id) || assessments[0];
+      const found = assessments.find((a) => a._id === id) || assessments[0];
       return createResponse({
         assessment: found,
         attempt: { score: 95, attemptStatus: 'COMPLETED', submittedAt: new Date().toISOString() },
-        questions: generateQuestions(types.find(t => id.startsWith(t.id))),
+        questions: generateQuestions(types.find((t) => id.startsWith(t.id))),
         autoGradedScore: 95,
         totalScore: 100
       });
@@ -216,7 +221,7 @@ export const setupTestUserMock = () => {
       });
     }
 
-    // 8. Submit Final Assessment 
+    // 8. Submit Final Assessment
     if (url.includes('/submit') && method === 'POST') {
       return createResponse({ success: true, message: 'Assessment submitted successfully' });
     }
@@ -224,12 +229,24 @@ export const setupTestUserMock = () => {
     // 10. Programming Practice Topics
     if (url.includes('/programming-questions/topics')) {
       const pTopics = [
-        'input', 'operators', 'conditions', 'nested conditions', 
-        'loops', 'nested loops', 'while loop', 'arrays', 
-        'strings', 'stack', 'queue', 'two pointers', 
-        'sliding window', 'hash map', 'Backtracking', 
-        'Greedy Algo', 'Dynamic Programming'
-      ].map(t => ({ topic: t, count: 4 }));
+        'input',
+        'operators',
+        'conditions',
+        'nested conditions',
+        'loops',
+        'nested loops',
+        'while loop',
+        'arrays',
+        'strings',
+        'stack',
+        'queue',
+        'two pointers',
+        'sliding window',
+        'hash map',
+        'Backtracking',
+        'Greedy Algo',
+        'Dynamic Programming'
+      ].map((t) => ({ topic: t, count: 4 }));
       return createResponse(pTopics);
     }
 
@@ -242,7 +259,7 @@ export const setupTestUserMock = () => {
         _id: `pq_${topic}_${i}`,
         title: `${topic.charAt(0).toUpperCase() + topic.slice(1)} Challenge ${i + 1}`,
         description: `Master ${topic} by solving this comprehensive dummy challenge designed for the test user.`,
-        difficulty: i === 0 ? 'Easy' : (i === 3 ? 'Hard' : 'Medium'),
+        difficulty: i === 0 ? 'Easy' : i === 3 ? 'Hard' : 'Medium',
         tags: [topic, 'Practice']
       }));
       return createResponse(pQs);
@@ -253,45 +270,55 @@ export const setupTestUserMock = () => {
     if (genericMatch && method === 'GET') {
       const type = genericMatch[1];
       const sub = genericMatch[2];
-      
+
       if (sub === 'topics') {
-         const topics = {
-           aptitude: ['Numerical Ability', 'Logical Reasoning', 'Data Interpretation'],
-           verbal: ['Reading Comprehension', 'Sentence Correction', 'Vocabulary'],
-           quantitative: ['Arithmetic', 'Algebra', 'Geometry']
-         };
-         return createResponse((topics[type] || []).map(t => ({ topic: t, count: 4 })));
+        const topics = {
+          aptitude: ['Numerical Ability', 'Logical Reasoning', 'Data Interpretation'],
+          verbal: ['Reading Comprehension', 'Sentence Correction', 'Vocabulary'],
+          quantitative: ['Arithmetic', 'Algebra', 'Geometry']
+        };
+        return createResponse((topics[type] || []).map((t) => ({ topic: t, count: 4 })));
       } else {
-         const subMatch = genericMatch[2].match(/questions\/(.+)$/);
-         const topic = decodeURIComponent(subMatch[1]);
-         const pQs = Array.from({ length: 4 }).map((_, i) => ({
-           _id: `${type}_${topic}_${i}`,
-           title: `${topic} ${i + 1}`,
-           description: `Practice your ${type} skills with this targeted challenge.`,
-           difficulty: 'Medium',
-           tags: [type, topic]
-         }));
-         return createResponse(pQs);
+        const subMatch = genericMatch[2].match(/questions\/(.+)$/);
+        const topic = decodeURIComponent(subMatch[1]);
+        const pQs = Array.from({ length: 4 }).map((_, i) => ({
+          _id: `${type}_${topic}_${i}`,
+          title: `${topic} ${i + 1}`,
+          description: `Practice your ${type} skills with this targeted challenge.`,
+          difficulty: 'Medium',
+          tags: [type, topic]
+        }));
+        return createResponse(pQs);
       }
     }
 
     // 13. Labs Mock
     if (url.includes('/labs') && method === 'GET') {
       const techs = [
-        'C', 'C++', 'Java', 'Python', 'AI', 'ML', 'IoT', 
-        'MySQL', 'MongoDB', 'Data Structures', 'Operating Systems', 'Computer Networks'
+        'C',
+        'C++',
+        'Java',
+        'Python',
+        'AI',
+        'ML',
+        'IoT',
+        'MySQL',
+        'MongoDB',
+        'Data Structures',
+        'Operating Systems',
+        'Computer Networks'
       ];
-      
+
       const labs = [];
-      techs.forEach(tech => {
+      techs.forEach((tech) => {
         for (let i = 1; i <= 12; i++) {
           labs.push({
             _id: `lab_${tech}_${i}`,
             title: `${tech} Experiment ${i}`,
             technology: tech,
-            difficulty: i <= 4 ? 'Easy' : (i <= 8 ? 'Medium' : 'Hard'),
+            difficulty: i <= 4 ? 'Easy' : i <= 8 ? 'Medium' : 'Hard',
             points: i * 20,
-            timeLimit: 60 + (i * 5),
+            timeLimit: 60 + i * 5,
             description: `A detailed ${tech} technical experiment (#${i}) focusing on core B.Tech CSE fundamentals and practical implementation.`
           });
         }
@@ -310,7 +337,9 @@ export const mockApiService = (apiService) => {
   try {
     const student = JSON.parse(studentStr);
     if (student.email !== 'test@test.com') return;
-  } catch (e) { return; }
+  } catch (e) {
+    return;
+  }
 
   // Mock the specific methods used by AssessmentTaking
   apiService.getAssessmentDetails = async (token, id) => {
@@ -330,12 +359,12 @@ export const mockApiService = (apiService) => {
 
   apiService.getLastExecutedCode = async (token, attemptId) => {
     return {
-        lastExecutedCode: {},
-        successfulCodes: {},
-        lastExecutedFrontendCode: {},
-        lastExecutedMongoDBQueries: {},
-        lastExecutedSQLQuery: {},
-        quizAnswers: {}
+      lastExecutedCode: {},
+      successfulCodes: {},
+      lastExecutedFrontendCode: {},
+      lastExecutedMongoDBQueries: {},
+      lastExecutedSQLQuery: {},
+      quizAnswers: {}
     };
   };
 
@@ -347,16 +376,16 @@ export const mockApiService = (apiService) => {
     const resp = await window.fetch(`http://localhost:4000/api/auth/student/assessment/${id}`);
     return resp.json();
   };
-  
+
   // New: Programming topics and questions for axios components
   apiService.getProgrammingTopics = async () => {
-      const resp = await window.fetch(`http://localhost:4000/api/programming-questions/topics`);
-      return resp.json();
+    const resp = await window.fetch(`http://localhost:4000/api/programming-questions/topics`);
+    return resp.json();
   };
-  
+
   apiService.getProgrammingTopicQuestions = async (topic) => {
-      const resp = await window.fetch(`http://localhost:4000/api/programming-questions/questions/${topic}`);
-      return resp.json();
+    const resp = await window.fetch(`http://localhost:4000/api/programming-questions/questions/${topic}`);
+    return resp.json();
   };
 };
 
@@ -370,7 +399,7 @@ function generateQuestions(t) {
       title: `Quiz Question ${i + 1}`,
       problemStatement: `Which of the following describes the key purpose of **${t.title}** in a real-world scenario? <br/><br/><i>Please select the most accurate option from the right panel.</i>`,
       tags: ['Conceptual', 'Core Principles'],
-      codeSnippet: i === 0 ? "// Sample Reference Code \nconst value = check(input);\nconsole.log(value);" : null,
+      codeSnippet: i === 0 ? '// Sample Reference Code \nconst value = check(input);\nconsole.log(value);' : null,
       options: [
         { _id: 'o1', text: 'Option A: Primary objective and strategy', originalIndex: 0 },
         { _id: 'o2', text: 'Option B: Secondary implementation detail', originalIndex: 1 },
@@ -385,11 +414,7 @@ function generateQuestions(t) {
       type: 'programming',
       title: `Programming Challenge: ${t.title} ${i + 1}`,
       problemStatement: `<p>Design an efficient algorithm to solve <b>${t.title} Challenge #${i + 1}</b>. You are given a series of inputs and must provide the corresponding optimized outputs.</p><p>Consider all edge cases such as empty input, extremely large values, and performance constraints.</p>`,
-      constraints: [
-        'Each input N is between 1 and 10^5',
-        'Time Complexity should be O(N) or better',
-        'Space Complexity must be O(N)'
-      ],
+      constraints: ['Each input N is between 1 and 10^5', 'Time Complexity should be O(N) or better', 'Space Complexity must be O(N)'],
       example: {
         input: '5',
         output: '120',
@@ -398,7 +423,7 @@ function generateQuestions(t) {
       testCases: Array.from({ length: 10 }).map((_, idx) => ({
         _id: `tc_${idx}`,
         input: (idx + 1).toString(),
-        output: (idx + 1 === 5 ? '120' : (idx + 1).toString()),
+        output: idx + 1 === 5 ? '120' : (idx + 1).toString(),
         isPublic: idx < 3
       }))
     });

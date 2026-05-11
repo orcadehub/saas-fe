@@ -12,7 +12,7 @@ const languageMap = {
   78: { language: 'kotlin', version: '1.8.20' },
   72: { language: 'ruby', version: '3.0.1' },
   68: { language: 'php', version: '8.2.3' },
-  46: { language: 'bash', version: '5.2.0' },
+  46: { language: 'bash', version: '5.2.0' }
 };
 
 export const submitCode = async (code, languageId, stdin, retries = 2) => {
@@ -36,18 +36,18 @@ export const submitCode = async (code, languageId, stdin, retries = 2) => {
         // If it's a 500 error, it might be a temporary timeout or server issue, so we retry
         if (response.status >= 500 && i < retries) {
           console.warn(`Piston execution failed with ${response.status}, retrying (${i + 1}/${retries})...`);
-          await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1))); // Exponential backoff
+          await new Promise((resolve) => setTimeout(resolve, 1000 * (i + 1))); // Exponential backoff
           continue;
         }
         throw new Error(`Piston API error: ${response.status}`);
       }
 
       const result = await response.json();
-      
+
       // If result has an error from Piston proxy but not axios (e.g. detailed error JSON)
       if (result.error && i < retries) {
         console.warn(`Piston reported error: ${result.error}, retrying...`);
-        await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+        await new Promise((resolve) => setTimeout(resolve, 1000 * (i + 1)));
         continue;
       }
 
@@ -66,7 +66,7 @@ export const submitCode = async (code, languageId, stdin, retries = 2) => {
       lastError = error;
       if (i < retries) {
         console.warn(`Piston fetch failed: ${error.message}, retrying...`);
-        await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+        await new Promise((resolve) => setTimeout(resolve, 1000 * (i + 1)));
         continue;
       }
     }

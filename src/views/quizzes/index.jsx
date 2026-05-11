@@ -8,70 +8,154 @@ import useConfig from 'hooks/useConfig';
 export default function Quizzes() {
   const navigate = useNavigate();
   const [tabValue, setTabValue] = useState(0);
-  const { state: { borderRadius } } = useConfig();
+  const {
+    state: { borderRadius }
+  } = useConfig();
 
   const dummyQuizzes = [
-    { _id: '1', title: 'Python Fundamentals', duration: 60, questions: 5, quizQuestions: 10, startTime: new Date().toISOString(), status: 'active' },
-    { _id: '2', title: 'Data Structures', duration: 90, questions: 8, quizQuestions: 15, startTime: new Date().toISOString(), status: 'active' },
-    { _id: '3', title: 'Algorithms', duration: 120, questions: 10, quizQuestions: 20, startTime: new Date().toISOString(), status: 'active' },
-    { _id: '4', title: 'JavaScript Basics', duration: 45, questions: 4, quizQuestions: 8, startTime: new Date().toISOString(), status: 'active' },
-    { _id: '5', title: 'React Development', duration: 75, questions: 6, quizQuestions: 12, startTime: new Date().toISOString(), status: 'active' },
-    { _id: '6', title: 'Database Design', duration: 90, questions: 7, quizQuestions: 14, startTime: new Date().toISOString(), status: 'active' },
-    { _id: '7', title: 'Web Security', duration: 60, questions: 5, quizQuestions: 10, startTime: new Date().toISOString(), status: 'active' },
-    { _id: '8', title: 'Cloud Computing', duration: 100, questions: 9, quizQuestions: 18, startTime: new Date().toISOString(), status: 'active' },
-    { _id: '9', title: 'Machine Learning', duration: 120, questions: 10, quizQuestions: 20, startTime: new Date().toISOString(), status: 'active' },
-    { _id: '10', title: 'System Design', duration: 150, questions: 12, quizQuestions: 25, startTime: new Date().toISOString(), status: 'active' },
+    {
+      _id: '1',
+      title: 'Python Fundamentals',
+      duration: 60,
+      questions: 5,
+      quizQuestions: 10,
+      startTime: new Date().toISOString(),
+      status: 'active'
+    },
+    {
+      _id: '2',
+      title: 'Data Structures',
+      duration: 90,
+      questions: 8,
+      quizQuestions: 15,
+      startTime: new Date().toISOString(),
+      status: 'active'
+    },
+    {
+      _id: '3',
+      title: 'Algorithms',
+      duration: 120,
+      questions: 10,
+      quizQuestions: 20,
+      startTime: new Date().toISOString(),
+      status: 'active'
+    },
+    {
+      _id: '4',
+      title: 'JavaScript Basics',
+      duration: 45,
+      questions: 4,
+      quizQuestions: 8,
+      startTime: new Date().toISOString(),
+      status: 'active'
+    },
+    {
+      _id: '5',
+      title: 'React Development',
+      duration: 75,
+      questions: 6,
+      quizQuestions: 12,
+      startTime: new Date().toISOString(),
+      status: 'active'
+    },
+    {
+      _id: '6',
+      title: 'Database Design',
+      duration: 90,
+      questions: 7,
+      quizQuestions: 14,
+      startTime: new Date().toISOString(),
+      status: 'active'
+    },
+    {
+      _id: '7',
+      title: 'Web Security',
+      duration: 60,
+      questions: 5,
+      quizQuestions: 10,
+      startTime: new Date().toISOString(),
+      status: 'active'
+    },
+    {
+      _id: '8',
+      title: 'Cloud Computing',
+      duration: 100,
+      questions: 9,
+      quizQuestions: 18,
+      startTime: new Date().toISOString(),
+      status: 'active'
+    },
+    {
+      _id: '9',
+      title: 'Machine Learning',
+      duration: 120,
+      questions: 10,
+      quizQuestions: 20,
+      startTime: new Date().toISOString(),
+      status: 'active'
+    },
+    {
+      _id: '10',
+      title: 'System Design',
+      duration: 150,
+      questions: 12,
+      quizQuestions: 25,
+      startTime: new Date().toISOString(),
+      status: 'active'
+    }
   ];
 
   const renderQuizCards = (quizList) => (
     <Grid container spacing={3}>
       {quizList.map((quiz) => (
         <Grid item xs={12} sm={6} md={4} xl={3} key={quiz._id}>
-          <Card sx={{ 
-            height: 300,
-            display: 'flex', 
-            flexDirection: 'column',
-            borderRadius: 4,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-            border: '1px solid #e5e7eb',
-            transition: 'all 0.3s ease',
-            '&:hover': {
-              transform: 'translateY(-4px)',
-              boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
-              borderColor: 'primary.main'
-            }
-          }}>
+          <Card
+            sx={{
+              height: 300,
+              display: 'flex',
+              flexDirection: 'column',
+              borderRadius: 4,
+              boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+              border: '1px solid #e5e7eb',
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                transform: 'translateY(-4px)',
+                boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                borderColor: 'primary.main'
+              }
+            }}
+          >
             <CardContent sx={{ flexGrow: 1, p: 3, display: 'flex', flexDirection: 'column' }}>
               <Typography variant="h5" sx={{ fontWeight: 700, mb: 2.5, lineHeight: 1.3, color: '#1e293b' }}>
                 {quiz.title}
               </Typography>
-              
+
               <Box display="flex" flexWrap="wrap" gap={1} mb={2.5}>
-                <Chip 
+                <Chip
                   icon={<AccessTime sx={{ fontSize: 16 }} />}
                   label={`${quiz.duration} min`}
                   size="small"
-                  sx={{ 
+                  sx={{
                     fontWeight: 600,
                     backgroundColor: '#eff6ff',
                     color: '#1e40af',
                     border: 'none'
                   }}
                 />
-                <Chip 
+                <Chip
                   label={`${quiz.questions} coding`}
                   size="small"
-                  sx={{ 
+                  sx={{
                     fontWeight: 600,
                     backgroundColor: '#f0fdf4',
                     color: '#166534',
                     border: 'none'
                   }}
                 />
-                <Chip 
+                <Chip
                   label={`${quiz.quizQuestions} quiz`}
                   size="small"
-                  sx={{ 
+                  sx={{
                     fontWeight: 600,
                     backgroundColor: '#fef3c7',
                     color: '#92400e',
@@ -80,11 +164,14 @@ export default function Quizzes() {
                 />
               </Box>
 
-              <Box mb={3} sx={{ 
-                backgroundColor: '#f8fafc',
-                borderRadius: `${borderRadius}px`,
-                p: 2
-              }}>
+              <Box
+                mb={3}
+                sx={{
+                  backgroundColor: '#f8fafc',
+                  borderRadius: `${borderRadius}px`,
+                  p: 2
+                }}
+              >
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                   <Typography variant="caption" sx={{ fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5 }}>
                     Start Date
@@ -102,13 +189,13 @@ export default function Quizzes() {
                   </Typography>
                 </Box>
               </Box>
-              
-              <Button 
-                variant="contained" 
+
+              <Button
+                variant="contained"
                 fullWidth
                 size="large"
                 onClick={() => navigate(`/quizzes/${quiz._id}`)}
-                sx={{ 
+                sx={{
                   mt: 'auto',
                   py: 1.5,
                   fontWeight: 700,
@@ -136,8 +223,8 @@ export default function Quizzes() {
   return (
     <MainCard>
       <Box sx={{ mb: 4 }}>
-        <Tabs 
-          value={tabValue} 
+        <Tabs
+          value={tabValue}
           onChange={(e, newValue) => setTabValue(newValue)}
           variant="fullWidth"
           sx={{
@@ -191,14 +278,16 @@ export default function Quizzes() {
             }
           }}
         >
-          <Tab 
+          <Tab
             label={
               <Box display="flex" alignItems="center" gap={1.5}>
                 <CheckCircle sx={{ fontSize: 18 }} />
-                <Typography fontWeight="inherit" fontSize="inherit">Available</Typography>
-                <Chip 
-                  label={10} 
-                  size="small" 
+                <Typography fontWeight="inherit" fontSize="inherit">
+                  Available
+                </Typography>
+                <Chip
+                  label={10}
+                  size="small"
                   sx={{
                     background: tabValue === 0 ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : '#e0f2fe',
                     color: tabValue === 0 ? '#ffffff' : '#0369a1',
@@ -212,14 +301,16 @@ export default function Quizzes() {
               </Box>
             }
           />
-          <Tab 
+          <Tab
             label={
               <Box display="flex" alignItems="center" gap={1.5}>
                 <Assessment sx={{ fontSize: 18 }} />
-                <Typography fontWeight="inherit" fontSize="inherit">Completed</Typography>
-                <Chip 
-                  label={0} 
-                  size="small" 
+                <Typography fontWeight="inherit" fontSize="inherit">
+                  Completed
+                </Typography>
+                <Chip
+                  label={0}
+                  size="small"
                   sx={{
                     background: tabValue === 1 ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : '#dcfce7',
                     color: tabValue === 1 ? '#ffffff' : '#166534',
@@ -233,14 +324,16 @@ export default function Quizzes() {
               </Box>
             }
           />
-          <Tab 
+          <Tab
             label={
               <Box display="flex" alignItems="center" gap={1.5}>
                 <AccessTime sx={{ fontSize: 18 }} />
-                <Typography fontWeight="inherit" fontSize="inherit">Expired</Typography>
-                <Chip 
-                  label={0} 
-                  size="small" 
+                <Typography fontWeight="inherit" fontSize="inherit">
+                  Expired
+                </Typography>
+                <Chip
+                  label={0}
+                  size="small"
                   sx={{
                     background: tabValue === 2 ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : '#fee2e2',
                     color: tabValue === 2 ? '#ffffff' : '#dc2626',
@@ -256,17 +349,19 @@ export default function Quizzes() {
           />
         </Tabs>
       </Box>
-      <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-        {tabValue === 0 && renderQuizCards(dummyQuizzes)}
-      </Box>
+      <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>{tabValue === 0 && renderQuizCards(dummyQuizzes)}</Box>
       {tabValue === 1 && (
         <Box sx={{ textAlign: 'center', py: 8 }}>
-          <Typography variant="h6" color="text.secondary">No completed quizzes</Typography>
+          <Typography variant="h6" color="text.secondary">
+            No completed quizzes
+          </Typography>
         </Box>
       )}
       {tabValue === 2 && (
         <Box sx={{ textAlign: 'center', py: 8 }}>
-          <Typography variant="h6" color="text.secondary">No expired quizzes</Typography>
+          <Typography variant="h6" color="text.secondary">
+            No expired quizzes
+          </Typography>
         </Box>
       )}
     </MainCard>

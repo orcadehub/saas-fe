@@ -40,15 +40,17 @@ export const StudyMaterialsProvider = ({ children }) => {
   }, []);
 
   return (
-    <StudyMaterialsContext.Provider value={{ 
-      materials, 
-      selectedMaterial, 
-      loading, 
-      error, 
-      fetchMaterials, 
-      fetchMaterialById,
-      setSelectedMaterial 
-    }}>
+    <StudyMaterialsContext.Provider
+      value={{
+        materials,
+        selectedMaterial,
+        loading,
+        error,
+        fetchMaterials,
+        fetchMaterialById,
+        setSelectedMaterial
+      }}
+    >
       {children}
     </StudyMaterialsContext.Provider>
   );

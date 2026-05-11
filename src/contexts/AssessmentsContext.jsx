@@ -18,10 +18,18 @@ const ATTEMPTS_CACHE_KEY = 'assessment_attempts_cache';
 export const AssessmentsProvider = ({ children }) => {
   const { user } = useAuth();
   const [assessments, setAssessments] = useState(() => {
-    try { return JSON.parse(localStorage.getItem(CACHE_KEY)) || []; } catch { return []; }
+    try {
+      return JSON.parse(localStorage.getItem(CACHE_KEY)) || [];
+    } catch {
+      return [];
+    }
   });
   const [assessmentAttempts, setAssessmentAttempts] = useState(() => {
-    try { return JSON.parse(localStorage.getItem(ATTEMPTS_CACHE_KEY)) || {}; } catch { return {}; }
+    try {
+      return JSON.parse(localStorage.getItem(ATTEMPTS_CACHE_KEY)) || {};
+    } catch {
+      return {};
+    }
   });
   const [loading, setLoading] = useState(true);
   const [config, setConfig] = useState(null);
@@ -31,7 +39,7 @@ export const AssessmentsProvider = ({ children }) => {
   }, []);
 
   const getApiUrl = () => {
-    return import.meta.env.DEV ? 'http://localhost:4000/api' : (config?.apiEndpoint || 'https://backend.orcode.in/api');
+    return import.meta.env.DEV ? 'http://localhost:4000/api' : config?.apiEndpoint || 'https://backend.orcode.in/api';
   };
 
   const getHeaders = () => {
@@ -46,7 +54,10 @@ export const AssessmentsProvider = ({ children }) => {
 
   useEffect(() => {
     const fetchAssessments = async () => {
-      if (!user?.token || !config) { setLoading(false); return; }
+      if (!user?.token || !config) {
+        setLoading(false);
+        return;
+      }
 
       // Show cached data immediately, no loading spinner if cache exists
       const hasCached = assessments.length > 0;
@@ -87,7 +98,7 @@ export const AssessmentsProvider = ({ children }) => {
   }, [user, config]);
 
   const getAssessmentById = (assessmentId) => {
-    return assessments.find(a => a._id === assessmentId) || null;
+    return assessments.find((a) => a._id === assessmentId) || null;
   };
 
   const getAssessmentAttempt = (assessmentId) => {
@@ -125,14 +136,16 @@ export const AssessmentsProvider = ({ children }) => {
   };
 
   return (
-    <AssessmentsContext.Provider value={{
-      assessments,
-      assessmentAttempts,
-      loading,
-      getAssessmentById,
-      getAssessmentAttempt,
-      refreshAssessments
-    }}>
+    <AssessmentsContext.Provider
+      value={{
+        assessments,
+        assessmentAttempts,
+        loading,
+        getAssessmentById,
+        getAssessmentAttempt,
+        refreshAssessments
+      }}
+    >
       {children}
     </AssessmentsContext.Provider>
   );

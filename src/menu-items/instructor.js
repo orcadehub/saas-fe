@@ -1,8 +1,17 @@
 // assets
-import { IconDashboard, IconClipboardList, IconUsers, IconChartBar, IconBriefcase, IconCode, IconBrain, IconBook } from '@tabler/icons-react';
+import {
+  IconDashboard,
+  IconClipboardList,
+  IconUsers,
+  IconChartBar,
+  IconBriefcase,
+  IconCode,
+  IconBrain,
+  IconBook
+} from '@tabler/icons-react';
 
 // constant
-const icons = { 
+const icons = {
   IconDashboard,
   IconClipboardList,
   IconUsers,

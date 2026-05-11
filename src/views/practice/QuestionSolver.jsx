@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import {
-  Box, Typography, Chip, Button, CircularProgress, Paper, Tabs, Tab
-} from '@mui/material';
+import { Box, Typography, Chip, Button, CircularProgress, Paper, Tabs, Tab } from '@mui/material';
 import { ArrowBack, Code } from '@mui/icons-material';
 import MainCard from 'ui-component/cards/MainCard';
 import { useAuth } from 'contexts/AuthContext';
@@ -28,7 +26,7 @@ export default function QuestionSolver() {
   }, [config, id]);
 
   const getApiUrl = () => {
-    return import.meta.env.DEV ? 'http://localhost:4000/api' : (config?.apiEndpoint || 'https://backend.orcode.in/api');
+    return import.meta.env.DEV ? 'http://localhost:4000/api' : config?.apiEndpoint || 'https://backend.orcode.in/api';
   };
 
   const getHeaders = () => ({
@@ -42,7 +40,7 @@ export default function QuestionSolver() {
       const response = await fetch(`${getApiUrl()}/assessment-questions/${id}`, {
         headers: getHeaders()
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         setQuestion(data);
@@ -103,44 +101,59 @@ export default function QuestionSolver() {
               borderRadius: '8px'
             }}
           />
-          <Chip 
-            label={question.assessmentType} 
-            variant="outlined" 
-            sx={{ fontWeight: 700, borderRadius: '8px', borderColor: 'rgba(99, 102, 241, 0.2)', color: '#6366f1' }} 
+          <Chip
+            label={question.assessmentType}
+            variant="outlined"
+            sx={{ fontWeight: 700, borderRadius: '8px', borderColor: 'rgba(99, 102, 241, 0.2)', color: '#6366f1' }}
           />
         </Box>
 
         <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
-          <Paper sx={{ p: 4, mb: 3, borderRadius: '16px', border: '1px solid rgba(226, 232, 240, 0.8)', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}>
-            <Typography sx={{ 
-              fontWeight: 800, 
-              color: '#6366f1', 
-              textTransform: 'uppercase', 
-              fontSize: '0.75rem', 
-              letterSpacing: '0.1em',
-              mb: 2,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1
-            }}>
+          <Paper
+            sx={{
+              p: 4,
+              mb: 3,
+              borderRadius: '16px',
+              border: '1px solid rgba(226, 232, 240, 0.8)',
+              boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+            }}
+          >
+            <Typography
+              sx={{
+                fontWeight: 800,
+                color: '#6366f1',
+                textTransform: 'uppercase',
+                fontSize: '0.75rem',
+                letterSpacing: '0.1em',
+                mb: 2,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1
+              }}
+            >
               <Box sx={{ width: 4, height: 16, bgcolor: '#6366f1', borderRadius: 1 }} />
               Problem Statement
             </Typography>
-            <Typography variant="body1" sx={{ whiteSpace: 'pre-line', mb: 4, color: '#475569', lineHeight: 1.8, fontSize: '1rem', fontWeight: 500 }}>
+            <Typography
+              variant="body1"
+              sx={{ whiteSpace: 'pre-line', mb: 4, color: '#475569', lineHeight: 1.8, fontSize: '1rem', fontWeight: 500 }}
+            >
               {question.description}
             </Typography>
 
-            <Typography sx={{ 
-              fontWeight: 800, 
-              color: '#6366f1', 
-              textTransform: 'uppercase', 
-              fontSize: '0.75rem', 
-              letterSpacing: '0.1em',
-              mb: 2,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1
-            }}>
+            <Typography
+              sx={{
+                fontWeight: 800,
+                color: '#6366f1',
+                textTransform: 'uppercase',
+                fontSize: '0.75rem',
+                letterSpacing: '0.1em',
+                mb: 2,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1
+              }}
+            >
               <Box sx={{ width: 4, height: 16, bgcolor: '#6366f1', borderRadius: 1 }} />
               Constraints
             </Typography>
@@ -153,22 +166,34 @@ export default function QuestionSolver() {
             </Box>
           </Paper>
 
-          <Paper sx={{ p: 4, mb: 3, borderRadius: '16px', border: '1px solid rgba(226, 232, 240, 0.8)', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}>
-            <Typography sx={{ 
-              fontWeight: 800, 
-              color: '#6366f1', 
-              textTransform: 'uppercase', 
-              fontSize: '0.75rem', 
-              letterSpacing: '0.1em',
-              mb: 2,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1
-            }}>
+          <Paper
+            sx={{
+              p: 4,
+              mb: 3,
+              borderRadius: '16px',
+              border: '1px solid rgba(226, 232, 240, 0.8)',
+              boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+            }}
+          >
+            <Typography
+              sx={{
+                fontWeight: 800,
+                color: '#6366f1',
+                textTransform: 'uppercase',
+                fontSize: '0.75rem',
+                letterSpacing: '0.1em',
+                mb: 2,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1
+              }}
+            >
               <Box sx={{ width: 4, height: 16, bgcolor: '#6366f1', borderRadius: 1 }} />
               Example
             </Typography>
-            <Box sx={{ bgcolor: 'rgba(248, 250, 252, 0.8)', p: 3, borderRadius: '12px', border: '1px solid rgba(226, 232, 240, 0.8)', mb: 3 }}>
+            <Box
+              sx={{ bgcolor: 'rgba(248, 250, 252, 0.8)', p: 3, borderRadius: '12px', border: '1px solid rgba(226, 232, 240, 0.8)', mb: 3 }}
+            >
               <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#1e293b', mb: 1, fontFamily: 'JetBrains Mono, monospace' }}>
                 <span style={{ color: '#6366f1' }}>Input:</span> {question.example.input}
               </Typography>
@@ -178,7 +203,8 @@ export default function QuestionSolver() {
               {question.example.explanation && (
                 <Box sx={{ mt: 2, pt: 2, borderTop: '1px dashed rgba(226, 232, 240, 1)' }}>
                   <Typography variant="body2" sx={{ color: '#64748b', fontStyle: 'italic', fontWeight: 500 }}>
-                    <span style={{ color: '#6366f1', fontStyle: 'normal', fontWeight: 700 }}>Explanation:</span> {question.example.explanation}
+                    <span style={{ color: '#6366f1', fontStyle: 'normal', fontWeight: 700 }}>Explanation:</span>{' '}
+                    {question.example.explanation}
                   </Typography>
                 </Box>
               )}
@@ -186,28 +212,43 @@ export default function QuestionSolver() {
           </Paper>
 
           {question.intuition && (
-            <Paper sx={{ p: 4, borderRadius: '16px', border: '1px solid rgba(226, 232, 240, 0.8)', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}>
-              <Typography sx={{ 
-                fontWeight: 800, 
-                color: '#6366f1', 
-                textTransform: 'uppercase', 
-                fontSize: '0.75rem', 
-                letterSpacing: '0.1em',
-                mb: 2,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1
-              }}>
+            <Paper
+              sx={{
+                p: 4,
+                borderRadius: '16px',
+                border: '1px solid rgba(226, 232, 240, 0.8)',
+                boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+              }}
+            >
+              <Typography
+                sx={{
+                  fontWeight: 800,
+                  color: '#6366f1',
+                  textTransform: 'uppercase',
+                  fontSize: '0.75rem',
+                  letterSpacing: '0.1em',
+                  mb: 2,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1
+                }}
+              >
                 <Box sx={{ width: 4, height: 16, bgcolor: '#6366f1', borderRadius: 1 }} />
                 Approach & Solution
               </Typography>
-              <Typography variant="body1" sx={{ mb: 4, whiteSpace: 'pre-line', color: '#475569', lineHeight: 1.8, fontSize: '1rem', fontWeight: 500 }}>
+              <Typography
+                variant="body1"
+                sx={{ mb: 4, whiteSpace: 'pre-line', color: '#475569', lineHeight: 1.8, fontSize: '1rem', fontWeight: 500 }}
+              >
                 {question.intuition.approach}
               </Typography>
-              
+
               {question.intuition.keyInsights?.length > 0 && (
                 <Box sx={{ mb: 4 }}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#1e293b', mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Typography
+                    variant="subtitle2"
+                    sx={{ fontWeight: 700, color: '#1e293b', mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}
+                  >
                     Key Insights:
                   </Typography>
                   <Box component="ul" sx={{ pl: 3, m: 0 }}>

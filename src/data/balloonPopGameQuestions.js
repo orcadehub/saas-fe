@@ -1,5 +1,5 @@
 const generateBalloons = (count, seed) => {
-  const rng = (s) => (s * 9301 + 49297) % 233280 / 233280;
+  const rng = (s) => ((s * 9301 + 49297) % 233280) / 233280;
   const nums = [];
   let s = seed;
   while (nums.length < count) {
@@ -39,7 +39,7 @@ export const balloonPopGameQuestions = [
       const types = ['ascending', 'descending', 'min', 'max'];
       const type = types[i % 4];
       let question, answer;
-      
+
       if (type === 'ascending') {
         question = 'Pop the balloons in ascending order';
         answer = [...balloons].sort((a, b) => a - b);
@@ -88,7 +88,7 @@ export const balloonPopGameQuestions = [
       const types = ['ascending', 'descending', 'even', 'odd', 'prime'];
       const type = types[i % 5];
       let question, answer;
-      
+
       if (type === 'ascending') {
         question = 'Pop the balloons in ascending order';
         answer = [...balloons].sort((a, b) => a - b);
@@ -97,10 +97,10 @@ export const balloonPopGameQuestions = [
         answer = [...balloons].sort((a, b) => b - a);
       } else if (type === 'even') {
         question = 'Pop all balloons with even numbers';
-        answer = balloons.filter(n => n % 2 === 0).sort((a, b) => a - b);
+        answer = balloons.filter((n) => n % 2 === 0).sort((a, b) => a - b);
       } else if (type === 'odd') {
         question = 'Pop all balloons with odd numbers';
-        answer = balloons.filter(n => n % 2 !== 0).sort((a, b) => a - b);
+        answer = balloons.filter((n) => n % 2 !== 0).sort((a, b) => a - b);
       } else {
         question = 'Pop all balloons with prime numbers';
         answer = balloons.filter(isPrime).sort((a, b) => a - b);
@@ -140,7 +140,7 @@ export const balloonPopGameQuestions = [
       const types = ['ascending', 'descending', 'prime', 'divisibleBy3', 'perfectSquare'];
       const type = types[i % 5];
       let question, answer;
-      
+
       if (type === 'ascending') {
         question = 'Pop the balloons in ascending order';
         answer = [...balloons].sort((a, b) => a - b);
@@ -152,7 +152,7 @@ export const balloonPopGameQuestions = [
         answer = balloons.filter(isPrime).sort((a, b) => a - b);
       } else if (type === 'divisibleBy3') {
         question = 'Pop all balloons divisible by 3 in ascending order';
-        answer = balloons.filter(n => n % 3 === 0).sort((a, b) => a - b);
+        answer = balloons.filter((n) => n % 3 === 0).sort((a, b) => a - b);
       } else {
         question = 'Pop all perfect square balloons in ascending order';
         const isPerfectSquare = (n) => Math.sqrt(n) === Math.floor(Math.sqrt(n));
@@ -174,5 +174,5 @@ export const balloonPopGameQuestions = [
 ];
 
 export const getBalloonPopGameQuestions = (subtopicId) => {
-  return balloonPopGameQuestions.map(q => ({ ...q, subtopicId }));
+  return balloonPopGameQuestions.map((q) => ({ ...q, subtopicId }));
 };

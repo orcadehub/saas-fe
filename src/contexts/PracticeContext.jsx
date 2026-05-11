@@ -30,7 +30,7 @@ export const PracticeProvider = ({ children }) => {
 
   const fetchProgrammingQuestions = async (forceRefresh = false) => {
     if (programmingQuestions && !forceRefresh) return programmingQuestions;
-    
+
     setLoading(true);
     try {
       const apiUrl = getApiUrl();
@@ -50,7 +50,7 @@ export const PracticeProvider = ({ children }) => {
 
   const fetchAssessmentQuestions = async (forceRefresh = false) => {
     if (assessmentQuestions && !forceRefresh) return assessmentQuestions;
-    
+
     setLoading(true);
     try {
       const apiUrl = getApiUrl();
@@ -70,7 +70,7 @@ export const PracticeProvider = ({ children }) => {
 
   const fetchCompletedQuestions = async (forceRefresh = false) => {
     if (completedQuestions.length > 0 && !forceRefresh) return completedQuestions;
-    
+
     if (!user?.token) return [];
 
     setLoading(true);
@@ -80,7 +80,7 @@ export const PracticeProvider = ({ children }) => {
 
       const res = await fetch(`${apiUrl}/practice-submissions/completed`, {
         headers: {
-          'Authorization': `Bearer ${user.token}`
+          Authorization: `Bearer ${user.token}`
         }
       });
       const data = await res.json();

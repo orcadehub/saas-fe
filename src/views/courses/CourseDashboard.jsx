@@ -99,7 +99,7 @@ export default function CourseDashboard() {
 
     try {
       const config = await tenantConfig.load();
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('studentToken');
       
       const response = await fetch(`${API_BASE_URL}/student/courses/${courseId}`, {
         headers: {
@@ -136,7 +136,7 @@ export default function CourseDashboard() {
     setUpdating(true);
     try {
       const config = await tenantConfig.load();
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('studentToken');
       
       const response = await fetch(`${API_BASE_URL}/student/courses/${courseId}/profile`, {
         method: 'PUT',

@@ -4,7 +4,7 @@ import {
   Box, Typography, Button, Stack, Grid, Container, Tabs, Tab, Card,
   CardContent, LinearProgress, Avatar, Chip, Divider, List, ListItem,
   ListItemText, ListItemAvatar, Paper, CircularProgress, Alert, useTheme, useMediaQuery,
-  TextField, Table, TableBody, TableCell, TableContainer, TableHead, TableRow
+  TextField, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TablePagination
 } from '@mui/material';
 import {
   IconArrowLeft, IconBook, IconCalendarCheck, IconFileCheck, IconTrophy,
@@ -50,6 +50,8 @@ export default function CourseDashboard() {
     rollNumber: ''
   });
   const [updating, setUpdating] = useState(false);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   useEffect(() => {
     fetchCourseDetail();
@@ -294,7 +296,7 @@ export default function CourseDashboard() {
             {/* Tab 0: Curriculum */}
             <TabPanel value={tabValue} index={0}>
               <Grid container spacing={4}>
-                <Grid item xs={12} lg={8}>
+                <Grid item xs={12} lg={12}>
                   <Typography variant="h3" sx={{ fontWeight: 900, mb: 3 }}>Learning Path</Typography>
                   <Stack spacing={3}>
                     {course.roadmap?.map((week, idx) => (
@@ -336,32 +338,6 @@ export default function CourseDashboard() {
                         </CardContent>
                       </Card>
                     ))}
-                  </Stack>
-                </Grid>
-                <Grid item xs={12} lg={4}>
-                  <Typography variant="h3" sx={{ fontWeight: 900, mb: 3 }}>Upcoming Events</Typography>
-                  <Stack spacing={3}>
-                    <Paper sx={{ p: 3, borderRadius: '24px', border: '1px solid #e2e8f0', bgcolor: '#fff' }}>
-                      <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
-                        <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: '#fef2f2', color: '#ef4444' }}><IconAlertCircle size={24} /></Box>
-                        <Box>
-                          <Typography sx={{ fontWeight: 800, fontSize: '1rem' }}>Final Project Deadline</Typography>
-                          <Typography sx={{ fontSize: '0.8rem', color: '#94a3b8' }}>3 days remaining</Typography>
-                        </Box>
-                      </Stack>
-                      <Button fullWidth variant="contained" sx={{ bgcolor: '#0f172a', py: 1.5, borderRadius: '12px', fontWeight: 800 }}>Submit Work</Button>
-                    </Paper>
-                    
-                    <Paper sx={{ p: 3, borderRadius: '24px', border: '1px solid #e2e8f0', bgcolor: '#fff' }}>
-                      <Typography sx={{ fontWeight: 800, mb: 2 }}>Live Mentor Session</Typography>
-                      <Stack spacing={2}>
-                        <Stack direction="row" spacing={2} alignItems="center">
-                          <IconClock size={18} color="#64748b" />
-                          <Typography sx={{ fontSize: '0.85rem', fontWeight: 600 }}>Sat, 04:00 PM IST</Typography>
-                        </Stack>
-                        <Typography sx={{ fontSize: '0.85rem', color: '#64748b' }}>Topic: Advance Context API and State Management patterns.</Typography>
-                      </Stack>
-                    </Paper>
                   </Stack>
                 </Grid>
               </Grid>
@@ -580,9 +556,9 @@ export default function CourseDashboard() {
                         </TableRow>
                       </TableHead>
                       <TableBody>
-                        {course.enrollments?.map((enrollment, idx) => (
+                        {course.enrollments?.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((enrollment, idx) => (
                           <TableRow key={idx} sx={{ '&:hover': { bgcolor: '#f8fafc' } }}>
-                            <TableCell sx={{ fontWeight: 600 }}>{idx + 1}</TableCell>
+                            <TableCell sx={{ fontWeight: 600 }}>{page * rowsPerPage + idx + 1}</TableCell>
                             <TableCell>
                               <Stack direction="row" spacing={1.5} alignItems="center">
                                 <Avatar sx={{ width: 32, height: 32, bgcolor: course.color, fontSize: '0.8rem', fontWeight: 800 }}>
@@ -613,6 +589,18 @@ export default function CourseDashboard() {
                       </TableBody>
                     </Table>
                   </TableContainer>
+                  <TablePagination
+                    rowsPerPageOptions={[10, 25, 50]}
+                    component="div"
+                    count={course.enrollments?.length || 0}
+                    rowsPerPage={rowsPerPage}
+                    page={page}
+                    onPageChange={(e, newPage) => setPage(newPage)}
+                    onRowsPerPageChange={(e) => {
+                      setRowsPerPage(parseInt(e.target.value, 10));
+                      setPage(0);
+                    }}
+                  />
                 </CardContent>
               </Card>
             </TabPanel>

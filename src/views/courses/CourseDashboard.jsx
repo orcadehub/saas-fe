@@ -556,7 +556,10 @@ export default function CourseDashboard() {
                         </TableRow>
                       </TableHead>
                       <TableBody>
-                        {course.enrollments?.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((enrollment, idx) => (
+                        {[...(course.enrollments || [])]
+                          .sort((a, b) => new Date(b.enrolledAt) - new Date(a.enrolledAt))
+                          .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                          .map((enrollment, idx) => (
                           <TableRow key={idx} sx={{ '&:hover': { bgcolor: '#f8fafc' } }}>
                             <TableCell sx={{ fontWeight: 600 }}>{page * rowsPerPage + idx + 1}</TableCell>
                             <TableCell>

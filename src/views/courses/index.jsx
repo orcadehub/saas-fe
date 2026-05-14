@@ -18,6 +18,7 @@ import {
   IconConfetti,
   IconGift
 } from '@tabler/icons-react';
+import { useAuth } from 'contexts/AuthContext';
 
 const MotionCard = motion(Box);
 
@@ -166,6 +167,8 @@ const courseData = [
 
 export default function Courses() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isTestUser = user?.email === 'test@test.com';
 
   // Countdown to May 16
   const [countdown, setCountdown] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
@@ -261,20 +264,17 @@ export default function Courses() {
             border: '1px solid rgba(255,255,255,0.15)'
           }}
         >
-          {/* Animated decorative elements */}
           <Box sx={{ position: 'absolute', top: -60, right: -60, width: 240, height: 240, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.08)', animation: 'pulse 4s ease-in-out infinite' }} />
           <Box sx={{ position: 'absolute', bottom: -40, left: -40, width: 160, height: 160, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.06)', animation: 'pulse 5s ease-in-out infinite 1s' }} />
           <Box sx={{ position: 'absolute', top: '20%', right: '25%', width: 80, height: 80, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.04)', animation: 'pulse 3s ease-in-out infinite 0.5s' }} />
           <Box sx={{ position: 'absolute', bottom: '30%', right: '10%', width: 40, height: 40, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.06)' }} />
 
-          {/* Sparkle CSS */}
           <style>{`
             @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 0.5; } 50% { transform: scale(1.15); opacity: 1; } }
             @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
           `}</style>
 
           <Stack direction={{ xs: 'column', md: 'row' }} alignItems="center" spacing={4} sx={{ position: 'relative', zIndex: 1 }}>
-            {/* Left: Icon + Text */}
             <Box sx={{ flex: 1, textAlign: { xs: 'center', md: 'left' } }}>
               <Stack direction="row" spacing={1.5} alignItems="center" justifyContent={{ xs: 'center', md: 'flex-start' }} sx={{ mb: 2 }}>
                 <Box sx={{ p: 1.5, bgcolor: 'rgba(255,255,255,0.2)', borderRadius: '16px', backdropFilter: 'blur(10px)', display: 'flex' }}>
@@ -312,9 +312,7 @@ export default function Courses() {
               </Typography>
             </Box>
 
-            {/* Right: Countdown + FREE badge */}
             <Stack spacing={2} alignItems="center" sx={{ flexShrink: 0 }}>
-              {/* Countdown */}
               <Box sx={{ textAlign: 'center' }}>
                 <Typography sx={{ fontWeight: 700, fontSize: '0.75rem', letterSpacing: '2px', textTransform: 'uppercase', opacity: 0.8, mb: 1.5 }}>
                   🎂 Birthday Countdown
@@ -348,7 +346,6 @@ export default function Courses() {
                   ))}
                 </Stack>
               </Box>
-              {/* FREE pill */}
               <Box
                 component={motion.div}
                 animate={{ scale: [1, 1.05, 1] }}
@@ -401,17 +398,14 @@ export default function Courses() {
               '&:hover': { boxShadow: '0 24px 60px rgba(99, 102, 241, 0.22), 0 0 0 6px rgba(99, 102, 241, 0.08)', transform: 'translateY(-4px)' }
             }}
           >
-            {/* Ribbon */}
             <Box sx={{ position: 'absolute', top: 22, right: -35, transform: 'rotate(45deg)', bgcolor: '#16a34a', color: '#fff', px: 6, py: 0.8, fontSize: '0.75rem', fontWeight: 900, letterSpacing: '1.5px', zIndex: 2, boxShadow: '0 4px 12px rgba(22, 163, 74, 0.4)' }}>
               FREE
             </Box>
 
-            {/* Icon */}
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: { xs: 80, md: 100 }, height: { xs: 80, md: 100 }, borderRadius: '24px', bgcolor: '#eef2ff', color: '#6366f1', boxShadow: '0 12px 24px rgba(99, 102, 241, 0.15)', flexShrink: 0 }}>
               <IconCode size={48} stroke={1.5} />
             </Box>
 
-            {/* Details */}
             <Box sx={{ flex: 1 }}>
               <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
                 <Chip label="🎉 Anniversary Special" size="small" sx={{ bgcolor: 'rgba(99, 102, 241, 0.1)', color: '#6366f1', fontWeight: 800, fontSize: '0.7rem' }} />
@@ -440,7 +434,6 @@ export default function Courses() {
               </Stack>
             </Box>
 
-            {/* Price + CTA */}
             <Box sx={{ textAlign: 'center', flexShrink: 0, minWidth: { md: 180 } }}>
               <Typography sx={{ fontWeight: 900, fontSize: '2.5rem', color: '#16a34a', lineHeight: 1 }}>FREE</Typography>
               <Typography sx={{ fontWeight: 600, fontSize: '0.9rem', color: '#94a3b8', textDecoration: 'line-through', mb: 2 }}>₹15,000</Typography>
@@ -543,7 +536,7 @@ export default function Courses() {
         >
           {courseData.filter(c => !c.isFree).map((course, idx) => {
             const Icon = course.icon;
-            const isComingSoon = true; // Hide all except the special offer
+            const isComingSoon = !isTestUser; 
             return (
               <MotionCard
                 initial={{ opacity: 0, y: 30 }}
@@ -560,17 +553,19 @@ export default function Courses() {
                   overflow: 'hidden',
                   position: 'relative',
                   transition: 'all 0.3s ease',
-                  opacity: 0.6,
-                  pointerEvents: 'none',
-                  filter: 'grayscale(0.5)',
+                  opacity: isComingSoon ? 0.6 : 1,
+                  pointerEvents: isComingSoon ? 'none' : 'auto',
+                  filter: isComingSoon ? 'grayscale(0.5)' : 'none',
+                  cursor: isComingSoon ? 'default' : 'pointer',
                   '&:hover': {
-                    transform: 'none',
-                    boxShadow: '0 10px 30px rgba(15, 23, 42, 0.04)'
+                    transform: isComingSoon ? 'none' : 'translateY(-8px)',
+                    boxShadow: isComingSoon ? '0 10px 30px rgba(15, 23, 42, 0.04)' : '0 20px 40px rgba(99, 102, 241, 0.12)'
                   }
                 }}
+                onClick={() => !isComingSoon && navigate(`/courses/${course.id}`)}
               >
                 {/* Accent Top Bar */}
-                <Box sx={{ height: '6px', width: '100%', bgcolor: '#94a3b8' }} />
+                <Box sx={{ height: '6px', width: '100%', bgcolor: isComingSoon ? '#94a3b8' : course.color }} />
 
                 <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', p: { xs: 3.5, sm: 4 } }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
@@ -582,8 +577,8 @@ export default function Courses() {
                         width: 60,
                         height: 60,
                         borderRadius: '18px',
-                        bgcolor: '#f1f5f9',
-                        color: '#94a3b8',
+                        bgcolor: isComingSoon ? '#f1f5f9' : course.bg,
+                        color: isComingSoon ? '#94a3b8' : course.color,
                       }}
                     >
                       <Icon size={34} stroke={1.5} />
@@ -593,12 +588,17 @@ export default function Courses() {
                         sx={{
                           fontWeight: 900,
                           fontSize: '1.6rem',
-                          color: '#94a3b8',
+                          color: isComingSoon ? '#94a3b8' : '#0f172a',
                           lineHeight: 1
                         }}
                       >
-                        {course.price}
+                        {isTestUser ? '₹999' : course.price}
                       </Typography>
+                      {!isComingSoon && (
+                        <Typography sx={{ fontSize: '0.8rem', color: '#94a3b8', textDecoration: 'line-through', fontWeight: 600 }}>
+                          {course.originalPrice}
+                        </Typography>
+                      )}
                     </Box>
                   </Box>
 
@@ -606,7 +606,7 @@ export default function Courses() {
                     variant="h3"
                     sx={{
                       fontWeight: 800,
-                      color: '#64748b',
+                      color: isComingSoon ? '#64748b' : '#1e293b',
                       fontSize: '1.5rem',
                       mb: 1.5,
                       letterSpacing: '-0.3px'
@@ -616,16 +616,16 @@ export default function Courses() {
                   </Typography>
 
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: '#94a3b8', bgcolor: '#f1f5f9', px: 1, py: 0.3, borderRadius: '6px' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: isComingSoon ? '#94a3b8' : '#6366f1', bgcolor: isComingSoon ? '#f1f5f9' : 'rgba(99, 102, 241, 0.08)', px: 1, py: 0.3, borderRadius: '6px' }}>
                       <IconClock size={14} />
-                      <Typography sx={{ fontSize: '0.75rem', fontWeight: 800 }}>Coming Soon</Typography>
+                      <Typography sx={{ fontSize: '0.75rem', fontWeight: 800 }}>{isComingSoon ? 'Coming Soon' : '2 Months'}</Typography>
                     </Box>
                   </Box>
 
                   <Typography
                     variant="body2"
                     sx={{
-                      color: '#94a3b8',
+                      color: isComingSoon ? '#94a3b8' : '#64748b',
                       fontWeight: 500,
                       lineHeight: 1.6,
                       flexGrow: 1,
@@ -637,20 +637,20 @@ export default function Courses() {
 
                   <Box sx={{ mt: 'auto' }}>
                     <Button
-                      disabled
                       fullWidth
                       variant="contained"
                       sx={{
-                        bgcolor: '#cbd5e1',
+                        bgcolor: isComingSoon ? '#cbd5e1' : course.color,
                         color: '#fff',
                         py: 1.75,
                         borderRadius: '14px',
                         textTransform: 'none',
                         fontSize: '1rem',
                         fontWeight: 800,
+                        '&:hover': { bgcolor: isComingSoon ? '#cbd5e1' : course.color, filter: 'brightness(0.9)' }
                       }}
                     >
-                      Coming Soon
+                      {isComingSoon ? 'Coming Soon' : 'Enroll Now'}
                     </Button>
                   </Box>
                 </CardContent>

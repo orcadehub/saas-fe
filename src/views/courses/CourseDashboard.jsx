@@ -40,16 +40,17 @@ export default function CourseDashboard() {
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [tabValue, setTabValue] = useState(0);
-  const [error, setError] = useState('');
+  const [updating, setUpdating] = useState(false);
   const [profileData, setProfileData] = useState({
     surname: '',
     firstName: '',
     lastName: '',
     phoneNumber: '',
-    collegeName: '',
-    rollNumber: ''
+    rollNumber: '',
+    collegeName: ''
   });
-  const [updating, setUpdating] = useState(false);
+
+  // Pagination for enrolled students
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
@@ -59,38 +60,35 @@ export default function CourseDashboard() {
 
   const fetchCourseDetail = async () => {
     try {
-      const config = await tenantConfig.get();
+      const config = await tenantConfig.load();
+      const token = localStorage.getItem('token');
+      
       const response = await fetch(`${API_BASE_URL}/student/courses/${courseId}`, {
         headers: {
-          'Authorization': `Bearer ${user?.token || localStorage.getItem('studentToken')}`,
           'x-api-key': config.apiKey,
-          'x-tenant-id': config.tenantId
+          'x-tenant-id': config.tenantId,
+          'Authorization': `Bearer ${token}`
         }
       });
+
+      if (!response.ok) throw new Error('Failed to fetch course details');
       const data = await response.json();
-      if (response.ok) {
-        setCourse(data);
-        if (!data.isEnrolled) {
-          navigate(`/courses/${courseId}`);
-        } else {
-          // Extract my enrollment data
-          const myEnrollment = data.enrollments?.find(e => e.student?._id === user?.id || e.student === user?.id);
-          if (myEnrollment) {
-            setProfileData({
-              surname: myEnrollment.surname || '',
-              firstName: myEnrollment.firstName || '',
-              lastName: myEnrollment.lastName || '',
-              phoneNumber: myEnrollment.phoneNumber || '',
-              collegeName: myEnrollment.collegeName || '',
-              rollNumber: myEnrollment.rollNumber || ''
-            });
-          }
-        }
-      } else {
-        setError(data.message || 'Failed to load course details');
+      setCourse(data.course);
+      
+      // Update profile data from enrollment
+      if (data.course.enrollmentData) {
+        setProfileData({
+          surname: data.course.enrollmentData.surname || '',
+          firstName: data.course.enrollmentData.firstName || '',
+          lastName: data.course.enrollmentData.lastName || '',
+          phoneNumber: data.course.enrollmentData.phone || '',
+          rollNumber: data.course.enrollmentData.rollNumber || '',
+          collegeName: data.course.enrollmentData.collegeName || ''
+        });
       }
-    } catch (err) {
-      setError('Connection error');
+    } catch (error) {
+      console.error('Fetch error:', error);
+      toast.error('Could not load course dashboard');
     } finally {
       setLoading(false);
     }
@@ -99,43 +97,42 @@ export default function CourseDashboard() {
   const handleProfileUpdate = async () => {
     setUpdating(true);
     try {
-      const config = await tenantConfig.get();
-      const response = await fetch(`${API_BASE_URL}/student/courses/${courseId}/enrollment`, {
+      const config = await tenantConfig.load();
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch(`${API_BASE_URL}/student/courses/${courseId}/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user?.token || localStorage.getItem('studentToken')}`,
           'x-api-key': config.apiKey,
-          'x-tenant-id': config.tenantId
+          'x-tenant-id': config.tenantId,
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(profileData)
       });
-      if (response.ok) {
-        toast.success('Enrollment details updated!');
-        fetchCourseDetail();
-      } else {
-        toast.error('Failed to update details');
-      }
-    } catch (err) {
-      toast.error('Connection error');
+
+      if (!response.ok) throw new Error('Update failed');
+      toast.success('Profile updated successfully');
+      fetchCourseDetail();
+    } catch (error) {
+      toast.error('Failed to update profile');
     } finally {
       setUpdating(false);
     }
   };
 
   if (loading) return (
-    <Box sx={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#f8fafc' }}>
-      <CircularProgress />
+    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '80vh' }}>
+      <CircularProgress sx={{ color: '#6366f1' }} />
     </Box>
   );
 
-  if (error || !course) return (
-    <Container maxWidth="md" sx={{ mt: 10 }}>
-      <Alert severity="error">{error || 'Course not found'}</Alert>
-      <Button startIcon={<IconArrowLeft />} onClick={() => navigate('/courses')} sx={{ mt: 2 }}>Back to Courses</Button>
+  if (!course) return (
+    <Container sx={{ py: 8, textAlign: 'center' }}>
+      <Typography variant="h4">Course not found</Typography>
+      <Button onClick={() => navigate('/dashboard')} sx={{ mt: 2 }}>Back to Dashboard</Button>
     </Container>
   );
-
 
   const menuItems = [
     { label: 'Curriculum', icon: <IconBook size={22} />, index: 0 },
@@ -143,8 +140,77 @@ export default function CourseDashboard() {
     { label: 'Assessments', icon: <IconFileCheck size={22} />, index: 2 },
     { label: 'My Performance', icon: <IconTrophy size={22} />, index: 3 },
     { label: 'Student Details', icon: <IconUserCircle size={22} />, index: 4 },
-    { label: 'Enrolled Students', icon: <IconUsers size={22} />, index: 5 }
+    { label: 'Enrolled Students', icon: <IconUsers size={22} />, index: 5 },
+    { label: 'Certificates', icon: <IconAward size={22} />, index: 6 }
   ];
+
+  const renderCertificates = () => {
+    if (user?.email === 'test@test.com') {
+      return (
+        <Box sx={{ maxWidth: 600, mx: 'auto' }}>
+          <Typography variant="h4" sx={{ fontWeight: 800, mb: 3, color: '#0f172a' }}>My Certificates</Typography>
+          <Card sx={{ 
+            borderRadius: '24px', 
+            overflow: 'hidden', 
+            border: '2px solid #6366f1',
+            boxShadow: '0 12px 40px rgba(99, 102, 241, 0.15)'
+          }}>
+            <Box sx={{ 
+              height: 120, 
+              background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#fff'
+            }}>
+              <IconAward size={64} />
+            </Box>
+            <CardContent sx={{ p: 4 }}>
+              <Typography variant="h3" sx={{ fontWeight: 900, mb: 1, color: '#1e293b' }}>
+                Course Completion Certificate
+              </Typography>
+              <Typography sx={{ color: '#64748b', fontWeight: 600, mb: 3 }}>
+                Awarded for successfully completing the {course.title} program with outstanding performance.
+              </Typography>
+              
+              <Divider sx={{ mb: 3 }} />
+              
+              <Stack direction="row" justifyContent="space-between" alignItems="center">
+                <Box>
+                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                    CERTIFICATE ID
+                  </Typography>
+                  <Typography sx={{ fontWeight: 800, color: '#1e293b' }}>ORC-2024-TEST-001</Typography>
+                </Box>
+                <Button 
+                  variant="contained" 
+                  sx={{ 
+                    bgcolor: '#6366f1', 
+                    borderRadius: '12px', 
+                    fontWeight: 800,
+                    px: 3,
+                    py: 1.5,
+                    boxShadow: '0 8px 20px rgba(99, 102, 241, 0.3)',
+                    '&:hover': { bgcolor: '#4f46e5' }
+                  }}
+                >
+                  Download (₹99)
+                </Button>
+              </Stack>
+            </CardContent>
+          </Card>
+        </Box>
+      );
+    }
+
+    return (
+      <Box sx={{ textAlign: 'center', py: 8 }}>
+        <IconAward size={80} color="#cbd5e1" stroke={1} />
+        <Typography variant="h4" sx={{ mt: 2, fontWeight: 800, color: '#64748b' }}>No Certificates Yet</Typography>
+        <Typography sx={{ color: '#94a3b8', fontWeight: 600, mt: 1 }}>Complete your course assessments to unlock your certificate.</Typography>
+      </Box>
+    );
+  };
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: '#f8fafc' }}>
@@ -179,35 +245,37 @@ export default function CourseDashboard() {
             >
               Join Live Class
             </Button>
+            <Button 
+              variant="outlined" 
+              onClick={() => navigate('/dashboard')}
+              startIcon={<IconArrowLeft size={20} />} 
+              sx={{ py: 1.25, px: 3, borderRadius: '12px', fontWeight: 800, textTransform: 'none', color: '#64748b', borderColor: '#e2e8f0' }}
+            >
+              Back
+            </Button>
           </Stack>
         </Paper>
 
-        {/* Discord Mandatory Banner */}
+        {/* Discord Announcement */}
         <Paper sx={{ 
-          p: 2, 
-          borderRadius: '20px', 
-          bgcolor: '#5865F2', 
+          p: 3, 
+          borderRadius: '24px', 
+          background: 'linear-gradient(135deg, #5865F2 0%, #4752C4 100%)', 
           color: '#fff', 
-          mb: 3, 
-          display: 'flex', 
-          flexDirection: { xs: 'column', sm: 'row' },
-          alignItems: 'center', 
+          mb: 4,
+          display: 'flex',
+          flexDirection: { xs: 'column', md: 'row' },
+          alignItems: 'center',
           justifyContent: 'space-between',
-          gap: 2,
-          boxShadow: '0 8px 24px rgba(88, 101, 242, 0.25)',
-          border: '1px solid rgba(255,255,255,0.1)'
+          gap: 3
         }}>
-          <Stack direction="row" spacing={2} alignItems="center">
-            <Box sx={{ p: 1, bgcolor: 'rgba(255,255,255,0.2)', borderRadius: '12px', display: 'flex' }}>
-              <IconBrandDiscord size={28} />
-            </Box>
+          <Stack direction="row" spacing={3} alignItems="center">
+            <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)', width: 56, height: 56 }}>
+              <IconBrandDiscord size={32} />
+            </Avatar>
             <Box>
-              <Typography sx={{ fontWeight: 900, fontSize: '1.1rem', letterSpacing: '-0.3px' }}>
-                Must Join: Batch Discord Community
-              </Typography>
-              <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, opacity: 0.9 }}>
-                Mandatory for class links, assignments, and mentor support.
-              </Typography>
+              <Typography variant="h4" sx={{ fontWeight: 900, mb: 0.5 }}>Join Our Community</Typography>
+              <Typography sx={{ opacity: 0.9, fontWeight: 500 }}>Get instant help from mentors and network with fellow students on Discord.</Typography>
             </Box>
           </Stack>
           <Button 
@@ -228,6 +296,7 @@ export default function CourseDashboard() {
             Join Discord Now
           </Button>
         </Paper>
+
         <Box sx={{ mb: 4, borderBottom: '1px solid #e2e8f0', bgcolor: '#fff', borderRadius: '16px', px: 2 }}>
           <Tabs 
             value={tabValue} 
@@ -423,6 +492,7 @@ export default function CourseDashboard() {
                 </Grid>
               </Grid>
             </TabPanel>
+
             {/* Tab 4: Student Details */}
             <TabPanel value={tabValue} index={4}>
               <Card sx={{ borderRadius: '32px', border: '1px solid #e2e8f0', boxShadow: 'none' }}>
@@ -527,6 +597,7 @@ export default function CourseDashboard() {
                 </CardContent>
               </Card>
             </TabPanel>
+
             {/* Tab 5: Enrolled Students List */}
             <TabPanel value={tabValue} index={5}>
               <Card sx={{ borderRadius: '32px', border: '1px solid #e2e8f0', boxShadow: 'none' }}>
@@ -607,6 +678,12 @@ export default function CourseDashboard() {
                 </CardContent>
               </Card>
             </TabPanel>
+
+            {/* Tab 6: Certificates */}
+            <TabPanel value={tabValue} index={6}>
+              {renderCertificates()}
+            </TabPanel>
+
           </motion.div>
         </AnimatePresence>
       </Container>

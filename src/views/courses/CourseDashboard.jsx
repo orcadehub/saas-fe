@@ -59,6 +59,44 @@ export default function CourseDashboard() {
   }, [courseId]);
 
   const fetchCourseDetail = async () => {
+    // Mock for test user
+    if (user?.email === 'test@test.com') {
+      const mockCourse = {
+        title: courseId.toUpperCase().replace('-', ' ') + ' Mastery',
+        color: '#6366f1',
+        enrollmentData: {
+          batch: 'MERN-ANNIVERSARY',
+          progress: 45,
+          surname: 'TEST',
+          firstName: 'USER',
+          phone: '9999999999',
+          rollNumber: 'ORC-2024-001',
+          collegeName: 'Orcade University'
+        },
+        roadmap: [
+          { week: 'Week 1', title: 'Introduction to Web', topics: ['HTML Basics', 'CSS Layouts'], project: 'Portfolio', assignment: 'Flexbox Quiz' },
+          { week: 'Week 2', title: 'JavaScript Fundamentals', topics: ['Variables', 'Functions', 'DOM'], project: 'Calculator', assignment: 'ES6 Tasks' },
+          { week: 'Week 3', title: 'React Core', topics: ['Components', 'Hooks'], project: 'Task App', assignment: 'Hooks Exercise' },
+          { week: 'Week 4', title: 'Backend with Node', topics: ['Express', 'Middleware'], project: 'REST API', assignment: 'Auth Flow' }
+        ],
+        enrollments: [
+          { surname: 'TEST', firstName: 'USER', rollNumber: 'ORC-2024-001', collegeName: 'Orcade University', enrolledAt: new Date().toISOString() },
+          { surname: 'DOE', firstName: 'JOHN', rollNumber: 'ORC-2024-002', collegeName: 'Tech Institute', enrolledAt: new Date().toISOString() }
+        ]
+      };
+      setCourse(mockCourse);
+      setProfileData({
+        surname: 'TEST',
+        firstName: 'USER',
+        lastName: '',
+        phoneNumber: '9999999999',
+        rollNumber: 'ORC-2024-001',
+        collegeName: 'Orcade University'
+      });
+      setLoading(false);
+      return;
+    }
+
     try {
       const config = await tenantConfig.load();
       const token = localStorage.getItem('token');

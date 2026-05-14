@@ -575,7 +575,6 @@ export default function CourseDashboard() {
                           <TableCell sx={{ fontWeight: 800 }}>Full Name</TableCell>
                           <TableCell sx={{ fontWeight: 800 }}>Roll Number</TableCell>
                           <TableCell sx={{ fontWeight: 800 }}>College Name</TableCell>
-                          <TableCell sx={{ fontWeight: 800 }}>Phone</TableCell>
                           <TableCell sx={{ fontWeight: 800 }}>Status</TableCell>
                         </TableRow>
                       </TableHead>
@@ -595,7 +594,6 @@ export default function CourseDashboard() {
                             </TableCell>
                             <TableCell sx={{ fontWeight: 600, color: '#64748b' }}>{enrollment.rollNumber || '--'}</TableCell>
                             <TableCell sx={{ fontSize: '0.85rem' }}>{enrollment.collegeName || '--'}</TableCell>
-                            <TableCell sx={{ fontSize: '0.85rem', color: '#64748b' }}>{enrollment.phoneNumber || '--'}</TableCell>
                             <TableCell>
                               <Chip 
                                 label={enrollment.status || 'active'} 

@@ -256,6 +256,15 @@ export default function AuthLogin() {
         </Button>
       </Box>
 
+      <Box sx={{ mt: 3, textAlign: 'center' }}>
+        <Typography variant="subtitle1" sx={{ color: '#64748b' }}>
+          Don't have an account?{' '}
+          <Link to="/register" style={{ color: '#7c3aed', textDecoration: 'none', fontWeight: 700 }}>
+            Sign Up
+          </Link>
+        </Typography>
+      </Box>
+
       <Box sx={{ mt: 2, position: 'relative' }}>
         <Divider sx={{ mb: 2, '&::before, &::after': { borderColor: 'rgba(0,0,0,0.06)' } }}>
           <Typography variant="caption" sx={{ color: '#94a3b8', fontWeight: 600, px: 1 }}>
@@ -268,8 +277,6 @@ export default function AuthLogin() {
           variant="outlined"
           onClick={() => {
             setFormData({ email: 'test@test.com', password: 'password' });
-            // Small delay to ensure state update before submit if I were using a ref,
-            // but I'll just trigger the submit logic directly here.
             setTimeout(() => {
               const fakeEvent = { preventDefault: () => {} };
               handleSubmit(fakeEvent, { email: 'test@test.com', password: 'password' });
@@ -293,6 +300,13 @@ export default function AuthLogin() {
           Login as Test User
         </Button>
       </Box>
+
+      <Typography
+        variant="caption"
+        sx={{ display: 'block', textAlign: 'center', mt: 3, color: '#94a3b8', fontWeight: 600 }}
+      >
+        © {new Date().getFullYear()} Orcadehub Innovations LLP
+      </Typography>
     </form>
   );
 }

@@ -14,6 +14,7 @@ const Landing = Loadable(lazy(() => import('views/landing')));
 const Services = Loadable(lazy(() => import('views/landing/Services')));
 const Pricing = Loadable(lazy(() => import('views/landing/Pricing')));
 const LoginPage = Loadable(lazy(() => import('views/pages/authentication/Login')));
+const RegisterPage = Loadable(lazy(() => import('views/pages/authentication/Register')));
 const ForgotPassword = Loadable(lazy(() => import('views/pages/authentication/ForgotPassword')));
 const Dashboard = Loadable(lazy(() => import('views/dashboard')));
 const Leaderboard = Loadable(lazy(() => import('views/leaderboard')));
@@ -30,6 +31,8 @@ const StudyMaterialDetail = Loadable(lazy(() => import('views/study-materials/St
 const Quizzes = Loadable(lazy(() => import('views/quizzes')));
 const QuizDetails = Loadable(lazy(() => import('views/quizzes/QuizDetails')));
 const Courses = Loadable(lazy(() => import('views/courses')));
+const CourseEnrollment = Loadable(lazy(() => import('views/courses/CourseEnrollment')));
+const CourseDashboard = Loadable(lazy(() => import('views/courses/CourseDashboard')));
 const Practice = Loadable(lazy(() => import('views/practice')));
 const ProgrammingPractice = Loadable(lazy(() => import('views/practice/ProgrammingPractice')));
 const ProgrammingQuestions = Loadable(lazy(() => import('views/practice/ProgrammingQuestions')));
@@ -98,6 +101,10 @@ const MainRoutes = {
         {
           path: '/login',
           element: <LoginPage />
+        },
+        {
+          path: '/register',
+          element: <RegisterPage />
         },
         {
           path: '/forgot-password',
@@ -179,6 +186,14 @@ const MainRoutes = {
         {
           path: 'courses',
           element: <Courses />
+        },
+        {
+          path: 'courses/:courseId',
+          element: <CourseEnrollment />
+        },
+        {
+          path: 'courses/:courseId/dashboard',
+          element: <CourseDashboard />
         },
         {
           path: 'practice',

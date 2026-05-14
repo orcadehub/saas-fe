@@ -1,5 +1,6 @@
 import { RouterProvider } from 'react-router-dom';
 import { useEffect } from 'react';
+import { Toaster } from 'react-hot-toast';
 
 // routing
 import router from 'routes';
@@ -72,6 +73,7 @@ export default function App() {
     <ThemeCustomization>
       <NavigationScroll>
         <>
+          <Toaster position="top-right" reverseOrder={false} />
           <RouterProvider router={router} />
         </>
       </NavigationScroll>

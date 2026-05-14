@@ -111,17 +111,17 @@ export default function CourseDashboard() {
 
       if (!response.ok) throw new Error('Failed to fetch course details');
       const data = await response.json();
-      setCourse(data.course);
+      setCourse(data);
       
       // Update profile data from enrollment
-      if (data.course.enrollmentData) {
+      if (data.enrollmentData) {
         setProfileData({
-          surname: data.course.enrollmentData.surname || '',
-          firstName: data.course.enrollmentData.firstName || '',
-          lastName: data.course.enrollmentData.lastName || '',
-          phoneNumber: data.course.enrollmentData.phone || '',
-          rollNumber: data.course.enrollmentData.rollNumber || '',
-          collegeName: data.course.enrollmentData.collegeName || ''
+          surname: data.enrollmentData.surname || '',
+          firstName: data.enrollmentData.firstName || '',
+          lastName: data.enrollmentData.lastName || '',
+          phoneNumber: data.enrollmentData.phone || '',
+          rollNumber: data.enrollmentData.rollNumber || '',
+          collegeName: data.enrollmentData.collegeName || ''
         });
       }
     } catch (error) {

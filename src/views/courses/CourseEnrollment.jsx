@@ -59,6 +59,7 @@ export default function CourseEnrollment() {
   const [selectedBatch, setSelectedBatch] = useState('');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [showTermsDialog, setShowTermsDialog] = useState(false);
+  const [showEnrollDialog, setShowEnrollDialog] = useState(false);
   const [formData, setFormData] = useState({
     surname: '',
     firstName: '',
@@ -106,7 +107,7 @@ export default function CourseEnrollment() {
     }
   };
 
-  const handleEnroll = async () => {
+  const handleEnroll = () => {
     if (!user?.token) {
       navigate('/login');
       return;
@@ -119,10 +120,13 @@ export default function CourseEnrollment() {
       setError('Please select a batch');
       return;
     }
+    setShowEnrollDialog(true);
+  };
 
-    const { surname, firstName, lastName, phoneNumber, collegeName, rollNumber } = formData;
-    if (!surname || !firstName || !lastName || !phoneNumber || !collegeName || !rollNumber) {
-      setError('Please fill in all the student details (Surname, First Name, etc.)');
+  const confirmEnrollment = async () => {
+    const { surname, firstName, phoneNumber, collegeName, rollNumber } = formData;
+    if (!surname || !firstName || !phoneNumber || !collegeName || !rollNumber) {
+      toast.error('Please fill in all mandatory student details');
       return;
     }
 
@@ -145,11 +149,11 @@ export default function CourseEnrollment() {
       });
       const data = await res.json();
       if (res.ok) {
+        setShowEnrollDialog(false);
         if (data.alreadyEnrolled) {
           toast.success('You are already enrolled! Redirecting to dashboard...');
         } else {
           toast.success('Successfully enrolled! Welcome to the course.');
-          setSuccess('Successfully enrolled! Welcome to the course.');
         }
         
         setTimeout(() => {
@@ -160,7 +164,7 @@ export default function CourseEnrollment() {
         setError(data.message || 'Enrollment failed');
       }
     } catch (err) {
-      setError(err.message || 'Enrollment failed');
+      toast.error('Connection error. Please try again.');
     } finally {
       setEnrolling(false);
     }
@@ -566,33 +570,6 @@ export default function CourseEnrollment() {
                       ))}
                     </Grid>
 
-                    {!course.isEnrolled && (
-                      <Box sx={{ mt: 5, p: 3, bgcolor: '#f8fafc', borderRadius: '24px', border: '1px solid #e2e8f0' }}>
-                        <Typography sx={{ fontWeight: 900, fontSize: '0.9rem', color: '#0f172a', mb: 3, textTransform: 'uppercase', letterSpacing: '1px' }}>
-                          Step 1: Student Enrollment Details
-                        </Typography>
-                        <Grid container spacing={2}>
-                          <Grid item xs={12} sm={4}>
-                            <TextField fullWidth label="Surname" name="surname" value={formData.surname} onChange={handleFormChange} variant="outlined" size="small" placeholder="SURNAME" sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', bgcolor: '#fff' } }} />
-                          </Grid>
-                          <Grid item xs={12} sm={4}>
-                            <TextField fullWidth label="First Name" name="firstName" value={formData.firstName} onChange={handleFormChange} variant="outlined" size="small" placeholder="FIRST NAME" sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', bgcolor: '#fff' } }} />
-                          </Grid>
-                          <Grid item xs={12} sm={4}>
-                            <TextField fullWidth label="Last Name" name="lastName" value={formData.lastName} onChange={handleFormChange} variant="outlined" size="small" placeholder="LAST NAME" sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', bgcolor: '#fff' } }} />
-                          </Grid>
-                          <Grid item xs={12} sm={6}>
-                            <TextField fullWidth label="Phone Number" name="phoneNumber" value={formData.phoneNumber} onChange={handleFormChange} variant="outlined" size="small" placeholder="10 Digit Number" sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', bgcolor: '#fff' } }} />
-                          </Grid>
-                          <Grid item xs={12} sm={6}>
-                            <TextField fullWidth label="Roll Number" name="rollNumber" value={formData.rollNumber} onChange={handleFormChange} variant="outlined" size="small" placeholder="College ID / Roll No" sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', bgcolor: '#fff' } }} />
-                          </Grid>
-                          <Grid item xs={12}>
-                            <TextField fullWidth label="College Name" name="collegeName" value={formData.collegeName} onChange={handleFormChange} variant="outlined" size="small" placeholder="University / College Full Name" sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', bgcolor: '#fff' } }} />
-                          </Grid>
-                        </Grid>
-                      </Box>
-                    )}
                   </Grid>
 
                   <Grid item xs={12} md={5}>
@@ -686,6 +663,52 @@ export default function CourseEnrollment() {
         <DialogActions sx={{ p: 4 }}>
           <Button fullWidth onClick={() => { setAgreedToTerms(true); setShowTermsDialog(false); }} variant="contained" sx={{ bgcolor: '#0f172a', py: 2, borderRadius: '16px', fontWeight: 800, textTransform: 'none', '&:hover': { bgcolor: '#1e293b' } }}>
             I understand and agree
+          </Button>
+        </DialogActions>
+      </Dialog>
+      {/* Enrollment Form Dialog */}
+      <Dialog 
+        open={showEnrollDialog} 
+        onClose={() => setShowEnrollDialog(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: '24px', p: 2 } }}
+      >
+        <DialogTitle sx={{ fontWeight: 900, fontSize: '1.5rem', pb: 0 }}>Enrollment Details</DialogTitle>
+        <DialogContent>
+          <Typography sx={{ color: '#64748b', mb: 3, fontSize: '0.9rem' }}>
+            Please provide your details to complete the enrollment process. 
+          </Typography>
+          <Grid container spacing={2} sx={{ mt: 1 }}>
+            <Grid item xs={12} sm={4}>
+              <TextField fullWidth label="Surname" name="surname" value={formData.surname} onChange={handleFormChange} variant="outlined" size="small" placeholder="SURNAME" sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }} />
+            </Grid>
+            <Grid item xs={12} sm={4}>
+              <TextField fullWidth label="First Name" name="firstName" value={formData.firstName} onChange={handleFormChange} variant="outlined" size="small" placeholder="FIRST NAME" sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }} />
+            </Grid>
+            <Grid item xs={12} sm={4}>
+              <TextField fullWidth label="Last Name (Optional)" name="lastName" value={formData.lastName} onChange={handleFormChange} variant="outlined" size="small" placeholder="LAST NAME" sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }} />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField fullWidth label="Phone Number" name="phoneNumber" value={formData.phoneNumber} onChange={handleFormChange} variant="outlined" size="small" placeholder="10 Digit Number" sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }} />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField fullWidth label="Roll Number" name="rollNumber" value={formData.rollNumber} onChange={handleFormChange} variant="outlined" size="small" placeholder="College ID / Roll No" sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }} />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField fullWidth label="College Name" name="collegeName" value={formData.collegeName} onChange={handleFormChange} variant="outlined" size="small" placeholder="University / College Full Name" sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }} />
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions sx={{ p: 3, pt: 0 }}>
+          <Button onClick={() => setShowEnrollDialog(false)} sx={{ color: '#64748b', fontWeight: 700 }}>Cancel</Button>
+          <Button 
+            onClick={confirmEnrollment} 
+            variant="contained" 
+            disabled={enrolling}
+            sx={{ bgcolor: course.color, borderRadius: '12px', px: 4, fontWeight: 800, '&:hover': { bgcolor: course.color, filter: 'brightness(0.9)' } }}
+          >
+            {enrolling ? <CircularProgress size={24} color="inherit" /> : 'Confirm & Enroll'}
           </Button>
         </DialogActions>
       </Dialog>

@@ -3,7 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box, Typography, Button, Chip, Stack, Grid, Accordion, AccordionSummary,
   AccordionDetails, Checkbox, FormControlLabel, Dialog, DialogTitle,
-  DialogContent, DialogActions, Alert, CircularProgress, Divider, Container
+  DialogContent, DialogActions, Alert, CircularProgress, Divider, Container,
+  TextField
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import {
@@ -58,7 +59,25 @@ export default function CourseEnrollment() {
   const [selectedBatch, setSelectedBatch] = useState('');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [showTermsDialog, setShowTermsDialog] = useState(false);
+  const [formData, setFormData] = useState({
+    surname: '',
+    firstName: '',
+    lastName: '',
+    phoneNumber: '',
+    collegeName: '',
+    rollNumber: ''
+  });
   const [expandedWeek, setExpandedWeek] = useState(1);
+
+  const handleFormChange = (e) => {
+    const { name, value } = e.target;
+    // Surname, First Name, Last Name should be automatically capitalized
+    const capitalizedFields = ['surname', 'firstName', 'lastName'];
+    setFormData(prev => ({
+      ...prev,
+      [name]: capitalizedFields.includes(name) ? value.toUpperCase() : value
+    }));
+  };
 
   useEffect(() => {
     tenantConfig.load().then(c => {
@@ -101,6 +120,12 @@ export default function CourseEnrollment() {
       return;
     }
 
+    const { surname, firstName, lastName, phoneNumber, collegeName, rollNumber } = formData;
+    if (!surname || !firstName || !lastName || !phoneNumber || !collegeName || !rollNumber) {
+      setError('Please fill in all the student details (Surname, First Name, etc.)');
+      return;
+    }
+
     setEnrolling(true);
     setError('');
     try {
@@ -112,7 +137,11 @@ export default function CourseEnrollment() {
           'x-api-key': config.apiKey || '',
           'x-tenant-id': config.tenantId || ''
         },
-        body: JSON.stringify({ batchName: selectedBatch, agreedToTerms: true })
+        body: JSON.stringify({ 
+          batchName: selectedBatch, 
+          agreedToTerms: true,
+          ...formData 
+        })
       });
       const data = await res.json();
       if (res.ok) {
@@ -525,7 +554,7 @@ export default function CourseEnrollment() {
                         { icon: <IconUserMinus size={20} />, label: 'Seats Left', val: `${(activeBatches[0]?.maxSeats || 2000) - (activeBatches[0]?.enrolledCount || 0)} Spots` },
                         { icon: <IconCertificate size={20} />, label: 'Certificate', val: 'LMS Verified' }
                       ].map((item, idx) => (
-                        <Grid item xs={12} sm={6} key={idx}>
+                        <Grid item xs={12} sm={4} key={idx}>
                           <Stack direction="row" spacing={1.5} alignItems="center">
                             <Box sx={{ color: course.color, display: 'flex' }}>{item.icon}</Box>
                             <Box>
@@ -536,6 +565,34 @@ export default function CourseEnrollment() {
                         </Grid>
                       ))}
                     </Grid>
+
+                    {!course.isEnrolled && (
+                      <Box sx={{ mt: 5, p: 3, bgcolor: '#f8fafc', borderRadius: '24px', border: '1px solid #e2e8f0' }}>
+                        <Typography sx={{ fontWeight: 900, fontSize: '0.9rem', color: '#0f172a', mb: 3, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                          Step 1: Student Enrollment Details
+                        </Typography>
+                        <Grid container spacing={2}>
+                          <Grid item xs={12} sm={4}>
+                            <TextField fullWidth label="Surname" name="surname" value={formData.surname} onChange={handleFormChange} variant="outlined" size="small" placeholder="SURNAME" sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', bgcolor: '#fff' } }} />
+                          </Grid>
+                          <Grid item xs={12} sm={4}>
+                            <TextField fullWidth label="First Name" name="firstName" value={formData.firstName} onChange={handleFormChange} variant="outlined" size="small" placeholder="FIRST NAME" sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', bgcolor: '#fff' } }} />
+                          </Grid>
+                          <Grid item xs={12} sm={4}>
+                            <TextField fullWidth label="Last Name" name="lastName" value={formData.lastName} onChange={handleFormChange} variant="outlined" size="small" placeholder="LAST NAME" sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', bgcolor: '#fff' } }} />
+                          </Grid>
+                          <Grid item xs={12} sm={6}>
+                            <TextField fullWidth label="Phone Number" name="phoneNumber" value={formData.phoneNumber} onChange={handleFormChange} variant="outlined" size="small" placeholder="10 Digit Number" sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', bgcolor: '#fff' } }} />
+                          </Grid>
+                          <Grid item xs={12} sm={6}>
+                            <TextField fullWidth label="Roll Number" name="rollNumber" value={formData.rollNumber} onChange={handleFormChange} variant="outlined" size="small" placeholder="College ID / Roll No" sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', bgcolor: '#fff' } }} />
+                          </Grid>
+                          <Grid item xs={12}>
+                            <TextField fullWidth label="College Name" name="collegeName" value={formData.collegeName} onChange={handleFormChange} variant="outlined" size="small" placeholder="University / College Full Name" sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', bgcolor: '#fff' } }} />
+                          </Grid>
+                        </Grid>
+                      </Box>
+                    )}
                   </Grid>
 
                   <Grid item xs={12} md={5}>

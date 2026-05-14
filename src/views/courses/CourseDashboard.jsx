@@ -3,14 +3,15 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box, Typography, Button, Stack, Grid, Container, Tabs, Tab, Card,
   CardContent, LinearProgress, Avatar, Chip, Divider, List, ListItem,
-  ListItemText, ListItemAvatar, Paper, CircularProgress, Alert, useTheme, useMediaQuery
+  ListItemText, ListItemAvatar, Paper, CircularProgress, Alert, useTheme, useMediaQuery,
+  TextField, Table, TableBody, TableCell, TableContainer, TableHead, TableRow
 } from '@mui/material';
 import {
   IconArrowLeft, IconBook, IconCalendarCheck, IconFileCheck, IconTrophy,
   IconVideo, IconFileText, IconClipboardList, IconPoint, IconClock,
   IconSmartHome, IconLayoutSidebarLeftCollapse, IconLayoutSidebarLeftExpand,
   IconCircleCheck, IconCircleX, IconAlertCircle, IconAward, IconRocket, IconTerminal2,
-  IconBrandDiscord
+  IconBrandDiscord, IconUserCircle, IconUsers
 } from '@tabler/icons-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import tenantConfig from 'config/tenantConfig';
@@ -39,6 +40,15 @@ export default function CourseDashboard() {
   const [loading, setLoading] = useState(true);
   const [tabValue, setTabValue] = useState(0);
   const [error, setError] = useState('');
+  const [profileData, setProfileData] = useState({
+    surname: '',
+    firstName: '',
+    lastName: '',
+    phoneNumber: '',
+    collegeName: '',
+    rollNumber: ''
+  });
+  const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
     fetchCourseDetail();
@@ -59,6 +69,19 @@ export default function CourseDashboard() {
         setCourse(data);
         if (!data.isEnrolled) {
           navigate(`/courses/${courseId}`);
+        } else {
+          // Extract my enrollment data
+          const myEnrollment = data.enrollments?.find(e => e.student?._id === user?.id || e.student === user?.id);
+          if (myEnrollment) {
+            setProfileData({
+              surname: myEnrollment.surname || '',
+              firstName: myEnrollment.firstName || '',
+              lastName: myEnrollment.lastName || '',
+              phoneNumber: myEnrollment.phoneNumber || '',
+              collegeName: myEnrollment.collegeName || '',
+              rollNumber: myEnrollment.rollNumber || ''
+            });
+          }
         }
       } else {
         setError(data.message || 'Failed to load course details');
@@ -67,6 +90,33 @@ export default function CourseDashboard() {
       setError('Connection error');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleProfileUpdate = async () => {
+    setUpdating(true);
+    try {
+      const config = await tenantConfig.get();
+      const response = await fetch(`${API_BASE_URL}/student/courses/${courseId}/enrollment`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${user?.token || localStorage.getItem('studentToken')}`,
+          'x-api-key': config.apiKey,
+          'x-tenant-id': config.tenantId
+        },
+        body: JSON.stringify(profileData)
+      });
+      if (response.ok) {
+        toast.success('Enrollment details updated!');
+        fetchCourseDetail();
+      } else {
+        toast.error('Failed to update details');
+      }
+    } catch (err) {
+      toast.error('Connection error');
+    } finally {
+      setUpdating(false);
     }
   };
 
@@ -88,7 +138,9 @@ export default function CourseDashboard() {
     { label: 'Curriculum', icon: <IconBook size={22} />, index: 0 },
     { label: 'Attendance', icon: <IconCalendarCheck size={22} />, index: 1 },
     { label: 'Assessments', icon: <IconFileCheck size={22} />, index: 2 },
-    { label: 'My Performance', icon: <IconTrophy size={22} />, index: 3 }
+    { label: 'My Performance', icon: <IconTrophy size={22} />, index: 3 },
+    { label: 'Student Details', icon: <IconUserCircle size={22} />, index: 4 },
+    { label: 'Enrolled Students', icon: <IconUsers size={22} />, index: 5 }
   ];
 
   return (
@@ -393,6 +445,177 @@ export default function CourseDashboard() {
                   </Card>
                 </Grid>
               </Grid>
+            </TabPanel>
+            {/* Tab 4: Student Details */}
+            <TabPanel value={tabValue} index={4}>
+              <Card sx={{ borderRadius: '32px', border: '1px solid #e2e8f0', boxShadow: 'none' }}>
+                <CardContent sx={{ p: 5 }}>
+                  <Typography variant="h3" sx={{ fontWeight: 900, mb: 4 }}>My Enrollment Profile</Typography>
+                  <Typography sx={{ color: '#64748b', mb: 4, fontWeight: 500 }}>
+                    You can update your academic and contact details here. Email address cannot be changed.
+                  </Typography>
+                  
+                  <Grid container spacing={3}>
+                    <Grid item xs={12} sm={4}>
+                      <TextField 
+                        fullWidth 
+                        label="Surname" 
+                        value={profileData.surname} 
+                        onChange={(e) => setProfileData({...profileData, surname: e.target.value.toUpperCase()})}
+                        variant="outlined"
+                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={4}>
+                      <TextField 
+                        fullWidth 
+                        label="First Name" 
+                        value={profileData.firstName} 
+                        onChange={(e) => setProfileData({...profileData, firstName: e.target.value.toUpperCase()})}
+                        variant="outlined"
+                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={4}>
+                      <TextField 
+                        fullWidth 
+                        label="Last Name" 
+                        value={profileData.lastName} 
+                        onChange={(e) => setProfileData({...profileData, lastName: e.target.value.toUpperCase()})}
+                        variant="outlined"
+                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField 
+                        fullWidth 
+                        label="Phone Number" 
+                        value={profileData.phoneNumber} 
+                        onChange={(e) => setProfileData({...profileData, phoneNumber: e.target.value})}
+                        variant="outlined"
+                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField 
+                        fullWidth 
+                        label="Roll Number" 
+                        value={profileData.rollNumber} 
+                        onChange={(e) => setProfileData({...profileData, rollNumber: e.target.value})}
+                        variant="outlined"
+                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+                      />
+                    </Grid>
+                    <Grid item xs={12}>
+                      <TextField 
+                        fullWidth 
+                        label="College Name" 
+                        value={profileData.collegeName} 
+                        onChange={(e) => setProfileData({...profileData, collegeName: e.target.value})}
+                        variant="outlined"
+                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+                      />
+                    </Grid>
+                    <Grid item xs={12}>
+                      <TextField 
+                        fullWidth 
+                        label="Email Address" 
+                        value={user?.email || ''} 
+                        disabled 
+                        variant="outlined"
+                        helperText="Email cannot be updated"
+                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+                      />
+                    </Grid>
+                  </Grid>
+
+                  <Box sx={{ mt: 5, display: 'flex', justifyContent: 'flex-end' }}>
+                    <Button 
+                      variant="contained" 
+                      onClick={handleProfileUpdate}
+                      disabled={updating}
+                      sx={{ 
+                        bgcolor: course.color, 
+                        py: 1.5, 
+                        px: 6, 
+                        borderRadius: '12px', 
+                        fontWeight: 800,
+                        textTransform: 'none',
+                        '&:hover': { bgcolor: course.color, filter: 'brightness(0.9)' }
+                      }}
+                    >
+                      {updating ? 'Saving Changes...' : 'Update Profile'}
+                    </Button>
+                  </Box>
+                </CardContent>
+              </Card>
+            </TabPanel>
+            {/* Tab 5: Enrolled Students List */}
+            <TabPanel value={tabValue} index={5}>
+              <Card sx={{ borderRadius: '32px', border: '1px solid #e2e8f0', boxShadow: 'none' }}>
+                <CardContent sx={{ p: 5 }}>
+                  <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 4 }}>
+                    <Typography variant="h3" sx={{ fontWeight: 900 }}>Enrolled Students List</Typography>
+                    <Chip 
+                      label={`${course.enrollments?.length || 0} Total Students`} 
+                      sx={{ 
+                        bgcolor: 'rgba(99, 102, 241, 0.1)', 
+                        color: '#6366f1', 
+                        fontWeight: 900, 
+                        borderRadius: '8px',
+                        border: '1px solid rgba(99, 102, 241, 0.2)'
+                      }} 
+                    />
+                  </Stack>
+                  <TableContainer component={Paper} sx={{ borderRadius: '16px', boxShadow: 'none', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
+                    <Table>
+                      <TableHead sx={{ bgcolor: '#f8fafc' }}>
+                        <TableRow>
+                          <TableCell sx={{ fontWeight: 800 }}>S.No</TableCell>
+                          <TableCell sx={{ fontWeight: 800 }}>Full Name</TableCell>
+                          <TableCell sx={{ fontWeight: 800 }}>Roll Number</TableCell>
+                          <TableCell sx={{ fontWeight: 800 }}>College Name</TableCell>
+                          <TableCell sx={{ fontWeight: 800 }}>Phone</TableCell>
+                          <TableCell sx={{ fontWeight: 800 }}>Status</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {course.enrollments?.map((enrollment, idx) => (
+                          <TableRow key={idx} sx={{ '&:hover': { bgcolor: '#f8fafc' } }}>
+                            <TableCell sx={{ fontWeight: 600 }}>{idx + 1}</TableCell>
+                            <TableCell>
+                              <Stack direction="row" spacing={1.5} alignItems="center">
+                                <Avatar sx={{ width: 32, height: 32, bgcolor: course.color, fontSize: '0.8rem', fontWeight: 800 }}>
+                                  {enrollment.firstName?.charAt(0) || enrollment.student?.name?.charAt(0)}
+                                </Avatar>
+                                <Typography sx={{ fontWeight: 700, fontSize: '0.9rem' }}>
+                                  {`${enrollment.surname || ''} ${enrollment.firstName || ''} ${enrollment.lastName || ''}`.trim() || enrollment.student?.name}
+                                </Typography>
+                              </Stack>
+                            </TableCell>
+                            <TableCell sx={{ fontWeight: 600, color: '#64748b' }}>{enrollment.rollNumber || '--'}</TableCell>
+                            <TableCell sx={{ fontSize: '0.85rem' }}>{enrollment.collegeName || '--'}</TableCell>
+                            <TableCell sx={{ fontSize: '0.85rem', color: '#64748b' }}>{enrollment.phoneNumber || '--'}</TableCell>
+                            <TableCell>
+                              <Chip 
+                                label={enrollment.status || 'active'} 
+                                size="small" 
+                                sx={{ 
+                                  bgcolor: (enrollment.status || 'active') === 'active' ? '#dcfce7' : '#f1f5f9', 
+                                  color: (enrollment.status || 'active') === 'active' ? '#166534' : '#64748b',
+                                  fontWeight: 800,
+                                  fontSize: '0.7rem',
+                                  textTransform: 'uppercase'
+                                }} 
+                              />
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </CardContent>
+              </Card>
             </TabPanel>
           </motion.div>
         </AnimatePresence>

@@ -276,10 +276,10 @@ export default function AuthLogin() {
           size="large"
           variant="outlined"
           onClick={() => {
-            setFormData({ email: 'test@test.com', password: 'password' });
+            setFormData({ email: 'test@test.com', password: 'test@123' });
             setTimeout(() => {
               const fakeEvent = { preventDefault: () => {} };
-              handleSubmit(fakeEvent, { email: 'test@test.com', password: 'password' });
+              handleSubmit(fakeEvent, { email: 'test@test.com', password: 'test@123' });
             }, 100);
           }}
           sx={{

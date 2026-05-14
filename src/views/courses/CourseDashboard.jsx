@@ -16,6 +16,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import tenantConfig from 'config/tenantConfig';
 import { useAuth } from 'contexts/AuthContext';
+import { toast } from 'react-hot-toast';
 
 const API_BASE_URL = import.meta.env.DEV ? 'http://localhost:4000/api' : 'https://backend.orcode.in/api';
 

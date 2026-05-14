@@ -85,7 +85,7 @@ export default function CourseEnrollment() {
       setConfig(c);
       fetchCourse(c);
     }).catch(console.error);
-  }, [courseId]);
+  }, [courseId, user]);
 
   const fetchCourse = async (cfg) => {
     try {
@@ -93,7 +93,8 @@ export default function CourseEnrollment() {
         'x-api-key': cfg.apiKey || '',
         'x-tenant-id': cfg.tenantId || ''
       };
-      if (user?.token) headers['Authorization'] = `Bearer ${user.token}`;
+      const token = user?.token || localStorage.getItem('studentToken');
+      if (token) headers['Authorization'] = `Bearer ${token}`;
 
       const res = await fetch(`${API_BASE_URL}/student/courses/${courseId}`, { headers });
       const data = await res.json();

@@ -16,9 +16,10 @@ import { Link } from 'react-router-dom';
 import { handlerDrawerOpen, useGetMenuMaster } from 'api/menu';
 
 // assets
-import { IconChevronLeft, IconChevronRight, IconUsers, IconCode } from '@tabler/icons-react';
+import { IconChevronLeft, IconChevronRight, IconUsers, IconCode, IconMenu2, IconX } from '@tabler/icons-react';
 import { Stars } from '@mui/icons-material';
 import Button from '@mui/material/Button';
+import IconButton from '@mui/material/IconButton';
 import { motion, AnimatePresence } from 'framer-motion';
 import { io } from 'socket.io-client';
 
@@ -87,8 +88,22 @@ export default function Header() {
   return (
     <>
       {/* logo & toggler button */}
-      <Box sx={{ width: downMD ? 'auto' : 260, display: 'flex', alignItems: 'center' }}>
-        <Box component="span" sx={{ display: { xs: 'none', md: 'block' }, flexGrow: 1 }}>
+      <Box sx={{ width: downMD ? 'auto' : 260, display: 'flex', alignItems: 'center', gap: 1 }}>
+        {downMD && (
+          <IconButton
+            onClick={() => handlerDrawerOpen(!drawerOpen)}
+            sx={{
+              color: '#1e293b',
+              bgcolor: 'rgba(226, 232, 240, 0.4)',
+              borderRadius: '12px',
+              p: 1.25,
+              '&:hover': { bgcolor: 'rgba(226, 232, 240, 0.6)' }
+            }}
+          >
+            {drawerOpen ? <IconX size={22} /> : <IconMenu2 size={22} />}
+          </IconButton>
+        )}
+        <Box component="span" sx={{ display: 'block', flexGrow: 1 }}>
           <LogoSection />
         </Box>
         <Button

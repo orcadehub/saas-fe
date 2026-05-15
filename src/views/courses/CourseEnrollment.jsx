@@ -219,7 +219,10 @@ export default function CourseEnrollment() {
     );
   }
 
-  const activeBatches = course.batches?.filter(b => b.isActive) || [];
+  const activeBatches = (course.batches?.filter(b => b.isActive) || []).map(b => ({
+    ...b,
+    maxSeats: 2000 // Force 2000 seats as requested
+  }));
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: '#f8fafc' }}>
@@ -587,7 +590,7 @@ export default function CourseEnrollment() {
                         { icon: <IconClock size={20} />, label: 'Timing', val: activeBatches[0]?.timing || '7 PM - 8 PM IST' },
                         { icon: <IconUsers size={20} />, label: 'Batch Size', val: `${activeBatches[0]?.maxSeats || 2000} Students` },
                         { icon: <IconUserCheck size={20} />, label: 'Enrolled', val: `${activeBatches[0]?.enrolledCount || 0} Students` },
-                        { icon: <IconUserMinus size={20} />, label: 'Seats Left', val: `${(activeBatches[0]?.maxSeats || 2000) - (activeBatches[0]?.enrolledCount || 0)} Spots` },
+                        { icon: <IconUserMinus size={20} />, label: 'Seats Left', val: `${Math.max(0, (activeBatches[0]?.maxSeats || 2000) - (activeBatches[0]?.enrolledCount || 0))} Spots` },
                         { icon: <IconCertificate size={20} />, label: 'Certificate', val: 'LMS Verified' }
                       ].map((item, idx) => (
                         <Grid item xs={12} sm={4} key={idx}>

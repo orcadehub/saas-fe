@@ -171,7 +171,7 @@ export default function Courses() {
   const isTestUser = user?.email === 'test@test.com';
 
   // Countdown to May 16
-  const [countdown, setCountdown] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+  const [countdown, setCountdown] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0, isExpired: false });
 
   useEffect(() => {
     const target = new Date('2026-05-16T00:00:00+05:30').getTime();
@@ -182,7 +182,8 @@ export default function Courses() {
         days: Math.floor(diff / (1000 * 60 * 60 * 24)),
         hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
         minutes: Math.floor((diff / (1000 * 60)) % 60),
-        seconds: Math.floor((diff / 1000) % 60)
+        seconds: Math.floor((diff / 1000) % 60),
+        isExpired: diff === 0
       });
     };
     tick();
@@ -312,40 +313,81 @@ export default function Courses() {
               </Typography>
             </Box>
 
-            <Stack spacing={2} alignItems="center" sx={{ flexShrink: 0 }}>
-              <Box sx={{ textAlign: 'center' }}>
-                <Typography sx={{ fontWeight: 700, fontSize: '0.75rem', letterSpacing: '2px', textTransform: 'uppercase', opacity: 0.8, mb: 1.5 }}>
-                  🎂 Birthday Countdown
-                </Typography>
-                <Stack direction="row" spacing={1}>
-                  {[
-                    { val: countdown.days, label: 'Days' },
-                    { val: countdown.hours, label: 'Hrs' },
-                    { val: countdown.minutes, label: 'Min' },
-                    { val: countdown.seconds, label: 'Sec' }
-                  ].map((item) => (
-                    <Box
-                      key={item.label}
-                      sx={{
-                        p: 1.5,
-                        minWidth: 60,
-                        bgcolor: 'rgba(255,255,255,0.15)',
-                        borderRadius: '16px',
-                        backdropFilter: 'blur(20px)',
-                        border: '1px solid rgba(255,255,255,0.2)',
-                        textAlign: 'center'
-                      }}
-                    >
-                      <Typography sx={{ fontWeight: 900, fontSize: '1.75rem', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
-                        {String(item.val).padStart(2, '0')}
-                      </Typography>
-                      <Typography sx={{ fontWeight: 700, fontSize: '0.65rem', opacity: 0.7, mt: 0.3, letterSpacing: '1px', textTransform: 'uppercase' }}>
-                        {item.label}
-                      </Typography>
-                    </Box>
-                  ))}
-                </Stack>
-              </Box>
+            <Stack spacing={2} alignItems="center" sx={{ flexShrink: 0, width: { xs: '100%', md: 'auto' } }}>
+              {countdown.isExpired ? (
+                <Box sx={{ textAlign: { xs: 'center', md: 'right' } }}>
+                  <Typography
+                    sx={{
+                      fontWeight: 900,
+                      fontSize: { xs: '1.5rem', md: '1.85rem' },
+                      color: '#fff',
+                      mb: 1,
+                      textShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                    }}
+                  >
+                    Celebrating 1st Anniversary! 🎊
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: '1.1rem',
+                      color: '#fbbf24',
+                      mb: 2
+                    }}
+                  >
+                    May 16th, 2026
+                  </Typography>
+                  <Box
+                    sx={{
+                      p: 2,
+                      bgcolor: 'rgba(255,255,255,0.15)',
+                      borderRadius: '20px',
+                      backdropFilter: 'blur(10px)',
+                      border: '1px solid rgba(255,255,255,0.2)'
+                    }}
+                  >
+                    <Typography sx={{ fontWeight: 800, fontSize: '0.95rem' }}>
+                      Registrations are open for <br />
+                      <Box component="span" sx={{ color: '#fbbf24' }}>FREE MERN STACK</Box> <br />
+                      upto 30th May!
+                    </Typography>
+                  </Box>
+                </Box>
+              ) : (
+                <Box sx={{ textAlign: 'center' }}>
+                  <Typography sx={{ fontWeight: 700, fontSize: '0.75rem', letterSpacing: '2px', textTransform: 'uppercase', opacity: 0.8, mb: 1.5 }}>
+                    🎂 Birthday Countdown
+                  </Typography>
+                  <Stack direction="row" spacing={1}>
+                    {[
+                      { val: countdown.days, label: 'Days' },
+                      { val: countdown.hours, label: 'Hrs' },
+                      { val: countdown.minutes, label: 'Min' },
+                      { val: countdown.seconds, label: 'Sec' }
+                    ].map((item) => (
+                      <Box
+                        key={item.label}
+                        sx={{
+                          p: 1.5,
+                          minWidth: 60,
+                          bgcolor: 'rgba(255,255,255,0.15)',
+                          borderRadius: '16px',
+                          backdropFilter: 'blur(20px)',
+                          border: '1px solid rgba(255,255,255,0.2)',
+                          textAlign: 'center'
+                        }}
+                      >
+                        <Typography sx={{ fontWeight: 900, fontSize: '1.75rem', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
+                          {String(item.val).padStart(2, '0')}
+                        </Typography>
+                        <Typography sx={{ fontWeight: 700, fontSize: '0.65rem', opacity: 0.7, mt: 0.3, letterSpacing: '1px', textTransform: 'uppercase' }}>
+                          {item.label}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Stack>
+                </Box>
+              )}
               <Box
                 component={motion.div}
                 animate={{ scale: [1, 1.05, 1] }}

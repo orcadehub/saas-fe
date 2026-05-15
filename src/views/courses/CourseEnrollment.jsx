@@ -12,7 +12,7 @@ import {
   IconCode, IconLiveView, IconBook, IconRocket, IconCertificate, IconGift,
   IconArrowLeft, IconBrandReact, IconBrandNodejs, IconBrandMongodb, IconBrandJavascript,
   IconBrandHtml5, IconBrandCss3, IconBrandGit, IconTerminal2, IconPoint,
-  IconUserCheck, IconUserMinus
+  IconUserCheck, IconUserMinus, IconArrowDown
 } from '@tabler/icons-react';
 import tenantConfig from 'config/tenantConfig';
 import { useAuth } from 'contexts/AuthContext';
@@ -132,10 +132,6 @@ export default function CourseEnrollment() {
       navigate('/login');
       return;
     }
-    if (!agreedToTerms) {
-      setError('Please agree to the Terms and Conditions');
-      return;
-    }
     if (!selectedBatch) {
       setError('Please select a batch');
       return;
@@ -225,7 +221,70 @@ export default function CourseEnrollment() {
   }));
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: '#f8fafc' }}>
+    <Box sx={{ minHeight: '100vh', bgcolor: '#f8fafc', position: 'relative' }}>
+      {/* Floating Scroll Indicator */}
+      {!course.isEnrolled && (
+        <Box
+          component={motion.div}
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 1 }}
+          sx={{
+            position: 'fixed',
+            right: { xs: 10, md: 30 },
+            top: '50%',
+            transform: 'translateY(-50%)',
+            zIndex: 100,
+            display: { xs: 'none', lg: 'block' }
+          }}
+        >
+          <Button
+            onClick={() => document.getElementById('enroll-now')?.scrollIntoView({ behavior: 'smooth' })}
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 1.5,
+              py: 3,
+              px: 1.5,
+              bgcolor: '#fff',
+              border: '1px solid #e2e8f0',
+              borderRadius: '100px',
+              boxShadow: '0 10px 25px rgba(0,0,0,0.05)',
+              color: '#64748b',
+              textTransform: 'none',
+              '&:hover': {
+                bgcolor: '#fff',
+                color: course.color,
+                borderColor: course.color,
+                boxShadow: `0 15px 30px ${course.color}15`
+              }
+            }}
+          >
+            <Typography
+              sx={{
+                writingMode: 'vertical-rl',
+                textOrientation: 'mixed',
+                fontWeight: 900,
+                fontSize: '0.75rem',
+                letterSpacing: '2px',
+                textTransform: 'uppercase'
+              }}
+            >
+              Scroll to Enroll
+            </Typography>
+            <Box
+              component={motion.div}
+              animate={{ y: [0, 8, 0] }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+              sx={{ color: course.color }}
+            >
+              <IconArrowDown size={20} stroke={3} />
+            </Box>
+          </Button>
+        </Box>
+      )}
+
       {/* Top Navigation Bar */}
       <Box sx={{ bgcolor: '#fff', borderBottom: '1px solid #e2e8f0', py: 1.5, position: 'sticky', top: 0, zIndex: 10 }}>
         <Container maxWidth="lg">
@@ -341,23 +400,53 @@ export default function CourseEnrollment() {
 
               {/* Hero Section */}
               <Box>
-                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
-                  <Typography variant="overline" sx={{ color: course.color, fontWeight: 900, letterSpacing: '2px' }}>
-                    {course.category}
-                  </Typography>
-                  <IconPoint size={12} color="#94a3b8" />
-                  <Typography variant="overline" sx={{ color: '#64748b', fontWeight: 800, letterSpacing: '1px' }}>
-                    {course.level}
-                  </Typography>
+                <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems="flex-start" spacing={3}>
+                  <Box sx={{ flex: 1 }}>
+                    <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
+                      <Typography variant="overline" sx={{ color: course.color, fontWeight: 900, letterSpacing: '2px' }}>
+                        {course.category}
+                      </Typography>
+                      <IconPoint size={12} color="#94a3b8" />
+                      <Typography variant="overline" sx={{ color: '#64748b', fontWeight: 800, letterSpacing: '1px' }}>
+                        {course.level}
+                      </Typography>
+                    </Stack>
+                    
+                    <Typography sx={{ fontWeight: 900, fontSize: { xs: '2.5rem', md: '3.75rem' }, color: '#0f172a', lineHeight: 1, mb: 3, letterSpacing: '-2px' }}>
+                      {course.title}
+                    </Typography>
+                    
+                    <Typography sx={{ color: '#475569', fontWeight: 500, lineHeight: 1.8, fontSize: '1.2rem', mb: 5, maxWidth: '95%' }}>
+                      {course.longDescription || course.description}
+                    </Typography>
+                  </Box>
+
+                  {!course.isEnrolled && (
+                    <Box sx={{ pt: { md: 6 }, width: { xs: '100%', md: 'auto' } }}>
+                      <Button
+                        variant="contained"
+                        size="large"
+                        disabled={enrolling}
+                        onClick={handleEnroll}
+                        sx={{
+                          bgcolor: course.color,
+                          py: 2,
+                          px: 6,
+                          borderRadius: '16px',
+                          fontWeight: 900,
+                          fontSize: '1.1rem',
+                          textTransform: 'none',
+                          boxShadow: `0 12px 24px ${course.color}40`,
+                          '&:hover': { bgcolor: course.color, boxShadow: `0 15px 30px ${course.color}60`, transform: 'translateY(-2px)' },
+                          transition: 'all 0.2s',
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        {enrolling ? 'Processing...' : user?.token ? (course.isFree ? 'Enroll for Free' : 'Enroll Now') : 'Login to Enroll'}
+                      </Button>
+                    </Box>
+                  )}
                 </Stack>
-                
-                <Typography sx={{ fontWeight: 900, fontSize: { xs: '2.5rem', md: '3.75rem' }, color: '#0f172a', lineHeight: 1, mb: 3, letterSpacing: '-2px' }}>
-                  {course.title}
-                </Typography>
-                
-                <Typography sx={{ color: '#475569', fontWeight: 500, lineHeight: 1.8, fontSize: '1.2rem', mb: 5, maxWidth: '95%' }}>
-                  {course.longDescription || course.description}
-                </Typography>
 
                 <Grid container spacing={3}>
                   {[
@@ -637,22 +726,11 @@ export default function CourseEnrollment() {
                           </Button>
                         ) : (
                           <>
-                            <FormControlLabel
-                              control={<Checkbox checked={agreedToTerms} onChange={(e) => setAgreedToTerms(e.target.checked)} sx={{ color: '#cbd5e1', '&.Mui-checked': { color: course.color } }} />}
-                              label={
-                                <Typography sx={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 500 }}>
-                                  I agree to the{' '}
-                                  <Box component="span" onClick={(e) => { e.preventDefault(); setShowTermsDialog(true); }} sx={{ color: course.color, fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}>
-                                    professional terms
-                                  </Box>
-                                </Typography>
-                              }
-                            />
                             <Button
                               fullWidth
                               variant="contained"
                               size="large"
-                              disabled={enrolling || !agreedToTerms}
+                              disabled={enrolling}
                               onClick={handleEnroll}
                               sx={{
                                 bgcolor: course.color,
@@ -669,9 +747,6 @@ export default function CourseEnrollment() {
                             >
                               {enrolling ? 'Processing...' : user?.token ? (course.isFree ? 'Enroll for Free' : 'Secure my Spot') : 'Login to Enroll'}
                             </Button>
-                            <Typography sx={{ fontSize: '0.75rem', color: '#94a3b8', textAlign: 'center', fontWeight: 500 }}>
-                              Optional ₹99 certificate fee applies at the end.
-                            </Typography>
                           </>
                         )}
                       </Stack>
@@ -734,14 +809,36 @@ export default function CourseEnrollment() {
               <TextField fullWidth label="College Name" name="collegeName" value={formData.collegeName} onChange={handleFormChange} variant="outlined" size="small" placeholder="University / College Full Name" sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }} />
             </Grid>
           </Grid>
+
+
+          <Box sx={{ mt: 2 }}>
+            <FormControlLabel
+              control={<Checkbox checked={agreedToTerms} onChange={(e) => setAgreedToTerms(e.target.checked)} sx={{ color: '#cbd5e1', '&.Mui-checked': { color: course.color } }} />}
+              label={
+                <Typography sx={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 600 }}>
+                  I agree to the{' '}
+                  <Box component="span" onClick={(e) => { e.preventDefault(); setShowTermsDialog(true); }} sx={{ color: course.color, fontWeight: 800, cursor: 'pointer', textDecoration: 'underline' }}>
+                    Terms & Conditions
+                  </Box>
+                </Typography>
+              }
+            />
+          </Box>
         </DialogContent>
         <DialogActions sx={{ p: 3, pt: 0 }}>
           <Button onClick={() => setShowEnrollDialog(false)} sx={{ color: '#64748b', fontWeight: 700 }}>Cancel</Button>
           <Button 
             onClick={confirmEnrollment} 
             variant="contained" 
-            disabled={enrolling}
-            sx={{ bgcolor: course.color, borderRadius: '12px', px: 4, fontWeight: 800, '&:hover': { bgcolor: course.color, filter: 'brightness(0.9)' } }}
+            disabled={enrolling || !agreedToTerms}
+            sx={{ 
+              bgcolor: course.color, 
+              borderRadius: '12px', 
+              px: 4, 
+              fontWeight: 800, 
+              '&:hover': { bgcolor: course.color, filter: 'brightness(0.9)' },
+              '&:disabled': { opacity: 0.5, bgcolor: '#94a3b8' }
+            }}
           >
             {enrolling ? <CircularProgress size={24} color="inherit" /> : 'Confirm & Enroll'}
           </Button>

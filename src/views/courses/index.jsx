@@ -1,5 +1,7 @@
 import { Box, Typography, CardContent, Button, Chip, Stack, Grid } from '@mui/material';
 import { motion } from 'framer-motion';
+const API_BASE_URL = import.meta.env.DEV ? 'http://localhost:4000/api' : 'https://backend.orcode.in/api';
+import tenantConfig from 'config/tenantConfig';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import {
@@ -169,6 +171,36 @@ export default function Courses() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const isTestUser = user?.email === 'test@test.com';
+  const [enrolledCourses, setEnrolledCourses] = useState([]);
+  const [loadingEnrollments, setLoadingEnrollments] = useState(false);
+
+  useEffect(() => {
+    if (user?.token) {
+      fetchEnrolledCourses();
+    }
+  }, [user]);
+
+  const fetchEnrolledCourses = async () => {
+    setLoadingEnrollments(true);
+    try {
+      const config = await tenantConfig.load();
+      const response = await fetch(`${API_BASE_URL}/student/my-courses`, {
+        headers: {
+          'x-api-key': config.apiKey,
+          'x-tenant-id': config.tenantId,
+          'Authorization': `Bearer ${user.token}`
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setEnrolledCourses(data.map(c => c.courseId));
+      }
+    } catch (error) {
+      console.error('Error fetching enrolled courses:', error);
+    } finally {
+      setLoadingEnrollments(false);
+    }
+  };
 
   // Countdown to May 16
   const [countdown, setCountdown] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0, isExpired: false });
@@ -482,21 +514,20 @@ export default function Courses() {
               <Button
                 fullWidth
                 variant="contained"
-                onClick={() => navigate('/courses/mern')}
+                onClick={() => enrolledCourses.includes('mern') ? navigate('/courses/mern/dashboard') : navigate('/courses/mern')}
                 sx={{
-                  bgcolor: '#6366f1',
+                  bgcolor: '#0f172a',
                   color: '#fff',
+                  borderRadius: '16px',
                   py: 1.75,
-                  borderRadius: '14px',
-                  textTransform: 'none',
                   fontSize: '1rem',
-                  fontWeight: 800,
-                  boxShadow: '0 8px 24px rgba(99, 102, 241, 0.35)',
-                  '&:hover': { bgcolor: '#4f46e5', boxShadow: '0 12px 30px rgba(99, 102, 241, 0.45)', transform: 'translateY(-2px)' },
+                  fontWeight: 900,
+                  textTransform: 'none',
+                  '&:hover': { bgcolor: '#1e293b', transform: 'translateY(-2px)' },
                   transition: 'all 0.2s'
                 }}
               >
-                Enroll for Free
+                {enrolledCourses.includes('mern') ? 'Go to My Dashboard' : 'Enroll Now — Free Forever'}
               </Button>
             </Box>
           </Box>
@@ -681,6 +712,14 @@ export default function Courses() {
                     <Button
                       fullWidth
                       variant="contained"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (enrolledCourses.includes(course.id)) {
+                          navigate(`/courses/${course.id}/dashboard`);
+                        } else {
+                          navigate(`/courses/${course.id}`);
+                        }
+                      }}
                       sx={{
                         bgcolor: isComingSoon ? '#cbd5e1' : course.color,
                         color: '#fff',
@@ -689,10 +728,11 @@ export default function Courses() {
                         textTransform: 'none',
                         fontSize: '1rem',
                         fontWeight: 800,
-                        '&:hover': { bgcolor: isComingSoon ? '#cbd5e1' : course.color, filter: 'brightness(0.9)' }
+                        '&:hover': { bgcolor: isComingSoon ? '#cbd5e1' : course.color, filter: 'brightness(0.9)', transform: 'translateY(-2px)' },
+                        transition: 'all 0.2s'
                       }}
                     >
-                      {isComingSoon ? 'Coming Soon' : 'Enroll Now'}
+                      {isComingSoon ? 'Coming Soon' : enrolledCourses.includes(course.id) ? 'Go to Dashboard' : 'Enroll Now'}
                     </Button>
                   </Box>
                 </CardContent>

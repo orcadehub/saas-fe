@@ -387,6 +387,20 @@ export default function IDE() {
           <Select
             value={language}
             onChange={handleLanguageChange}
+            MenuProps={{
+              PaperProps: {
+                sx: {
+                  bgcolor: isDarkMode ? '#0f1120' : '#ffffff',
+                  border: `1px solid ${t.border}`,
+                  '& .MuiList-root': {
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 1fr',
+                    gap: '4px',
+                    p: 1
+                  }
+                }
+              }
+            }}
             sx={{
               color: t.text,
               bgcolor: t.selectBg,
@@ -410,10 +424,19 @@ export default function IDE() {
             )}
           >
             {Object.entries(langMeta).map(([key, meta]) => (
-              <MenuItem key={key} value={key}>
+              <MenuItem 
+                key={key} 
+                value={key}
+                sx={{ 
+                  borderRadius: '6px', 
+                  color: t.text,
+                  '&:hover': { bgcolor: isDarkMode ? 'rgba(99, 102, 241, 0.1)' : 'rgba(99, 102, 241, 0.05)' },
+                  '&.Mui-selected': { bgcolor: isDarkMode ? 'rgba(99, 102, 241, 0.15)' : 'rgba(99, 102, 241, 0.1)' }
+                }}
+              >
                 <Stack direction="row" alignItems="center" spacing={1.5}>
                   <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: meta.color }} />
-                  <Typography sx={{ fontWeight: 600 }}>{meta.label}</Typography>
+                  <Typography sx={{ fontWeight: 600, fontSize: '0.8rem' }}>{meta.label}</Typography>
                 </Stack>
               </MenuItem>
             ))}

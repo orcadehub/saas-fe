@@ -226,18 +226,19 @@ export const setupTestUserMock = () => {
       return createResponse({ success: true, message: 'Assessment submitted successfully' });
     }
 
-    // 10. Programming Practice Topics
     if (url.includes('/programming-questions/topics')) {
       const pTopics = [
-        'input',
+        'inputs',
         'operators',
         'conditions',
         'nested conditions',
         'loops',
-        'nested loops',
-        'while loop',
+        'while loops',
+        'pattern printing',
         'arrays',
         'strings',
+        'recursion',
+        'matrices',
         'stack',
         'queue',
         'two pointers',

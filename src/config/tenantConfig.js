@@ -21,7 +21,7 @@ class TenantConfig {
       const apiEndpoint = isDev ? 'http://localhost:4000/api' : 'https://backend.orcode.in/api';
 
       if (isDev) {
-        domain = 'orcode.in';
+        domain = localStorage.getItem('simulated_tenant_domain') || 'orcode.in';
       }
 
       const response = await fetch(`${apiEndpoint}/tenants/config?domain=${domain}`);

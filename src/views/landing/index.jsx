@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Box, Container, Stack, Typography, Button, IconButton, useTheme } from '@mui/material';
+import { Box, Container, Stack, Typography, Button, IconButton, useTheme, Divider } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -23,6 +23,7 @@ import StarryBackground from 'components/StarryBackground';
 import CelestialCursor from 'components/CelestialCursor';
 import DarkNavbar from 'components/DarkNavbar';
 import AnimatedGridBackground from 'components/AnimatedGridBackground';
+import PolicyDialog from 'components/PolicyDialogs';
 
 // ── Starry Background (Moved to components/StarryBackground.jsx) ──
 
@@ -104,6 +105,47 @@ const FloatingParticles = () => {
 
 export default function Landing() {
   const navigate = useNavigate();
+  const [policyType, setPolicyType] = useState(null);
+
+  // Tenant Explorer Sandbox States (for Localhost)
+  const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  const [tenants, setTenants] = useState([]);
+  const [selectedTenant, setSelectedTenant] = useState(null);
+  const [activeSimulatedDomain, setActiveSimulatedDomain] = useState(localStorage.getItem('simulated_tenant_domain') || 'orcode.in');
+  const [loadingTenants, setLoadingTenants] = useState(false);
+  const [tenantError, setTenantError] = useState('');
+
+  useEffect(() => {
+    if (isLocalhost) {
+      setLoadingTenants(true);
+      const API_BASE_URL = 'http://localhost:4000/api';
+      fetch(`${API_BASE_URL}/tenants/public-list`)
+        .then((res) => {
+          if (!res.ok) throw new Error('Failed to fetch tenants');
+          return res.json();
+        })
+        .then((data) => {
+          setTenants(data);
+          // Set initial selected tenant
+          if (data && data.length > 0) {
+            const current = data.find(t => t.domain === activeSimulatedDomain) || data[0];
+            setSelectedTenant(current);
+          }
+          setLoadingTenants(false);
+        })
+        .catch((err) => {
+          console.error(err);
+          setTenantError(err.message);
+          setLoadingTenants(false);
+        });
+    }
+  }, [isLocalhost, activeSimulatedDomain]);
+
+  const handleSwitchTenant = (domain) => {
+    localStorage.setItem('simulated_tenant_domain', domain);
+    setActiveSimulatedDomain(domain);
+    window.location.reload();
+  };
 
   return (
     <Box
@@ -339,6 +381,279 @@ export default function Landing() {
         </motion.div>
       </Container>
 
+      {/* ══════════ LOCALHOST DEVELOPER SANDBOX: Tenant Explorer ══════════ */}
+      {isLocalhost && (
+        <Container maxWidth="xl" sx={{ py: 6, position: 'relative', zIndex: 10 }}>
+          <Box
+            sx={{
+              p: { xs: 4, md: 6 },
+              borderRadius: '32px',
+              border: '1px solid rgba(124, 58, 237, 0.15)',
+              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(243, 244, 246, 0.95) 100%)',
+              backdropFilter: 'blur(20px)',
+              boxShadow: '0 40px 100px rgba(124, 58, 237, 0.08)'
+            }}
+          >
+            <Stack spacing={4}>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 3 }}>
+                <Box>
+                  <Typography variant="h2" sx={{ fontWeight: 900, color: '#0f172a', letterSpacing: '-1.5px', mb: 1, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                    <span style={{ fontSize: '2rem' }}>🛠️</span> Tenant Sandbox Explorer
+                  </Typography>
+                  <Typography variant="h5" sx={{ color: '#64748b', fontWeight: 500 }}>
+                    Select and inspect any white-label tenant database entry dynamically on your localhost.
+                  </Typography>
+                </Box>
+                <Box
+                  sx={{
+                    px: 3,
+                    py: 1.25,
+                    borderRadius: '100px',
+                    bgcolor: 'rgba(16, 185, 129, 0.1)',
+                    border: '1px solid rgba(16, 185, 129, 0.2)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1.5
+                  }}
+                >
+                  <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#10b981', animation: 'pulse 1.5s infinite' }} />
+                  <Typography sx={{ color: '#065f46', fontSize: '0.875rem', fontWeight: 800 }}>
+                    Active Simulated Tenant: <span style={{ textDecoration: 'underline' }}>{activeSimulatedDomain}</span>
+                  </Typography>
+                </Box>
+              </Box>
+
+              <Divider sx={{ borderColor: 'rgba(0,0,0,0.06)' }} />
+
+              {tenantError && (
+                <Typography variant="h6" color="error" sx={{ fontWeight: 600 }}>
+                  ⚠️ {tenantError}. Ensure your backend server is active at http://localhost:4000
+                </Typography>
+              )}
+
+              {loadingTenants ? (
+                <Typography sx={{ color: '#64748b', fontWeight: 600 }}>Loading local tenants database...</Typography>
+              ) : (
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '350px 1fr' }, gap: 5 }}>
+                  
+                  {/* Left Column: Tenants list */}
+                  <Stack spacing={2} sx={{ maxHeight: '450px', overflowY: 'auto', pr: 1 }}>
+                    <Typography variant="subtitle1" sx={{ color: '#94a3b8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                      Registered Tenants ({tenants.length})
+                    </Typography>
+                    {tenants.map((t) => {
+                      const isSelected = selectedTenant?._id === t._id;
+                      const isCurrentlySimulated = t.domain === activeSimulatedDomain;
+                      return (
+                        <Box
+                          key={t._id}
+                          onClick={() => setSelectedTenant(t)}
+                          sx={{
+                            p: 2.5,
+                            borderRadius: '20px',
+                            cursor: 'pointer',
+                            background: isSelected ? 'rgba(124, 58, 237, 0.08)' : '#ffffff',
+                            border: isSelected 
+                              ? '1px solid #7c3aed' 
+                              : isCurrentlySimulated 
+                                ? '1px dashed rgba(16, 185, 129, 0.5)'
+                                : '1px solid rgba(0,0,0,0.06)',
+                            boxShadow: isSelected ? '0 8px 24px rgba(124, 58, 237, 0.08)' : 'none',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            transition: 'all 0.3s',
+                            '&:hover': {
+                              transform: 'translateX(4px)',
+                              borderColor: isSelected ? '#7c3aed' : 'rgba(124, 58, 237, 0.3)'
+                            }
+                          }}
+                        >
+                          <Stack direction="row" alignItems="center" spacing={2}>
+                            <Box 
+                              sx={{ 
+                                width: 12, 
+                                height: 12, 
+                                borderRadius: '50%', 
+                                bgcolor: t.themeColor || '#7c3aed',
+                                boxShadow: `0 0 10px ${t.themeColor || '#7c3aed'}40`
+                              }} 
+                            />
+                            <Box sx={{ minWidth: 0 }}>
+                              <Typography variant="h5" sx={{ fontWeight: 800, color: '#0f172a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                {t.name}
+                              </Typography>
+                              <Typography variant="body2" sx={{ color: '#64748b', fontWeight: 600 }}>
+                                {t.domain}
+                              </Typography>
+                            </Box>
+                          </Stack>
+
+                          {isCurrentlySimulated && (
+                            <Box sx={{ px: 1.5, py: 0.5, borderRadius: '100px', bgcolor: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.2)', ml: 1 }}>
+                              <Typography sx={{ color: '#047857', fontSize: '0.75rem', fontWeight: 800 }}>Simulated</Typography>
+                            </Box>
+                          )}
+                        </Box>
+                      );
+                    })}
+                  </Stack>
+
+                  {/* Right Column: Selected Tenant details inspector */}
+                  {selectedTenant ? (
+                    <Box 
+                      sx={{ 
+                        p: 4, 
+                        borderRadius: '24px', 
+                        bgcolor: '#ffffff', 
+                        border: '1px solid rgba(0,0,0,0.05)',
+                        boxShadow: '0 20px 40px rgba(0,0,0,0.02)'
+                      }}
+                    >
+                      <Stack spacing={3.5}>
+                        {/* Header Details */}
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 2 }}>
+                          <Box>
+                            <Typography variant="h3" sx={{ fontWeight: 900, color: '#0f172a', mb: 0.5 }}>
+                              {selectedTenant.name}
+                            </Typography>
+                            <Typography variant="body1" sx={{ color: '#64748b', fontWeight: 600 }}>
+                              Owned by: <strong>{selectedTenant.companyName || selectedTenant.name}</strong>
+                            </Typography>
+                          </Box>
+
+                          <Stack direction="row" spacing={2}>
+                            <Button
+                              variant="contained"
+                              onClick={() => handleSwitchTenant(selectedTenant.domain)}
+                              sx={{
+                                borderRadius: '100px',
+                                background: 'linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)',
+                                color: '#fff',
+                                fontWeight: 800,
+                                px: 4,
+                                py: 1.25,
+                                textTransform: 'none',
+                                boxShadow: '0 8px 20px rgba(124, 58, 237, 0.2)',
+                                '&:hover': {
+                                  background: 'linear-gradient(135deg, #6d28d9, #4338ca)',
+                                  boxShadow: '0 12px 25px rgba(124, 58, 237, 0.3)'
+                                }
+                              }}
+                            >
+                              🚀 Switch Active Tenant
+                            </Button>
+                          </Stack>
+                        </Box>
+
+                        <Divider sx={{ borderColor: 'rgba(0,0,0,0.04)' }} />
+
+                        {/* Config Properties Grid */}
+                        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3.5 }}>
+                          <Box>
+                            <Typography variant="caption" sx={{ color: '#94a3b8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                              Primary Domain
+                            </Typography>
+                            <Typography variant="body1" sx={{ fontWeight: 700, color: '#1e293b', mt: 0.5 }}>
+                              {selectedTenant.domain}
+                            </Typography>
+                          </Box>
+
+                          <Box>
+                            <Typography variant="caption" sx={{ color: '#94a3b8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                              Allowed Email Domains
+                            </Typography>
+                            <Typography variant="body1" sx={{ fontWeight: 700, color: '#1e293b', mt: 0.5 }}>
+                              {selectedTenant.allowedDomains && selectedTenant.allowedDomains.length > 0 
+                                ? selectedTenant.allowedDomains.join(', ') 
+                                : 'Any domains allowed'}
+                            </Typography>
+                          </Box>
+
+                          <Box>
+                            <Typography variant="caption" sx={{ color: '#94a3b8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                              Platform Theme Accent
+                            </Typography>
+                            <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mt: 0.5 }}>
+                              <Box sx={{ width: 18, height: 18, borderRadius: '50%', bgcolor: selectedTenant.themeColor || '#7c3aed', border: '1px solid rgba(0,0,0,0.1)' }} />
+                              <Typography variant="body1" sx={{ fontWeight: 700, color: '#1e293b', fontFamily: 'monospace' }}>
+                                {selectedTenant.themeColor || '#7c3aed'}
+                              </Typography>
+                            </Stack>
+                          </Box>
+
+                          <Box>
+                            <Typography variant="caption" sx={{ color: '#94a3b8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                              Tenant Administrator Email
+                            </Typography>
+                            <Typography variant="body1" sx={{ fontWeight: 700, color: '#1e293b', mt: 0.5 }}>
+                              {selectedTenant.adminEmail || 'N/A'}
+                            </Typography>
+                          </Box>
+                        </Box>
+
+                        <Box>
+                          <Typography variant="caption" sx={{ color: '#94a3b8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', mb: 1 }}>
+                            Tenant Custom Settings & Enabled Features
+                          </Typography>
+                          <Box 
+                            sx={{ 
+                              p: 2.5, 
+                              borderRadius: '16px', 
+                              bgcolor: '#f8fafc', 
+                              border: '1px solid rgba(0,0,0,0.03)',
+                              fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
+                              fontSize: '0.825rem',
+                              color: '#475569',
+                              whiteSpace: 'pre-wrap',
+                              maxHeight: '220px',
+                              overflowY: 'auto'
+                            }}
+                          >
+                            {JSON.stringify(selectedTenant.settings || {}, null, 2)}
+                          </Box>
+                        </Box>
+
+                        {/* Secret Keys Panel */}
+                        <Box sx={{ p: 2.5, borderRadius: '16px', bgcolor: 'rgba(239, 68, 68, 0.03)', border: '1px solid rgba(239, 68, 68, 0.1)' }}>
+                          <Typography variant="subtitle2" sx={{ color: '#ef4444', fontWeight: 800, mb: 1 }}>
+                            ⚠️ Sandbox Security & Keys:
+                          </Typography>
+                          <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2}>
+                            <Box sx={{ minWidth: 0, flex: 1 }}>
+                              <Typography variant="caption" sx={{ color: '#94a3b8', fontWeight: 800, textTransform: 'uppercase' }}>
+                                REST API Key
+                              </Typography>
+                              <Typography variant="body2" sx={{ fontFamily: 'monospace', color: '#1e293b', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                {selectedTenant.apiKey || 'No custom API key assigned'}
+                              </Typography>
+                            </Box>
+                            <Button
+                              size="small"
+                              onClick={() => {
+                                navigator.clipboard.writeText(selectedTenant.apiKey || '');
+                                alert('API Key copied to clipboard successfully!');
+                              }}
+                              sx={{ color: '#7c3aed', fontWeight: 800, fontSize: '0.75rem', textTransform: 'none' }}
+                            >
+                              Copy Key
+                            </Button>
+                          </Stack>
+                        </Box>
+                      </Stack>
+                    </Box>
+                  ) : (
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', p: 5, borderRadius: '24px', bgcolor: '#f8fafc', border: '1px dashed rgba(0,0,0,0.06)' }}>
+                      <Typography sx={{ color: '#94a3b8', fontWeight: 600 }}>Select a tenant to inspect config details</Typography>
+                    </Box>
+                  )}
+                </Box>
+              )}
+            </Stack>
+          </Box>
+        </Container>
+      )}
+
       {/* ══════════ Key Services Grid ══════════ */}
       <Container maxWidth="xl" sx={{ py: { xs: 10, md: 16 }, position: 'relative', zIndex: 10 }}>
         <Stack spacing={3} sx={{ mb: 10, textAlign: 'center', alignItems: 'center' }}>
@@ -538,29 +853,76 @@ export default function Landing() {
               </Typography>
               . All rights reserved.
             </Typography>
-            <Stack direction="row" spacing={4}>
-              {['X / Twitter', 'GitHub', 'LinkedIn'].map((link) => (
-                <Typography
-                  key={link}
-                  variant="body2"
-                  className="interactive"
-                  component="a"
-                  href="#"
-                  sx={{
-                    color: '#94a3b8',
-                    fontWeight: 600,
-                    textDecoration: 'none',
-                    '&:hover': { color: '#7c3aed' },
-                    transition: 'color 0.3s'
-                  }}
-                >
-                  {link}
-                </Typography>
-              ))}
+            <Stack direction="row" spacing={4} alignItems="center">
+              <Typography
+                variant="body2"
+                className="interactive"
+                component="button"
+                onClick={() => setPolicyType('terms')}
+                sx={{
+                  background: 'none',
+                  border: 'none',
+                  p: 0,
+                  cursor: 'pointer',
+                  color: '#94a3b8',
+                  fontWeight: 600,
+                  fontSize: '0.875rem',
+                  textDecoration: 'none',
+                  fontFamily: 'inherit',
+                  '&:hover': { color: '#7c3aed' },
+                  transition: 'color 0.3s'
+                }}
+              >
+                Terms & Conditions
+              </Typography>
+              <Typography
+                variant="body2"
+                className="interactive"
+                component="button"
+                onClick={() => setPolicyType('privacy')}
+                sx={{
+                  background: 'none',
+                  border: 'none',
+                  p: 0,
+                  cursor: 'pointer',
+                  color: '#94a3b8',
+                  fontWeight: 600,
+                  fontSize: '0.875rem',
+                  textDecoration: 'none',
+                  fontFamily: 'inherit',
+                  '&:hover': { color: '#7c3aed' },
+                  transition: 'color 0.3s'
+                }}
+              >
+                Privacy Policy
+              </Typography>
+              <Typography
+                variant="body2"
+                className="interactive"
+                component="button"
+                onClick={() => setPolicyType('refund')}
+                sx={{
+                  background: 'none',
+                  border: 'none',
+                  p: 0,
+                  cursor: 'pointer',
+                  color: '#94a3b8',
+                  fontWeight: 600,
+                  fontSize: '0.875rem',
+                  textDecoration: 'none',
+                  fontFamily: 'inherit',
+                  '&:hover': { color: '#7c3aed' },
+                  transition: 'color 0.3s'
+                }}
+              >
+                Refund Policy (No Refunds)
+              </Typography>
             </Stack>
           </Stack>
         </Container>
       </Box>
+
+      <PolicyDialog type={policyType} open={policyType !== null} onClose={() => setPolicyType(null)} />
     </Box>
   );
 }

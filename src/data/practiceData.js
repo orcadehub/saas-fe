@@ -123,9 +123,9 @@ export const practiceData = [
         useExcel: true
       },
       {
-        _id: 'subtopic-programming-nested-loops',
-        title: 'Nested Loops',
-        description: 'Learn double/triple loops, patterns, optimization, break/continue, and matrix applications.',
+        _id: 'subtopic-programming-while-loops',
+        title: 'While Loops',
+        description: 'Learn entry-controlled while loops, sentinel loops, state tracking, and termination validation.',
         useExcel: true
       },
       {
@@ -142,9 +142,15 @@ export const practiceData = [
         useExcel: true
       },
       {
-        _id: 'subtopic-programming-2d-arrays',
-        title: '2D Arrays',
-        description: 'Learn declaration, initialization, traversal, matrix operations, and common applications.',
+        _id: 'subtopic-programming-recursion',
+        title: 'Recursion',
+        description: 'Learn base cases, call stacks, recurrence relations, and head/tail recursion.',
+        useExcel: true
+      },
+      {
+        _id: 'subtopic-programming-matrices',
+        title: 'Matrices',
+        description: 'Learn 2D array representation, traversal, searching, row/column operations, and matrix math.',
         useExcel: true
       },
       {

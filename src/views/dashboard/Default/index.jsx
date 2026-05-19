@@ -473,9 +473,10 @@ export default function Dashboard() {
                   pr: 2
                 }}
               >
-                {Array.from({ length: 4 }).map((_, monthOffset) => {
+                {Array.from({ length: 6 }).map((_, monthOffset) => {
                   const monthDate = new Date();
-                  monthDate.setMonth(monthDate.getMonth() - (3 - monthOffset));
+                  monthDate.setDate(1); // Set to 1st to prevent Date overflow bug
+                  monthDate.setMonth(monthDate.getMonth() - (5 - monthOffset));
                   const monthName = monthDate.toLocaleDateString('en-US', { month: 'short' });
                   const daysInMonth = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0).getDate();
                   const firstDay = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1).getDay();
@@ -493,7 +494,10 @@ export default function Dashboard() {
                           <Box key={`e-${i}`} sx={{ width: 18, height: 18 }} />
                         ))}
                         {Array.from({ length: daysInMonth }).map((_, day) => {
-                          const dateStr = new Date(monthDate.getFullYear(), monthDate.getMonth(), day + 1).toISOString().split('T')[0];
+                          const year = monthDate.getFullYear();
+                          const month = String(monthDate.getMonth() + 1).padStart(2, '0');
+                          const date = String(day + 1).padStart(2, '0');
+                          const dateStr = `${year}-${month}-${date}`;
                           const count = activityData[dateStr] || 0;
                           const level = count === 0 ? 0 : count < 3 ? 1 : count < 6 ? 2 : count < 9 ? 3 : 4;
                           const colors = ['#f1f5f9', '#c7d2fe', '#818cf8', '#6366f1', '#4338ca'];

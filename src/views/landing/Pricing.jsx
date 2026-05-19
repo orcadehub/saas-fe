@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 
 import DarkNavbar from 'components/DarkNavbar';
 import AnimatedGridBackground from 'components/AnimatedGridBackground';
+import PolicyDialog from 'components/PolicyDialogs';
 import { LetterByLetterText } from 'components/ThemeElements';
 
 const MotionBox = motion.create(Box);
@@ -15,6 +16,7 @@ const MotionCard = motion.create(Card);
 
 export default function Pricing() {
   const navigate = useNavigate();
+  const [policyType, setPolicyType] = useState(null);
   const {
     state: { borderRadius }
   } = useConfig();
@@ -275,7 +277,102 @@ export default function Pricing() {
             ))}
           </Box>
         </Container>
+        {/* Footer */}
+        <Box
+          sx={{
+            borderTop: '1px solid rgba(0,0,0,0.05)',
+            py: 6,
+            position: 'relative',
+            zIndex: 10,
+            background: '#ffffff'
+          }}
+        >
+          <Container maxWidth="xl">
+            <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems="center" spacing={3}>
+              <Typography variant="body2" sx={{ color: '#94a3b8', fontWeight: 600 }}>
+                © {new Date().getFullYear()}{' '}
+                <Typography
+                  component="a"
+                  href="https://orcadehub.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  sx={{ color: '#94a3b8', textDecoration: 'none', '&:hover': { color: '#7c3aed' }, transition: 'color 0.3s' }}
+                >
+                  Orcadehub Innovations LLP
+                </Typography>
+                . All rights reserved.
+              </Typography>
+              <Stack direction="row" spacing={4} alignItems="center">
+                <Typography
+                  variant="body2"
+                  className="interactive"
+                  component="button"
+                  onClick={() => setPolicyType('terms')}
+                  sx={{
+                    background: 'none',
+                    border: 'none',
+                    p: 0,
+                    cursor: 'pointer',
+                    color: '#94a3b8',
+                    fontWeight: 600,
+                    fontSize: '0.875rem',
+                    textDecoration: 'none',
+                    fontFamily: 'inherit',
+                    '&:hover': { color: '#7c3aed' },
+                    transition: 'color 0.3s'
+                  }}
+                >
+                  Terms & Conditions
+                </Typography>
+                <Typography
+                  variant="body2"
+                  className="interactive"
+                  component="button"
+                  onClick={() => setPolicyType('privacy')}
+                  sx={{
+                    background: 'none',
+                    border: 'none',
+                    p: 0,
+                    cursor: 'pointer',
+                    color: '#94a3b8',
+                    fontWeight: 600,
+                    fontSize: '0.875rem',
+                    textDecoration: 'none',
+                    fontFamily: 'inherit',
+                    '&:hover': { color: '#7c3aed' },
+                    transition: 'color 0.3s'
+                  }}
+                >
+                  Privacy Policy
+                </Typography>
+                <Typography
+                  variant="body2"
+                  className="interactive"
+                  component="button"
+                  onClick={() => setPolicyType('refund')}
+                  sx={{
+                    background: 'none',
+                    border: 'none',
+                    p: 0,
+                    cursor: 'pointer',
+                    color: '#94a3b8',
+                    fontWeight: 600,
+                    fontSize: '0.875rem',
+                    textDecoration: 'none',
+                    fontFamily: 'inherit',
+                    '&:hover': { color: '#7c3aed' },
+                    transition: 'color 0.3s'
+                  }}
+                >
+                  Refund Policy (No Refunds)
+                </Typography>
+              </Stack>
+            </Stack>
+          </Container>
+        </Box>
       </Box>
+
+      <PolicyDialog type={policyType} open={policyType !== null} onClose={() => setPolicyType(null)} />
     </Box>
   );
 }

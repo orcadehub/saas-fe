@@ -23,6 +23,8 @@ export default function Login() {
     tenantConfig.load().then(setConfig).catch(console.error);
   }, []);
 
+  const isOrcode = !config || config.domain === 'orcode.in';
+
   return (
     <Box sx={{ minHeight: '100vh', position: 'relative', overflow: 'hidden' }}>
       {/* Main content */}
@@ -40,14 +42,14 @@ export default function Login() {
         {/* Left Side: Login Form */}
         <Box
           sx={{
-            flex: { xs: 'none', lg: '0 0 500px', xl: '0 0 600px' },
+            flex: { xs: 'none', lg: isOrcode ? '0 0 500px' : '1', xl: isOrcode ? '0 0 600px' : '1' },
             minHeight: { xs: '100vh', lg: 'auto' },
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
             px: { xs: 2, sm: 4 },
             py: 8,
-            borderRight: { lg: '1px solid rgba(0,0,0,0.05)' },
+            borderRight: { lg: isOrcode ? '1px solid rgba(0,0,0,0.05)' : 'none' },
             bgcolor: 'rgba(255,255,255,0.2)',
             backdropFilter: 'blur(10px)'
           }}
@@ -123,7 +125,7 @@ export default function Login() {
                     transition: 'color 0.3s'
                   }}
                 >
-                  © {new Date().getFullYear()} Orcadehub Innovations
+                  © {new Date().getFullYear()} Orcadehub Innovations LLP
                 </Typography>
               </Stack>
             </Box>
@@ -131,21 +133,23 @@ export default function Login() {
         </Box>
 
         {/* Right Side: Pricing/Tiers */}
-        <Box
-          sx={{
-            flex: 1,
-            height: { lg: '100vh' },
-            overflowY: { lg: 'auto' },
-            bgcolor: '#f8fafc',
-            py: { xs: 8, lg: 0 },
-            display: 'flex',
-            flexDirection: 'column'
-          }}
-        >
-          <Box sx={{ my: 'auto' }}>
-            <StudentTiers />
+        {isOrcode && (
+          <Box
+            sx={{
+              flex: 1,
+              height: { lg: '100vh' },
+              overflowY: { lg: 'auto' },
+              bgcolor: '#f8fafc',
+              py: { xs: 8, lg: 0 },
+              display: 'flex',
+              flexDirection: 'column'
+            }}
+          >
+            <Box sx={{ my: 'auto' }}>
+              <StudentTiers />
+            </Box>
           </Box>
-        </Box>
+        )}
       </Box>
     </Box>
   );

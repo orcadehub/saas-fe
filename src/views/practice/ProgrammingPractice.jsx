@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { EmojiEvents } from '@mui/icons-material';
 import { Box, Card, CardContent, Typography, Stack, LinearProgress, Chip, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { IconCode, IconCircleCheck, IconStar } from '@tabler/icons-react';
+import { IconCode, IconCircleCheck, IconStar, IconDatabase } from '@tabler/icons-react';
 import CardSkeleton from 'ui-component/skeletons/CardSkeleton';
 import apiService from 'services/apiService';
 import { motion } from 'framer-motion';
@@ -110,7 +110,7 @@ export default function ProgrammingPractice() {
                 '&:hover': { bgcolor: '#f8fafc', borderColor: '#cbd5e1', color: '#1e293b' }
               }}
             >
-              Hall of Fame
+              Orca Leaderboard
             </Button>
           </Stack>
           <Typography variant="body1" sx={{ color: '#64748b', fontSize: '1.1rem', fontWeight: 500 }}>
@@ -288,6 +288,71 @@ export default function ProgrammingPractice() {
               </MotionCard>
             );
           })}
+
+          <MotionCard
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: topics.length * 0.05 }}
+            sx={{
+              gridColumn: '1 / -1',
+              cursor: 'pointer',
+              borderRadius: '24px',
+              bgcolor: '#fff',
+              border: '1px solid #f1f5f9',
+              boxShadow: '0 4px 20px rgba(15, 23, 42, 0.03)',
+              transition: 'all 0.3s',
+              overflow: 'hidden',
+              '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 15px 45px rgba(99, 102, 241, 0.08)', borderColor: '#e2e8f0' }
+            }}
+            onClick={() => navigate('/practice/dsa')}
+          >
+            <CardContent sx={{ p: { xs: 3.5, md: 4 } }}>
+              <Stack direction={{ xs: 'column', md: 'row' }} spacing={4} alignItems={{ xs: 'flex-start', md: 'center' }} justifyContent="space-between">
+                <Stack direction="row" spacing={3} alignItems="center">
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: 64,
+                      height: 64,
+                      borderRadius: '16px',
+                      background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+                      color: '#fff',
+                      boxShadow: '0 10px 25px rgba(99, 102, 241, 0.25)'
+                    }}
+                  >
+                    <IconDatabase size={32} />
+                  </Box>
+                  <Box>
+                    <Typography variant="h3" sx={{ fontWeight: 850, color: '#1e293b', mb: 1, fontSize: '1.4rem' }}>
+                      Practice DSA Problems
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: '#64748b', fontWeight: 600, fontSize: '0.95rem', maxWidth: '700px', lineHeight: 1.6 }}>
+                      Advance your programming skills with Data Structures & Algorithms including Trees, Graphs, Stacks, Queues, Heaps, and Dynamic Programming.
+                    </Typography>
+                  </Box>
+                </Stack>
+                <Button
+                  variant="contained"
+                  sx={{
+                    borderRadius: '100px',
+                    px: 4,
+                    py: 1.5,
+                    bgcolor: '#6366f1',
+                    color: '#fff',
+                    fontWeight: 800,
+                    fontSize: '0.9rem',
+                    textTransform: 'none',
+                    boxShadow: '0 8px 25px rgba(99, 102, 241, 0.2)',
+                    '&:hover': { bgcolor: '#4f46e5', boxShadow: '0 12px 30px rgba(99, 102, 241, 0.3)' }
+                  }}
+                >
+                  Explore DSA
+                </Button>
+              </Stack>
+            </CardContent>
+          </MotionCard>
         </Box>
       )}
     </Box>

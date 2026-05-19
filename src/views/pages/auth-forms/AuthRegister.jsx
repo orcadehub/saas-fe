@@ -20,6 +20,7 @@ import Alert from '@mui/material/Alert';
 // project imports
 import AnimateButton from 'ui-component/extended/AnimateButton';
 import { strengthColor, strengthIndicator } from 'utils/password-strength';
+import PolicyDialog from 'components/PolicyDialogs';
 
 // assets
 import Visibility from '@mui/icons-material/Visibility';
@@ -58,7 +59,8 @@ export default function AuthRegister() {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
-  const [checked, setChecked] = useState(true);
+  const [checked, setChecked] = useState(false);
+  const [policyType, setPolicyType] = useState(null);
   const [loading, setLoading] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
@@ -242,9 +244,23 @@ export default function AuthRegister() {
         control={<Checkbox checked={checked} onChange={(e) => setChecked(e.target.checked)} color="primary" />}
         label={
           <Typography variant="subtitle1" sx={{ color: '#64748b' }}>
-            Agree with &nbsp;
-            <Typography variant="subtitle1" component={Link} to="#" sx={{ color: '#7c3aed', textDecoration: 'none', fontWeight: 600 }}>
-              Terms & Condition.
+            I agree with the{' '}
+            <Typography 
+              variant="subtitle1" 
+              component="span" 
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPolicyType('terms'); }} 
+              sx={{ color: '#7c3aed', cursor: 'pointer', textDecoration: 'underline', fontWeight: 600 }}
+            >
+              Terms & Conditions
+            </Typography>
+            {' '}and{' '}
+            <Typography 
+              variant="subtitle1" 
+              component="span" 
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPolicyType('privacy'); }} 
+              sx={{ color: '#7c3aed', cursor: 'pointer', textDecoration: 'underline', fontWeight: 600 }}
+            >
+              Privacy Policy
             </Typography>
           </Typography>
         }
@@ -257,7 +273,7 @@ export default function AuthRegister() {
             size="large"
             type="submit"
             variant="contained"
-            disabled={loading}
+            disabled={loading || !checked}
             sx={{
               background: 'linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)',
               py: 1.5,
@@ -269,6 +285,10 @@ export default function AuthRegister() {
               '&:hover': {
                 background: 'linear-gradient(135deg, #6d28d9, #4338ca)',
                 transform: 'translateY(-2px)'
+              },
+              '&:disabled': {
+                background: 'rgba(0, 0, 0, 0.12)',
+                color: 'rgba(0, 0, 0, 0.26)'
               }
             }}
           >
@@ -285,6 +305,8 @@ export default function AuthRegister() {
           </Link>
         </Typography>
       </Box>
+
+      <PolicyDialog type={policyType} open={policyType !== null} onClose={() => setPolicyType(null)} />
     </form>
   );
 }

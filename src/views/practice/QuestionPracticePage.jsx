@@ -20,7 +20,10 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  TextField
+  TextField,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails
 } from '@mui/material';
 import {
   PlayArrow,
@@ -47,7 +50,8 @@ import {
   ErrorTwoTone,
   Send,
   DeleteOutline,
-  EditOutlined
+  EditOutlined,
+  ExpandMore
 } from '@mui/icons-material';
 import Editor from '@monaco-editor/react';
 import { submitCode } from 'services/pistonService';
@@ -76,6 +80,54 @@ const langMeta = {
     color: '#555555',
     id: 50,
     template: `#include <stdio.h>\n\nint main() {\n    printf("Hello ORCA!\\n");\n    return 0;\n}`
+  },
+  javascript: {
+    label: 'JavaScript',
+    color: '#f1e05a',
+    id: 93,
+    template: `console.log("Hello ORCA!");`
+  },
+  typescript: {
+    label: 'TypeScript',
+    color: '#3178c6',
+    id: 74,
+    template: `const message: string = "Hello ORCA!";\nconsole.log(message);`
+  },
+  go: {
+    label: 'Go',
+    color: '#00ADD8',
+    id: 60,
+    template: `package main\n\nimport "fmt"\n\nfunc main() {\n    fmt.Println("Hello ORCA!")\n}`
+  },
+  rust: {
+    label: 'Rust',
+    color: '#dea584',
+    id: 73,
+    template: `fn main() {\n    println!("Hello ORCA!");\n}`
+  },
+  kotlin: {
+    label: 'Kotlin',
+    color: '#A97BFF',
+    id: 78,
+    template: `fun main() {\n    println("Hello ORCA!")\n}`
+  },
+  ruby: {
+    label: 'Ruby',
+    color: '#CC342D',
+    id: 72,
+    template: `puts "Hello ORCA!"`
+  },
+  php: {
+    label: 'PHP',
+    color: '#4F5D95',
+    id: 68,
+    template: `<?php\necho "Hello ORCA!\\n";`
+  },
+  bash: {
+    label: 'Bash',
+    color: '#89e051',
+    id: 46,
+    template: `#!/bin/bash\necho "Hello ORCA!"`
   }
 };
 
@@ -104,6 +156,7 @@ export default function QuestionPracticePage() {
   const [compilerSplit, setCompilerSplit] = useState(65);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  const [isQuestionCompleted, setIsQuestionCompleted] = useState(false);
 
   const editorSplitRef = useRef(null);
 
@@ -127,6 +180,7 @@ export default function QuestionPracticePage() {
         const conf = await tenantConfig.load();
         setConfig(conf);
         await fetchQuestion(conf);
+        await fetchCompletionStatus(conf);
       } catch (err) {
         console.error('Init failed:', err);
       } finally {
@@ -151,6 +205,25 @@ export default function QuestionPracticePage() {
       }
     } catch (err) {
       console.error('Fetch failed:', err);
+    }
+  };
+
+  const fetchCompletionStatus = async (conf) => {
+    try {
+      const token = localStorage.getItem('studentToken');
+      if (!token) return;
+      const apiBase = import.meta.env.DEV ? 'http://localhost:4000/api' : conf?.apiEndpoint || 'https://backend.orcode.in/api';
+      const response = await fetch(`${apiBase}/practice-submissions/question/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (data && data.isCompleted) {
+          setIsQuestionCompleted(true);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch completion status:', err);
     }
   };
 
@@ -200,7 +273,9 @@ export default function QuestionPracticePage() {
       index: i + 1,
       status: 'Running',
       type: tc.isPublic ? 'Public' : 'Hidden',
-      running: true
+      running: true,
+      input: tc.input?.value || tc.input,
+      expected: tc.output?.value || tc.output
     }));
     setSubmitResults(currentResults);
     let totalCpuTime = 0,
@@ -212,12 +287,12 @@ export default function QuestionPracticePage() {
         const userOut = result.stdout?.trim() || '',
           expected = (allTC[i].output?.value || allTC[i].output)?.toString().trim();
         const passed = userOut === expected && result.status.id === 3;
-        currentResults[i] = { ...currentResults[i], status: passed ? 'Passed' : 'Failed', passed, running: false };
+        currentResults[i] = { ...currentResults[i], status: passed ? 'Passed' : 'Failed', passed, running: false, actual: userOut };
         if (!passed) failCount++;
         totalCpuTime += result.time || 0;
         maxMemory = Math.max(maxMemory, result.memory || 0);
       } catch (err) {
-        currentResults[i] = { ...currentResults[i], status: 'Error', passed: false, running: false };
+        currentResults[i] = { ...currentResults[i], status: 'Error', passed: false, running: false, actual: err.message };
         failCount++;
       }
       setSubmitResults([...currentResults]);
@@ -241,7 +316,12 @@ export default function QuestionPracticePage() {
         })
       });
       const data = await response.json();
-      if (data.success) finalStats.coinsEarned = data.coinsEarned || 0;
+      if (data.success) {
+        finalStats.coinsEarned = data.coinsEarned || 0;
+        if (data.isFirstCompletion || failCount === 0) {
+          setIsQuestionCompleted(true);
+        }
+      }
     } catch (err) {
       console.error('Save failed:', err);
     }
@@ -366,6 +446,22 @@ export default function QuestionPracticePage() {
           </Breadcrumbs>
         </Stack>
         <Stack direction="row" spacing={1} alignItems="center">
+          {isQuestionCompleted && (
+            <Chip
+              icon={<CheckCircle sx={{ fontSize: 16, color: '#fff !important' }} />}
+              label="Completed"
+              size="small"
+              sx={{
+                bgcolor: '#10b981',
+                color: '#fff',
+                fontWeight: 900,
+                fontSize: '0.7rem',
+                height: 28,
+                borderRadius: '8px',
+                '& .MuiChip-icon': { color: '#fff' }
+              }}
+            />
+          )}
           <Tooltip title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}>
             <IconButton onClick={toggleFullscreen} sx={{ color: t.textMuted }}>
               {isFullscreen ? <FullscreenExit size={20} /> : <Fullscreen size={20} />}
@@ -508,30 +604,56 @@ export default function QuestionPracticePage() {
                   </Box>
                   <Stack spacing={1.5}>
                     {submitResults.map((r, i) => (
-                      <Box
+                      <Accordion
                         key={i}
+                        disableGutters
+                        elevation={0}
                         sx={{
-                          p: 2,
-                          borderRadius: '16px',
                           bgcolor: r.running ? `${t.accent}05` : r.passed ? `${t.success}05` : `${t.error}05`,
                           border: `1px solid ${t.border}`,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between'
+                          borderRadius: '16px !important',
+                          '&:before': { display: 'none' }
                         }}
                       >
-                        <Stack direction="row" spacing={2} alignItems="center">
-                          {r.running ? (
-                            <CircularProgress size={16} thickness={6} sx={{ color: t.accent }} />
-                          ) : r.passed ? (
-                            <CheckCircleTwoTone sx={{ color: t.success }} />
-                          ) : (
-                            <ErrorTwoTone sx={{ color: t.error }} />
-                          )}
-                          <Typography sx={{ fontWeight: 800 }}>Case {r.index}</Typography>
-                        </Stack>
-                        <Chip label={r.status} size="small" />
-                      </Box>
+                        <AccordionSummary
+                          expandIcon={!r.running ? <ExpandMore sx={{ color: r.passed ? t.success : t.error }} /> : null}
+                          sx={{ p: 2, '& .MuiAccordionSummary-content': { m: 0 } }}
+                        >
+                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                            <Stack direction="row" spacing={2} alignItems="center">
+                              {r.running ? (
+                                <CircularProgress size={16} thickness={6} sx={{ color: t.accent }} />
+                              ) : r.passed ? (
+                                <CheckCircleTwoTone sx={{ color: t.success }} />
+                              ) : (
+                                <ErrorTwoTone sx={{ color: t.error }} />
+                              )}
+                              <Typography sx={{ fontWeight: 800 }}>Case {r.index}</Typography>
+                            </Stack>
+                            <Chip label={r.status} size="small" sx={{ color: r.passed ? t.success : r.running ? t.accent : t.error, bgcolor: 'transparent', fontWeight: 900 }} />
+                          </Box>
+                        </AccordionSummary>
+                        {!r.running && (
+                          <AccordionDetails sx={{ pt: 0, pb: 2, px: 2 }}>
+                            <Box sx={{ p: 2, bgcolor: t.bg, borderRadius: '12px', border: `1px solid ${t.border}` }}>
+                              <Stack spacing={1.5}>
+                                <Box>
+                                  <Typography variant="caption" sx={{ color: t.textMuted, fontWeight: 800 }}>INPUT</Typography>
+                                  <Typography sx={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '0.8rem', mt: 0.5, whiteSpace: 'pre-wrap' }}>{r.input}</Typography>
+                                </Box>
+                                <Box>
+                                  <Typography variant="caption" sx={{ color: t.textMuted, fontWeight: 800 }}>EXPECTED OUTPUT</Typography>
+                                  <Typography sx={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '0.8rem', color: t.success, mt: 0.5, whiteSpace: 'pre-wrap' }}>{r.expected}</Typography>
+                                </Box>
+                                <Box>
+                                  <Typography variant="caption" sx={{ color: t.textMuted, fontWeight: 800 }}>YOUR OUTPUT</Typography>
+                                  <Typography sx={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '0.8rem', color: r.passed ? t.success : t.error, mt: 0.5, whiteSpace: 'pre-wrap' }}>{r.actual || 'No Output'}</Typography>
+                                </Box>
+                              </Stack>
+                            </Box>
+                          </AccordionDetails>
+                        )}
+                      </Accordion>
                     ))}
                   </Stack>
                   {!isSubmitting && isAllPassed && (
@@ -547,9 +669,6 @@ export default function QuestionPracticePage() {
                     >
                       <EmojiEvents sx={{ fontSize: 40, mb: 1 }} />
                       <Typography sx={{ fontWeight: 900, mb: 0.5 }}>SOLVED! ✨</Typography>
-                      <Typography variant="caption" sx={{ fontWeight: 700, display: 'block' }}>
-                        You earned +{submitStats.coinsEarned} Coins
-                      </Typography>
                     </Box>
                   )}
                 </MotionBox>
@@ -576,11 +695,26 @@ export default function QuestionPracticePage() {
                 value={language}
                 onChange={(e) => setLanguage(e.target.value)}
                 size="small"
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      '& .MuiList-root': {
+                        display: 'grid',
+                        gridTemplateColumns: '1fr 1fr',
+                        gap: '2px',
+                        p: 1
+                      }
+                    }
+                  }
+                }}
                 sx={{ height: 32, fontWeight: 900, fontSize: '0.75rem', '& .MuiOutlinedInput-notchedOutline': { border: 'none' } }}
               >
                 {Object.entries(langMeta).map(([k, v]) => (
-                  <MenuItem key={k} value={k} sx={{ fontWeight: 700, fontSize: '0.8rem' }}>
-                    {v.label}
+                  <MenuItem key={k} value={k} sx={{ fontWeight: 700, fontSize: '0.8rem', borderRadius: '6px' }}>
+                    <Stack direction="row" alignItems="center" spacing={1.5}>
+                      <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: v.color }} />
+                      <Typography sx={{ fontWeight: 700, fontSize: '0.75rem' }}>{v.label}</Typography>
+                    </Stack>
                   </MenuItem>
                 ))}
               </Select>

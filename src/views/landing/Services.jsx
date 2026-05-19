@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DarkNavbar from 'components/DarkNavbar';
 import AnimatedGridBackground from 'components/AnimatedGridBackground';
+import PolicyDialog from 'components/PolicyDialogs';
 import {
   Code,
   Assessment,
@@ -30,6 +31,7 @@ const MotionCard = motion.create(Card);
 
 export default function Services() {
   const navigate = useNavigate();
+  const [policyType, setPolicyType] = useState(null);
   const {
     state: { borderRadius }
   } = useConfig();
@@ -475,28 +477,76 @@ export default function Services() {
               </Typography>
               . All rights reserved.
             </Typography>
-            <Stack direction="row" spacing={4}>
-              {['X / Twitter', 'GitHub', 'LinkedIn'].map((link) => (
-                <Typography
-                  key={link}
-                  variant="body2"
-                  component="a"
-                  href="#"
-                  sx={{
-                    color: '#94a3b8',
-                    fontWeight: 600,
-                    textDecoration: 'none',
-                    '&:hover': { color: '#7c3aed' },
-                    transition: 'color 0.3s'
-                  }}
-                >
-                  {link}
-                </Typography>
-              ))}
+            <Stack direction="row" spacing={4} alignItems="center">
+              <Typography
+                variant="body2"
+                className="interactive"
+                component="button"
+                onClick={() => setPolicyType('terms')}
+                sx={{
+                  background: 'none',
+                  border: 'none',
+                  p: 0,
+                  cursor: 'pointer',
+                  color: '#94a3b8',
+                  fontWeight: 600,
+                  fontSize: '0.875rem',
+                  textDecoration: 'none',
+                  fontFamily: 'inherit',
+                  '&:hover': { color: '#7c3aed' },
+                  transition: 'color 0.3s'
+                }}
+              >
+                Terms & Conditions
+              </Typography>
+              <Typography
+                variant="body2"
+                className="interactive"
+                component="button"
+                onClick={() => setPolicyType('privacy')}
+                sx={{
+                  background: 'none',
+                  border: 'none',
+                  p: 0,
+                  cursor: 'pointer',
+                  color: '#94a3b8',
+                  fontWeight: 600,
+                  fontSize: '0.875rem',
+                  textDecoration: 'none',
+                  fontFamily: 'inherit',
+                  '&:hover': { color: '#7c3aed' },
+                  transition: 'color 0.3s'
+                }}
+              >
+                Privacy Policy
+              </Typography>
+              <Typography
+                variant="body2"
+                className="interactive"
+                component="button"
+                onClick={() => setPolicyType('refund')}
+                sx={{
+                  background: 'none',
+                  border: 'none',
+                  p: 0,
+                  cursor: 'pointer',
+                  color: '#94a3b8',
+                  fontWeight: 600,
+                  fontSize: '0.875rem',
+                  textDecoration: 'none',
+                  fontFamily: 'inherit',
+                  '&:hover': { color: '#7c3aed' },
+                  transition: 'color 0.3s'
+                }}
+              >
+                Refund Policy (No Refunds)
+              </Typography>
             </Stack>
           </Stack>
         </Container>
       </Box>
+
+      <PolicyDialog type={policyType} open={policyType !== null} onClose={() => setPolicyType(null)} />
     </Box>
   );
 }

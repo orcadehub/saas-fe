@@ -73,6 +73,8 @@ const CodingProfiles = Loadable(lazy(() => import('views/pages/user-profile/Codi
 const TestExecutionPage = Loadable(lazy(() => import('views/practice/TestExecutionPage')));
 const MCQPracticePage = Loadable(lazy(() => import('views/practice/MCQPracticePage')));
 const TopicPracticePage = Loadable(lazy(() => import('views/practice/TopicPracticePage')));
+const DSAPractice = Loadable(lazy(() => import('views/practice/DSAPractice')));
+const DSAQuestions = Loadable(lazy(() => import('views/practice/DSAQuestions')));
 
 import LandingLayout from 'layout/LandingLayout';
 
@@ -202,6 +204,14 @@ const MainRoutes = {
         {
           path: 'practice/programming',
           element: <ProgrammingPractice />
+        },
+        {
+          path: 'practice/dsa',
+          element: <DSAPractice />
+        },
+        {
+          path: 'practice/dsa/:topic',
+          element: <DSAQuestions />
         },
         {
           path: 'practice/programming/:topic',

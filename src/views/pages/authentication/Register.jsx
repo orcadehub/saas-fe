@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 
 import useMediaQuery from '@mui/material/useMediaQuery';
@@ -13,12 +13,20 @@ import AuthRegister from '../auth-forms/AuthRegister';
 import StudentTiers from 'components/StudentTiers';
 
 export default function Register() {
+  const navigate = useNavigate();
   const downMD = useMediaQuery((theme) => theme.breakpoints.down('md'));
   const [config, setConfig] = useState(null);
 
   useEffect(() => {
-    tenantConfig.load().then(setConfig).catch(console.error);
-  }, []);
+    tenantConfig.load().then((res) => {
+      setConfig(res);
+      if (res && res.domain !== 'orcode.in') {
+        navigate('/login');
+      }
+    }).catch(console.error);
+  }, [navigate]);
+
+  const isOrcode = !config || config.domain === 'orcode.in';
 
   return (
     <Box sx={{ minHeight: '100vh', position: 'relative', overflow: 'hidden' }}>
@@ -35,14 +43,14 @@ export default function Register() {
         {/* Left Side: Register Form */}
         <Box
           sx={{
-            flex: { xs: 'none', lg: '0 0 500px', xl: '0 0 600px' },
+            flex: { xs: 'none', lg: isOrcode ? '0 0 500px' : '1', xl: isOrcode ? '0 0 600px' : '1' },
             minHeight: { xs: '100vh', lg: 'auto' },
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
             px: { xs: 2, sm: 4 },
             py: 8,
-            borderRight: { lg: '1px solid rgba(0,0,0,0.05)' },
+            borderRight: { lg: isOrcode ? '1px solid rgba(0,0,0,0.05)' : 'none' },
             bgcolor: 'rgba(255,255,255,0.2)',
             backdropFilter: 'blur(10px)'
           }}
@@ -100,7 +108,7 @@ export default function Register() {
                     transition: 'color 0.3s'
                   }}
                 >
-                  © {new Date().getFullYear()} Orcadehub Innovations
+                  © {new Date().getFullYear()} Orcadehub Innovations LLP
                 </Typography>
               </Stack>
             </Box>
@@ -108,21 +116,23 @@ export default function Register() {
         </Box>
 
         {/* Right Side: Pricing/Tiers */}
-        <Box
-          sx={{
-            flex: 1,
-            height: { lg: '100vh' },
-            overflowY: { lg: 'auto' },
-            bgcolor: '#f8fafc',
-            py: { xs: 8, lg: 0 },
-            display: 'flex',
-            flexDirection: 'column'
-          }}
-        >
-          <Box sx={{ my: 'auto' }}>
-            <StudentTiers />
+        {isOrcode && (
+          <Box
+            sx={{
+              flex: 1,
+              height: { lg: '100vh' },
+              overflowY: { lg: 'auto' },
+              bgcolor: '#f8fafc',
+              py: { xs: 8, lg: 0 },
+              display: 'flex',
+              flexDirection: 'column'
+            }}
+          >
+            <Box sx={{ my: 'auto' }}>
+              <StudentTiers />
+            </Box>
           </Box>
-        </Box>
+        )}
       </Box>
     </Box>
   );

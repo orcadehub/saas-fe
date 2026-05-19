@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, Typography, Box, CircularProgress } from '@mui/material';
-import { IconTrophy, IconClipboardList, IconCode } from '@tabler/icons-react';
+import { IconTrophy, IconClipboardList, IconCode, IconHierarchy } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useDashboard } from 'contexts/DashboardContext';
+import dsaData from 'data/dsa_problems.json';
 
 const MotionCard = motion.create(Card);
 
@@ -52,6 +53,8 @@ export default function Practice() {
     load();
   }, []);
 
+  const dsaCount = dsaData.reduce((acc, topic) => acc + topic.problems.length, 0);
+
   const practiceCategories = [
     {
       id: 'gamified',
@@ -61,6 +64,8 @@ export default function Practice() {
       color: '#f59e0b',
       bg: '#fffbeb',
       route: '/practice/gamified',
+      count: 10,
+      countLabel: 'Games',
       tags: ['Interactive', 'Game Based']
     },
     {
@@ -71,18 +76,33 @@ export default function Practice() {
       color: '#ec4899',
       bg: '#fdf2f8',
       route: '/practice/aptitude',
-      questionsCount: statsLoading ? null : practiceStats?.aptitudeCount || 0,
+      count: statsLoading ? null : practiceStats?.aptitudeCount || 0,
+      countLabel: 'Questions',
       tags: ['MCQ Based', 'Topic Wise']
     },
     {
       id: 'programming',
       title: 'Orca Practice',
-      description: 'Solve coding challenges across multiple languages with an integrated IDE and real-time execution.',
+      description: 'Master basic programming concepts from fundamentals up to arrays, strings, and recursion.',
       icon: IconCode,
       color: '#6366f1',
       bg: '#f5f3ff',
       route: '/practice/programming',
+      count: 170,
+      countLabel: 'Questions',
       tags: ['Multi Language', 'IDE']
+    },
+    {
+      id: 'dsa',
+      title: 'DSA Practice',
+      description: 'Tackle medium to advanced level Data Structures and Algorithms with curated topics and problems.',
+      icon: IconHierarchy,
+      color: '#10b981',
+      bg: '#ecfdf5',
+      route: '/practice/dsa',
+      count: dsaCount,
+      countLabel: 'Questions',
+      tags: ['Data Structures', 'Algorithms']
     }
   ];
 
@@ -193,9 +213,9 @@ export default function Practice() {
                         {category.title}
                       </Typography>
                     </Box>
-                    {category.questionsCount !== undefined && (
+                    {category.count !== undefined && category.count !== null && (
                       <Box sx={{ textAlign: 'right' }}>
-                        {statsLoading ? (
+                        {statsLoading && category.id === 'aptitude' ? (
                           <CircularProgress size={16} sx={{ color: category.color }} />
                         ) : (
                           <>
@@ -207,7 +227,7 @@ export default function Practice() {
                                 lineHeight: 1
                               }}
                             >
-                              {category.questionsCount.toLocaleString()}
+                              {category.count.toLocaleString()}
                             </Typography>
                             <Typography
                               sx={{
@@ -218,7 +238,7 @@ export default function Practice() {
                                 letterSpacing: '0.5px'
                               }}
                             >
-                              Questions
+                              {category.countLabel}
                             </Typography>
                           </>
                         )}

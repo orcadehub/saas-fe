@@ -101,7 +101,7 @@ export default function PracticeLeaderboard() {
                 >
                   Orca Practice
                 </Link>
-                <Typography sx={{ color: '#1e293b', fontWeight: 800 }}>Hall of Fame</Typography>
+                <Typography sx={{ color: '#1e293b', fontWeight: 800 }}>Orca Leaderboard</Typography>
               </Breadcrumbs>
             </Stack>
             <Typography
